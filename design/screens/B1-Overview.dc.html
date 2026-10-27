@@ -92,8 +92,8 @@ body{margin:0;background:var(--canvas)}
           </div>
           <a href="B2-ServiceMap.dc.html" aria-label="Service map 열기" style="position: relative; display: block; flex: 1; min-height: 200px; aspect-ratio: 600 / 300">
             <svg viewBox="0 0 600 300" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%" aria-hidden="true">
-              <path d="M110 150L330 60M110 150L330 150M110 150L330 240M330 240L520 150M330 150L520 240M110 150L520 150" fill="none" style="stroke: var(--border)" stroke-width="1.2"></path>
-              <path d="M110 150L330 60" fill="none" style="stroke: var(--cause)" stroke-width="2"></path>
+              <path d="M102 150L306 60M102 150L306 150M102 150L306 240M306 240L504 150M306 150L504 240M102 150L504 150" fill="none" style="stroke: var(--border)" stroke-width="1.2"></path>
+              <path d="M102 150L306 60" fill="none" style="stroke: var(--cause)" stroke-width="2"></path>
             </svg>
             <sc-for list="{{miniNodes}}" as="n" hint-placeholder-count="6">
               <span style="{{n.pos}}">{{n.label}}</span>
@@ -244,8 +244,8 @@ class Component extends DCLogic {
       ['p99 latency', '486', 'ms', '평소 276 ms', '']
     ].map(([label, value, unit, note, c], i) => ({ label, value, unit, note, cell: kcell(i), valueStyle: 'font-size: 24px; line-height: 32px; font-weight: 500; font-family: var(--font); ' + c }));
     const miniNodes = [
-      ['frontend', 110, 150, 'err'], ['productcatalogservice', 330, 60, 'cause'], ['currencyservice', 330, 150], ['recommendationservice', 330, 240],
-      ['checkoutservice', 520, 150], ['cartservice', 520, 240]
+      ['frontend', 102, 150, 'err'], ['productcatalogservice', 306, 60, 'cause'], ['currencyservice', 306, 150], ['recommendationservice', 306, 240],
+      ['checkoutservice', 504, 150], ['cartservice', 504, 240]
     ].map(([label, x, y, k]) => ({ label,
       pos: 'position: absolute; left: ' + (x / 6) + '%; top: ' + (y / 3) + '%; transform: translate(-50%, -50%); padding: 2px 8px; border-radius: 6px; background: var(--bg1); white-space: nowrap; font-size: 12px; color: ' + (k === 'err' ? 'var(--error-text)' : 'var(--text)') + '; border: 1px solid ' + (k === 'cause' ? 'var(--cause)' : (k === 'err' ? 'color-mix(in srgb, var(--error) 50%, var(--border))' : 'var(--border)')) }));
     return {

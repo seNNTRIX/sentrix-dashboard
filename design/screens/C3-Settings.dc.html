@@ -251,7 +251,7 @@ body{margin:0;background:var(--canvas)}
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { theme: null, menu: true, tab: null, pref: 'light', ds: null, tests: {}, lokiTries: 0, keys: [true, true, false], showAdd: false, keyName: 'demo-export', newKey: null, copied: false, revoke: null, toast: null };
+    this.state = { theme: null, menu: true, tab: null, pref: props.theme ?? 'light', ds: null, tests: {}, lokiTries: 0, keys: [true, true, false], showAdd: false, keyName: 'demo-export', newKey: null, copied: false, revoke: null, toast: null };
   }
   componentWillUnmount() { clearTimeout(this._t); }
   toast(m) { this.setState({ toast: m }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 4000); }
@@ -263,7 +263,7 @@ class Component extends DCLogic {
       style: 'height: 40px; padding: 0; border: 0; background: none; white-space: nowrap; ' + (tab === i ? 'color: var(--text); font-weight: 500; box-shadow: inset 0 -2px 0 var(--text)' : 'color: var(--text-2)') }));
     const pref = this.state.pref;
     const themeOpts = [['light', '라이트'], ['dark', '다크'], ['system', '시스템']].map(([k, label]) => ({ label, sel: pref === k ? 'true' : 'false',
-      pick: () => this.setState({ pref: k, theme: k === 'system' ? 'light' : k }),
+      pick: () => this.setState({ pref: k, theme: k === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : k }),
       style: 'height: 28px; padding: 0 14px; border: 0; border-radius: 6px; ' + (pref === k ? 'background: var(--bg1); box-shadow: var(--shadow-z1); font-weight: 500; color: var(--text)' : 'background: transparent; color: var(--text-2)') }));
     const logo = (c) => 'width: 32px; height: 32px; flex: none; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--text); background: var(--bg2); border: 1px solid var(--border-weak)';
     const D = [
@@ -311,14 +311,14 @@ class Component extends DCLogic {
         else this.setState({ tests: { ...tests, [id]: 'ok' } });
       },
       deleteDs: () => this.toast(curD.name + ' 삭제는 데모에서 막혀 있습니다.'),
-      save: () => this.toast('설정을 저장했습니다.'),
+      save: () => this.toast('데모 설정을 적용했습니다. 서버에는 저장되지 않습니다.'),
       key0Style: keys[0] ? '' : 'display: none', key1Style: keys[1] ? '' : 'display: none', key2Style: keys[2] ? '' : 'display: none', newKeyName: names[2],
       hasNewKey: !!this.state.newKey, newKey: this.state.newKey || '', copyLabel: this.state.copied ? '복사됨' : '복사',
-      copyKey: () => this.setState({ copied: true }),
+      copyKey: async () => { await navigator.clipboard.writeText(this.state.newKey || ''); this.setState({ copied: true }); },
       showAdd: this.state.showAdd, keyName: this.state.keyName,
       onKeyName: (e) => this.setState({ keyName: e.target.value }),
       openAdd: () => this.setState({ showAdd: true }), closeAdd: () => this.setState({ showAdd: false }),
-      createKey: () => this.setState({ showAdd: false, newKeyName: this.state.keyName || 'demo-export', newKey: 'sx_live_Zr4tK8wPq2LmN6vB3xYc9HdF1sJe7TaU', copied: false, keys: [keys[0], keys[1], true] }),
+      createKey: () => this.setState({ showAdd: false, newKeyName: this.state.keyName || 'demo-export', newKey: 'sx_demo_example_not_a_real_api_key', copied: false, keys: [keys[0], keys[1], true] }),
       revoke0: askRevoke(0), revoke1: askRevoke(1), revoke2: askRevoke(2),
       showRevoke: this.state.revoke !== null, revokeName: this.state.revoke !== null ? names[this.state.revoke] : '',
       cancelRevoke: () => this.setState({ revoke: null }),

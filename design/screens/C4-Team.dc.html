@@ -117,7 +117,8 @@ body{margin:0;background:var(--canvas)}
     <div style="position: fixed; inset: 0; z-index: 80; background: var(--overlay); display: flex; align-items: flex-start; justify-content: center; padding: 96px 16px">
       <div role="dialog" aria-labelledby="inv-h" style="width: 480px; max-width: 100%; padding: 24px; display: flex; flex-direction: column; gap: 20px; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 12px; box-shadow: var(--shadow-z3)">
         <div style="display: flex; flex-direction: column; gap: 2px"><h2 id="inv-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">멤버 초대</h2><span style="font-size: 13px; color: var(--text-2)">초대 메일의 링크로 가입합니다. 링크는 7일 동안 유효합니다.</span></div>
-        <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; font-weight: 500">이메일</span><input type="email" value="{{email}}" onChange="{{onEmail}}" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+        <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; font-weight: 500">이메일</span><input type="email" required aria-invalid="{{emailInvalid}}" aria-describedby="invite-email-error" value="{{email}}" onChange="{{onEmail}}" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+        <sc-if value="{{emailInvalid}}"><p id="invite-email-error" role="alert" class="field-error">{{emailError}}</p></sc-if>
         <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; font-weight: 500">이름 <span style="font-weight: 400; color: var(--text-2)">선택</span></span><input type="text" value="{{name}}" onChange="{{onName}}" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
         <div style="display: flex; flex-direction: column; gap: 8px">
           <span style="font-size: 13px; font-weight: 500">역할</span>
@@ -142,7 +143,7 @@ body{margin:0;background:var(--canvas)}
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { theme: null, menu: true, tab: 0, q: '', invite: null, email: '', name: '', role: '읽기 전용', pend: [true, false], inv: null, toast: null };
+    this.state = { theme: null, menu: true, tab: 0, q: '', invite: null, email: '', emailError: '', name: '', role: '읽기 전용', pend: [true, false], inv: null, toast: null };
   }
   componentWillUnmount() { clearTimeout(this._t); }
   toast(m) { this.setState({ toast: m }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 4000); }
@@ -177,12 +178,14 @@ class Component extends DCLogic {
       cancel0: () => { this.setState({ pend: [false, pend[1]] }); this.toast('초대를 취소했습니다.'); },
       cancel1: () => { this.setState({ pend: [pend[0], false] }); this.toast('초대를 취소했습니다.'); },
       showInvite, roles, email: this.state.email, name: this.state.name,
-      onEmail: (e) => this.setState({ email: e.target.value }), onName: (e) => this.setState({ name: e.target.value }),
-      openInvite: () => this.setState({ invite: true }), closeInvite: () => this.setState({ invite: false }),
+      emailInvalid: !!this.state.emailError, emailError: this.state.emailError,
+      onEmail: (e) => this.setState({ email: e.target.value, emailError: '' }), onName: (e) => this.setState({ name: e.target.value }),
+      openInvite: () => this.setState({ invite: true, emailError: '' }), closeInvite: () => this.setState({ invite: false }),
       sendInvite: () => {
-        const email = (this.state.email || '').trim() || 'new.member@example.ac.kr';
+        const email = (this.state.email || '').trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { this.setState({ emailError: '올바른 이메일 주소를 입력하세요.' }); return; }
         this.setState({ invite: false, inv: { email, name: (this.state.name || '').trim() || '이름 없음', role }, pend: [pend[0], true], email: '', name: '', tab: 1 });
-        this.toast(email + '로 초대를 보냈습니다.');
+        this.toast(email + ' 초대를 데모 목록에 추가했습니다. 메일은 발송되지 않습니다.');
       },
       hasToast: !!this.state.toast, toast: this.state.toast || ''
     };

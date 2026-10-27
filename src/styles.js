@@ -5,3 +5,7 @@ export function css(value = '') {
   return [[k.startsWith('--') ? k : k.replace(/-([a-z])/g, (_, c) => c.toUpperCase()), d.slice(i + 1).trim()]];
  }));
 }
+
+export function routeHref(value) {
+ return typeof value === 'string' ? value.replace(/^([\w-]+)\.dc\.html(?:\?.*)?$/, '#$1') : value;
+}

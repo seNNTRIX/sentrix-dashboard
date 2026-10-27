@@ -46,7 +46,7 @@ body{margin:0;background:var(--canvas)}
         <div style="display: flex; flex-direction: column; gap: 16px">
           <label style="display: flex; flex-direction: column; gap: 8px">
             <span style="font-size: 13px; font-weight: 500">이메일</span>
-            <input type="email" autocomplete="email" value="jihoon.lee@example.ac.kr" style="height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+            <input type="email" required autocomplete="email" value="jihoon.lee@example.ac.kr" style="height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
           </label>
           <button type="button" onClick="{{toStep2}}" style="height: 40px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500; text-decoration: none">재설정 메일 보내기</button>
         </div>
@@ -97,7 +97,7 @@ class Component extends DCLogic {
     const bad = this.state.tried && (short || mis || !this.state.pw);
     const T = {
       '1': ['1/3', '비밀번호 재설정', '가입한 이메일로 재설정 링크를 보냅니다'],
-      '2': ['2/3', '메일을 확인하세요', 'j****.lee@example.ac.kr로 보냈습니다. 링크는 10분 동안 유효합니다'],
+      '2': ['2/3', '메일 전송 미리보기', '데모에서는 메일을 발송하지 않습니다. 아래 버튼으로 다음 단계를 확인하세요'],
       '3': ['3/3', '새 비밀번호', '새로 쓸 비밀번호를 입력하세요'],
       'done': ['', '비밀번호를 변경했습니다', '새 비밀번호로 로그인하세요']
     }[step];
@@ -105,7 +105,7 @@ class Component extends DCLogic {
       theme: this.props.theme ?? 'light',
       stepNum: T[0], stepTitle: T[1], stepDesc: T[2],
       s1: step === '1', s2: step === '2', s3: step === '3', done: step === 'done', notDone: step !== 'done',
-      toStep2: () => this.setState({ step: '2' }),
+      toStep2: (e) => { if (e.currentTarget.parentElement.querySelector('input').reportValidity()) this.setState({ step: '2' }); },
       toStep3: () => this.setState({ step: '3' }),
       resend: () => this.setState({ resent: true }),
       resendLabel: this.state.resent ? '다시 보냈습니다' : '메일 다시 보내기',

@@ -185,7 +185,7 @@ class Component extends DCLogic {
       prev: () => this.setState({ step: Math.max(0, step - 1) }),
       next: () => go(step + 1),
       skip: () => { this.setState({ skipped: true }); go(4); },
-      copy: () => this.setState({ copied: true }), copyLabel: this.state.copied ? '복사됨' : '복사',
+      copy: async () => { await navigator.clipboard.writeText('helm install sentrix-agent sentrix/agent -n sentrix --set cluster=k3s-lab'); this.setState({ copied: true }); }, copyLabel: this.state.copied ? '복사됨' : '복사',
       channelSummary: this.state.skipped ? '나중에 설정' : 'Slack #sre-alerts'
     };
   }

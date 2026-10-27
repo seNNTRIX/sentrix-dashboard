@@ -22,7 +22,7 @@ npm test
 npm run build
 # 별도 터미널에서 npm run dev 실행 후
 npx playwright install chromium
-node scripts/check-browser.mjs
+npm run test:browser
 # 기존 Chrome을 쓰는 경우 CHROME_PATH에 실행 파일 경로 지정
 ```
 
@@ -34,4 +34,15 @@ node scripts/check-browser.mjs
 python3 scripts/convert.py
 ```
 
-`src/screens.jsx`, `src/design.css`는 변환 결과입니다. 디자인을 수정할 때 원본을 변경하고 재생성합니다. 앱 진입과 화면 이동은 `src/main.jsx`, 모바일 보완은 `src/responsive.css`에서 관리합니다. 빌드 결과는 `dist/`이며 정적 호스팅이 가능합니다.
+`src/screens.jsx`, `src/design.css`는 변환 결과입니다. 디자인을 수정할 때 원본을 변경하고 재생성합니다. 앱 진입과 화면 이동은 `src/main.jsx`, 공통 타이포그래피·여백·반응형 규칙은 `src/responsive.css`에서 관리합니다. 공통 헤더·메뉴·시간 선택·모달·버튼은 `src/components/`의 React 컴포넌트로 관리하며, 변환 시 기존 디자인의 공통 부품 대신 사용합니다. 빌드 결과는 `dist/`이며 정적 호스팅이 가능합니다.
+
+
+## UI 검증과 데모 동작
+
+`npm run test:browser`는 390·768·1440px에서 20개 화면의 가로 넘침과 렌더링 오류를 검사하고, 검색·테마 유지·시간 입력·폼 검증·모달 초점 복귀·클립보드 복사·모바일 메뉴를 확인합니다. 캡처는 Git에서 제외된 `artifacts/ui-after/`에 저장됩니다. 개발 서버 포트가 다르면 `UI_BASE_URL=http://127.0.0.1:5174/`를 지정하세요.
+
+- 검색은 화면·서비스·샘플 장애로 이동합니다. `Ctrl/Cmd + K`로 열 수 있습니다.
+- 모달은 Esc 또는 바깥 클릭으로 닫히고 원래 버튼으로 초점이 돌아갑니다. 모바일·태블릿 메뉴도 같은 방식으로 동작합니다.
+- 시간 선택은 범위를 검증하지만 차트 데이터는 고정된 데모입니다. 새로고침도 실시간 API를 호출하지 않습니다.
+- 클립보드 복사는 실제로 수행하며, 지원하지 않거나 권한이 없으면 오류를 표시합니다.
+- API가 필요한 미구현 버튼은 현재 사용할 수 없는 이유를 표시합니다. 초대·설정 변경도 데모 범위임을 안내합니다.

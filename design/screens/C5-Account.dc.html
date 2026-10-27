@@ -148,14 +148,14 @@ body{margin:0;background:var(--canvas)}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1700}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { theme: null, menu: true, pref: 'default', pw: '', pw2: '', others: true, toast: null }; }
+  constructor(props) { super(props); this.state = { theme: null, menu: true, pref: props.theme ?? 'light', pw: '', pw2: '', others: true, toast: null }; }
   componentWillUnmount() { clearTimeout(this._t); }
   flash(msg, extra) { this.setState({ ...(extra || {}), toast: msg }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 3000); }
   renderVals() {
     const theme = this.state.theme ?? this.props.theme ?? 'light';
     const pref = this.state.pref;
     const themes = [['default', '시스템'], ['light', '라이트'], ['dark', '다크']].map(([k, label]) => ({ label, checked: pref === k ? 'true' : 'false',
-      pick: () => this.setState({ pref: k, theme: k === 'default' ? 'light' : k }),
+      pick: () => this.setState({ pref: k, theme: k === 'default' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : k }),
       style: 'height: 28px; padding: 0 12px; border: 0; border-radius: 6px; ' + (pref === k ? 'background: var(--bg1); box-shadow: var(--shadow-z1); color: var(--text); font-weight: 500' : 'background: transparent; color: var(--text-2)') }));
     const pw = this.state.pw, pw2 = this.state.pw2;
     const R = [['12자 이상', pw.length >= 12], ['대문자와 소문자', /[a-z]/.test(pw) && /[A-Z]/.test(pw)], ['숫자', /\d/.test(pw)], ['기호', /[^A-Za-z0-9]/.test(pw)]];
