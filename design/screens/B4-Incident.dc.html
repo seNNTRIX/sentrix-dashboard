@@ -47,7 +47,7 @@ body{margin:0;background:var(--canvas)}
             <div style="display: flex; flex-wrap: wrap; gap: 4px 20px; color: var(--text-2)">
               <span style="{{stateStyle}}">{{stateLabel}}</span>
               <span>14:21:30 시작, {{duration}}</span>
-              <span>상품 조회 영향 · 예시 로그 기준</span>
+              <span>사용자 영향 있음</span>
               <span>INC-0142</span>
             </div>
           </div>
@@ -64,8 +64,6 @@ body{margin:0;background:var(--canvas)}
           </div>
         </div>
 
-        <ImpactSummary></ImpactSummary>
-        <p class="demo-control-note">확인함·해결됨·메모는 이 화면에서만 체험할 수 있으며, 서버나 다른 화면에 저장되지 않습니다.</p>
         <!-- 탭 -->
         <div role="tablist" aria-label="장애 상세" style="display: flex; gap: 24px; border-bottom: 1px solid var(--border-weak); overflow-x: auto">
           <sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
@@ -73,7 +71,6 @@ body{margin:0;background:var(--canvas)}
           </sc-for>
         </div>
 
-        <ScoreHelp></ScoreHelp>
         <!-- 요약 -->
         <sc-if value="{{tabSummary}}" hint-placeholder-val="{{ true }}">
           <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
@@ -138,7 +135,7 @@ body{margin:0;background:var(--canvas)}
               <div style="display: flex; gap: 20px; flex-wrap: wrap">
                 <a href="B5-Service.dc.html">서비스 Dashboard</a>
                 <a href="B6-Trace.dc.html">관련 trace</a>
-                <a href="B7-Logs.dc.html?incident=INC-0142">관련 로그</a>
+                <a href="B7-Logs.dc.html">관련 로그</a>
               </div>
             </section>
           </div>
@@ -228,7 +225,7 @@ body{margin:0;background:var(--canvas)}
               <div class="mono" style="display: flex; gap: 12px; font-size: 12px; line-height: 20px"><span style="color: var(--text-2); flex: none">14:27:04.881</span><span style="color: var(--error-text); flex: none; width: 40px">error</span><span style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">request error, rpc error: code = DeadlineExceeded, service=productcatalogservice</span></div>
               <div class="mono" style="display: flex; gap: 12px; font-size: 12px; line-height: 20px"><span style="color: var(--text-2); flex: none">14:25:40.733</span><span style="color: var(--warning-text); flex: none; width: 40px">warn</span><span style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">slow downstream call method=ListProducts latency=236ms</span></div>
               <div class="mono" style="display: flex; gap: 12px; font-size: 12px; line-height: 20px"><span style="color: var(--text-2); flex: none">14:24:12.870</span><span style="color: var(--warning-text); flex: none; width: 40px">warn</span><span style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">slow downstream call method=GetProduct latency=214ms</span></div>
-              <a href="B7-Logs.dc.html?incident=INC-0142" style="margin-top: 4px">로그 전체 보기</a>
+              <a href="B7-Logs.dc.html" style="margin-top: 4px">로그 전체 보기</a>
             </section>
           </div>
         </sc-if>

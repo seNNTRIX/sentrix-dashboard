@@ -7,5 +7,5 @@ export function css(value = '') {
 }
 
 export function routeHref(value) {
- return typeof value === 'string' ? value.replace(/^([\w-]+)\.dc\.html(\?.*)?$/, '#$1$2') : value;
+ return typeof value === 'string' ? value.replace(/^([\w-]+)\.dc\.html(?:\?.*)?$/, '#$1') : value;
 }
