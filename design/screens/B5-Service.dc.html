@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>productcatalogservice 서비스 Dashboard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-size:13px;font-weight:500;color:var(--text-2);text-align:left;padding:0 16px;height:36px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:0 16px;height:44px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:last-child td{border-bottom:0}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="홈|Service map|productcatalogservice" hrefs="B1-Overview.dc.html|B2-ServiceMap.dc.html|" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="map" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; max-width: 1224px; padding: 24px 32px 48px; display: flex; flex-direction: column; gap: 32px">
+
+      <div style="display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between">
+          <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em; overflow-wrap: break-word">productcatalogservice</h1>
+            <span style="color: var(--text-2)">namespace sentrix, Pod 2/2 Ready, v0.9.0</span>
+          </div>
+          <dc-import name="TimePicker" range="지난 1시간" hint-size="330px,32px"></dc-import>
+        </div>
+
+        <a href="B4-Incident.dc.html" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 16px 20px; border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); color: var(--text); text-decoration: none">
+          <span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px">
+            <span style="font-weight: 500; color: var(--cause)">원인 후보 2순위</span>
+            <span style="font-weight: 500">INC-0142 frontend → productcatalogservice 지연</span>
+            <span style="color: var(--text-2)">점수 0.41</span>
+          </span>
+          <span style="color: var(--text-2); white-space: nowrap">원인 분석 보기</span>
+        </a>
+      </div>
+
+      <section aria-labelledby="red-h" style="display: flex; flex-direction: column; gap: 12px">
+        <h2 id="red-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">요청, 오류, 지연</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px">
+          <sc-for list="{{redCharts}}" as="ch" hint-placeholder-count="3">
+            <section style="border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+                <h3 style="margin: 0; font-size: 14px; font-weight: 500">{{ch.title}}</h3>
+                <span style="font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums">{{ch.now}}</span>
+              </div>
+              <div style="display: flex; gap: 8px">
+                <div style="display: flex; flex-direction: column; justify-content: space-between; width: 52px; height: 120px; font-size: 12px; line-height: 12px; color: var(--text-2); text-align: right"><span>{{ch.ymax}}</span><span>0</span></div>
+                <svg viewBox="0 0 600 120" preserveAspectRatio="none" style="flex: 1; min-width: 0; height: 120px; display: block" role="img" aria-label="{{ch.aria}}">
+                  <line x1="0" y1="119.5" x2="600" y2="119.5" style="stroke: var(--border-weak)" vector-effect="non-scaling-stroke"></line>
+                  <rect x="495" y="0" width="105" height="120" style="fill: var(--shade)"></rect>
+                  <path d="{{ch.b1}}" style="{{ch.b1style}}"></path>
+                  <path d="{{ch.b2}}" style="{{ch.b2style}}"></path>
+                  <path d="{{ch.p3}}" fill="none" style="{{ch.p3style}}" stroke-width="1.25" vector-effect="non-scaling-stroke"></path>
+                  <path d="{{ch.p2}}" fill="none" style="{{ch.p2style}}" stroke-width="1.25" vector-effect="non-scaling-stroke"></path>
+                  <path d="{{ch.p1}}" fill="none" style="{{ch.p1style}}" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+                </svg>
+              </div>
+              <div style="position: relative; height: 16px; margin-left: 60px; font-size: 12px; color: var(--text-2)"><sc-for list="{{ticks}}" as="tk" hint-placeholder-count="3"><span style="{{tk.pos}}">{{tk.label}}</span></sc-for></div>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--text-2)">
+                <sc-for list="{{ch.legend}}" as="lg" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; gap: 8px"><span style="{{lg.sw}}"></span>{{lg.label}}</span></sc-for>
+              </div>
+            </section>
+          </sc-for>
+        </div>
+      </section>
+
+      <section aria-labelledby="res-h" style="display: flex; flex-direction: column; gap: 12px">
+        <h2 id="res-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">자원</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px">
+          <sc-for list="{{resCharts}}" as="ch" hint-placeholder-count="3">
+            <section style="border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+                <h3 style="margin: 0; font-size: 14px; font-weight: 500">{{ch.title}}</h3>
+                <span style="font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums">{{ch.now}}</span>
+              </div>
+              <div style="display: flex; gap: 8px">
+                <div style="display: flex; flex-direction: column; justify-content: space-between; width: 52px; height: 120px; font-size: 12px; line-height: 12px; color: var(--text-2); text-align: right"><span>{{ch.ymax}}</span><span>0</span></div>
+                <svg viewBox="0 0 600 120" preserveAspectRatio="none" style="flex: 1; min-width: 0; height: 120px; display: block" role="img" aria-label="{{ch.aria}}">
+                  <line x1="0" y1="119.5" x2="600" y2="119.5" style="stroke: var(--border-weak)" vector-effect="non-scaling-stroke"></line>
+                  <rect x="495" y="0" width="105" height="120" style="fill: var(--shade)"></rect>
+                  <path d="{{ch.b1}}" style="{{ch.b1style}}"></path>
+                  <path d="{{ch.b2}}" style="{{ch.b2style}}"></path>
+                  <path d="{{ch.p3}}" fill="none" style="{{ch.p3style}}" stroke-width="1.25" vector-effect="non-scaling-stroke"></path>
+                  <path d="{{ch.p2}}" fill="none" style="{{ch.p2style}}" stroke-width="1.25" vector-effect="non-scaling-stroke"></path>
+                  <path d="{{ch.p1}}" fill="none" style="{{ch.p1style}}" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+                </svg>
+              </div>
+              <div style="position: relative; height: 16px; margin-left: 60px; font-size: 12px; color: var(--text-2)"><sc-for list="{{ticks}}" as="tk" hint-placeholder-count="3"><span style="{{tk.pos}}">{{tk.label}}</span></sc-for></div>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--text-2)">
+                <sc-for list="{{ch.legend}}" as="lg" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; gap: 8px"><span style="{{lg.sw}}"></span>{{lg.label}}</span></sc-for>
+              </div>
+            </section>
+          </sc-for>
+        </div>
+      </section>
+
+      <section aria-labelledby="pod-h" style="display: flex; flex-direction: column; gap: 12px">
+        <h2 id="pod-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">Pod</h2>
+        <div style="border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); overflow: hidden">
+          <div style="overflow-x: auto">
+            <table>
+              <thead><tr><th>이름</th><th>상태</th><th>Ready</th><th style="text-align: right">재시작</th><th style="text-align: right">CPU</th><th style="text-align: right">메모리</th><th>노드</th><th>시작</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">productcatalogservice-7c9d8f6b5-x2kq4</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--text-2); background: var(--secondary)">Running</span></td><td style="font-variant-numeric: tabular-nums">1/1</td><td style="text-align: right; font-variant-numeric: tabular-nums">0</td><td style="text-align: right; font-variant-numeric: tabular-nums">34m</td><td style="text-align: right; font-variant-numeric: tabular-nums">41 MiB</td><td style="color: var(--text-2)">k3s-node-1</td><td style="color: var(--text-2); font-variant-numeric: tabular-nums">2026-10-26 09:12:44</td></tr>
+                <tr><td class="mono">productcatalogservice-7c9d8f6b5-m8w2p</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--text-2); background: var(--secondary)">Running</span></td><td style="font-variant-numeric: tabular-nums">1/1</td><td style="text-align: right; font-variant-numeric: tabular-nums">0</td><td style="text-align: right; font-variant-numeric: tabular-nums">32m</td><td style="text-align: right; font-variant-numeric: tabular-nums">39 MiB</td><td style="color: var(--text-2)">k3s-node-2</td><td style="color: var(--text-2); font-variant-numeric: tabular-nums">2026-10-26 09:12:51</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="dep-h" style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap">
+          <h2 id="dep-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">호출받는 연결</h2>
+          <span style="font-size: 13px; color: var(--text-2)">호출하는 연결 없음</span>
+        </div>
+        <div style="border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); overflow: hidden">
+          <div style="overflow-x: auto">
+            <table>
+              <thead><tr><th>연결</th><th style="text-align: right">요청/s</th><th style="text-align: right">Error rate</th><th style="text-align: right">p90</th><th style="text-align: right">p99</th></tr></thead>
+              <tbody>
+                <tr><td><span style="font-weight: 500">frontend → productcatalogservice</span> <span style="font-size: 13px; color: var(--cause)">원인 후보 1순위</span></td><td style="text-align: right; font-variant-numeric: tabular-nums">18.4</td><td style="text-align: right; color: var(--error-text); font-variant-numeric: tabular-nums">0.42%</td><td style="text-align: right; color: var(--error-text); font-variant-numeric: tabular-nums">222 ms</td><td style="text-align: right; font-variant-numeric: tabular-nums">1.00 s</td></tr>
+                <tr><td>recommendationservice → productcatalogservice</td><td style="text-align: right; font-variant-numeric: tabular-nums">7.9</td><td style="text-align: right; font-variant-numeric: tabular-nums">0.00%</td><td style="text-align: right; font-variant-numeric: tabular-nums">41 ms</td><td style="text-align: right; font-variant-numeric: tabular-nums">58 ms</td></tr>
+                <tr><td>checkoutservice → productcatalogservice</td><td style="text-align: right; font-variant-numeric: tabular-nums">2.4</td><td style="text-align: right; font-variant-numeric: tabular-nums">0.00%</td><td style="text-align: right; font-variant-numeric: tabular-nums">9 ms</td><td style="text-align: right; font-variant-numeric: tabular-nums">14 ms</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="inc-h" style="display: flex; flex-direction: column; gap: 12px">
+        <h2 id="inc-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">원인 후보에 오른 장애</h2>
+        <div style="border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); overflow: hidden">
+          <div style="overflow-x: auto">
+            <table>
+              <thead><tr><th>장애</th><th>상태</th><th style="text-align: right">순위</th><th style="text-align: right">점수</th><th>장애 유형</th><th>1순위 원인</th><th>시작</th></tr></thead>
+              <tbody>
+                <tr><td><a class="mono" href="B4-Incident.dc.html">INC-0142</a></td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--error-text); background: color-mix(in srgb, var(--error) 10%, var(--bg1))">진행 중</span></td><td style="text-align: right; font-variant-numeric: tabular-nums">2</td><td style="text-align: right; font-variant-numeric: tabular-nums">0.41</td><td style="color: var(--text-2)">CPU saturation</td><td>frontend → productcatalogservice</td><td style="color: var(--text-2); font-variant-numeric: tabular-nums">2026-10-27 14:21:30</td></tr>
+                <tr><td><a class="mono" href="B4-Incident.dc.html">INC-0139</a></td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--text-2); background: var(--secondary)">해결됨</span></td><td style="text-align: right; font-variant-numeric: tabular-nums">3</td><td style="text-align: right; font-variant-numeric: tabular-nums">0.19</td><td style="color: var(--text-2)">Network delay</td><td>recommendationservice</td><td style="color: var(--text-2); font-variant-numeric: tabular-nums">2026-10-26 16:05:30</td></tr>
+                <tr><td><a class="mono" href="B4-Incident.dc.html">INC-0136</a></td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--text-2); background: var(--secondary)">해결됨</span></td><td style="text-align: right; font-variant-numeric: tabular-nums">4</td><td style="text-align: right; font-variant-numeric: tabular-nums">0.11</td><td style="color: var(--text-2)">CPU saturation</td><td>currencyservice</td><td style="color: var(--text-2); font-variant-numeric: tabular-nums">2026-10-25 15:10:00</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1700}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { theme: null, menu: true, closed: {} }; }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const N = 60, S = 50;
+    const r = (i, k) => { const x = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+    const ser = (k, a, ja, b, jb) => Array.from({ length: N }, (_, i) => i < S ? a + (r(i, k) - .5) * 2 * ja : b + (r(i, k) - .5) * 2 * jb);
+    const line = (v, max, h) => v.map((y, i) => (i ? 'L' : 'M') + (i * 10 + 5) + ',' + (h - Math.max(0, Math.min(y, max)) / max * h).toFixed(1)).join('');
+    const bars = (v, max, h, base) => v.map((y, i) => { const b = base ? base[i] / max * h : 0; const bh = Math.max(0, y) / max * h; return 'M' + (i * 10 + 1.5) + ',' + (h - b - bh).toFixed(1) + 'h7v' + bh.toFixed(1) + 'h-7Z'; }).join('');
+    const ticks = [['13:40', 13.33], ['14:00', 46.67], ['14:20', 80]]
+      .map(([label, p]) => ({ label, pos: 'position: absolute; left: ' + p + '%; transform: translateX(-50%)' }));
+    const sw = (c, dash) => dash ? 'width: 12px; border-top: 2px dashed var(' + c + ')' : 'width: 12px; height: 2px; background: var(' + c + ')';
+    const req = ser(1, 41, 2.5, 39, 2.5);
+    const errAbs = ser(2, 0.02, 0.01, 0.17, 0.04);
+    const ok = req.map((v, i) => v - errAbs[i]);
+    const chart = (o) => ({ b1: '', b2: '', p1: '', p2: '', p3: '', b1style: '', b2style: '', p1style: '', p2style: '', p3style: '', now: '', ...o });
+    const redCharts = [
+      chart({ title: 'Requests', now: '39.2 req/s', ymax: '60/s', aria: '초당 Requests 약 40회, 장애 구간 오류 소폭 증가',
+        b1: bars(ok, 60, 120), b1style: 'fill: var(--border)', b2: bars(errAbs.map((v) => v * 20), 60, 120, ok), b2style: 'fill: var(--error)',
+        legend: [{ label: '성공', sw: sw('--border') }, { label: '오류', sw: sw('--error') }] }),
+      chart({ title: 'Error rate', now: '0.42%', ymax: '1%', aria: 'Error rate 0.03%에서 0.42%로 증가',
+        p1: line(ser(3, 0.03, 0.02, 0.42, 0.08), 1, 120), p1style: 'stroke: var(--text)',
+        legend: [{ label: 'Error rate', sw: sw('--text') }] }),
+      chart({ title: '서버 처리 시간', now: 'p99 17 ms', ymax: '300 ms', aria: '서버 측 처리 시간 p50 4 ms, p90 9 ms, p99 17 ms로 변화 없음',
+        p1: line(ser(6, 17, 3, 18, 3), 300, 120), p1style: 'stroke: var(--text)',
+        p2: line(ser(5, 9, 1.5, 9.6, 1.5), 300, 120), p2style: 'stroke: var(--text-2)',
+        p3: line(ser(4, 4, 0.8, 4.3, 0.8), 300, 120), p3style: 'stroke: var(--border-strong)',
+        legend: [{ label: 'p99', sw: sw('--text') }, { label: 'p90', sw: sw('--text-2') }, { label: 'p50', sw: sw('--border-strong') }] })
+    ];
+    const resCharts = [
+      chart({ title: 'CPU 사용률', now: '33%', ymax: '100%', aria: 'CPU 사용률 31%에서 33%, 한도 100%',
+        p1: line(ser(7, 31, 3, 33, 3), 100, 120), p1style: 'stroke: var(--text)',
+        p2: line(Array(N).fill(99.5), 100, 120), p2style: 'stroke: var(--border-strong); stroke-dasharray: 4 4',
+        legend: [{ label: '사용률', sw: sw('--text') }, { label: '한도', sw: sw('--border-strong', true) }] }),
+      chart({ title: 'CPU throttling', now: '0%', ymax: '10%', aria: 'CPU throttling 0% 유지',
+        p1: line(Array(N).fill(0.05), 10, 120), p1style: 'stroke: var(--text)',
+        legend: [{ label: 'throttled 비율', sw: sw('--text') }] }),
+      chart({ title: '메모리', now: '40 MiB', ymax: '128 MiB', aria: '메모리 working set 약 40 MiB, 한도 128 MiB',
+        p1: line(ser(8, 40, 1.2, 40.5, 1.2), 128, 120), p1style: 'stroke: var(--text)',
+        p2: line(Array(N).fill(127.5), 128, 120), p2style: 'stroke: var(--border-strong); stroke-dasharray: 4 4',
+        legend: [{ label: 'working set', sw: sw('--text') }, { label: '한도', sw: sw('--border-strong', true) }] })
+    ];
+    return {
+      theme, menuOpen: this.state.menu,
+      setTheme: (t) => this.setState({ theme: t }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      ticks, redCharts, resCharts
+    };
+  }
+}
+</script>
+</body>
+</html>

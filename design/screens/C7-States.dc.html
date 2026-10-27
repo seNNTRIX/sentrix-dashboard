@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>상태 화면</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+@keyframes g-loadbar{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+@keyframes g-pulse{0%,100%{opacity:.55}50%{opacity:1}}
+.g .g-loadbar{animation:g-loadbar 1.2s linear infinite}
+.g .g-skel{animation:g-pulse 1.6s ease-in-out infinite}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="홈|관리|상태 화면" hrefs="B1-Overview.dc.html|C3-Settings.dc.html|" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="states" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 48px">
+      <div style="max-width: 1160px; display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; flex-direction: column">
+          <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">상태 화면</h1>
+          <span style="color: var(--text-2)">빈 상태, 로딩, 오류, 세션 만료</span>
+        </div>
+
+        <!-- 배너 -->
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 12px; line-height: 18px; color: var(--text-2)">배너: 데이터 소스 연결 끊김</span>
+          <sc-if value="{{showBanner}}" hint-placeholder-val="{{ true }}">
+            <div role="alert" style="display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 8px; background: color-mix(in srgb, var(--warning) 8%, var(--bg1)); border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--border-weak))">
+              <div style="display: flex; flex-direction: column; min-width: 0">
+                <span style="font-weight: 500">Loki 데이터 소스 연결이 끊겼습니다</span>
+                <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">14:05:12 이후 로그가 없습니다.</span>
+              </div>
+              <div style="display: flex; gap: 8px">
+                <a href="C3-Settings.dc.html" style="height: 32px; display: inline-flex; align-items: center; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); color: var(--text); font-weight: 500; text-decoration: none">데이터 소스 설정</a>
+                <button type="button" onClick="{{reconnect}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">재연결</button>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{bannerGone}}" hint-placeholder-val="{{ false }}">
+            <div style="padding: 12px 16px; border-radius: 8px; border: 1px dashed var(--border); font-size: 13px; color: var(--text-2)">재연결되어 배너가 사라졌습니다. <button type="button" onClick="{{restore}}" style="border: 0; padding: 0; background: none; color: var(--link); font-size: 13px">다시 보기</button></div>
+          </sc-if>
+        </div>
+
+        <!-- 패널 상태 3종 -->
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch">
+          <div style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 12px; line-height: 18px; color: var(--text-2)">패널: 데이터 없음</span>
+            <section style="flex: 1; height: 240px; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+              <h2 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">recommendationservice Error rate</h2>
+              <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center">
+                <span style="font-weight: 500">데이터 없음</span>
+                <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">이 시간 범위에 수집된 값이 없습니다.</span>
+              </div>
+            </section>
+          </div>
+
+          <div style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 12px; line-height: 18px; color: var(--text-2)">패널: 로딩</span>
+            <section aria-busy="true" style="flex: 1; height: 240px; position: relative; overflow: hidden; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+              <div style="position: absolute; left: 0; right: 0; top: 0; height: 2px; overflow: hidden"><div class="g-loadbar" style="width: 25%; height: 2px; background: var(--border-strong)"></div></div>
+              <h2 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">frontend Requests</h2>
+              <div style="flex: 1; display: flex; align-items: center; justify-content: center">
+              <div style="width: 80%; max-width: 480px; height: 112px; display: flex; align-items: flex-end; gap: 4px">
+                <span class="g-skel" style="flex: 1; height: 40%; border-radius: 2px; background: var(--bg2)"></span>
+                <span class="g-skel" style="flex: 1; height: 55%; border-radius: 2px; background: var(--bg2)"></span>
+                <span class="g-skel" style="flex: 1; height: 35%; border-radius: 2px; background: var(--bg2)"></span>
+                <span class="g-skel" style="flex: 1; height: 70%; border-radius: 2px; background: var(--bg2)"></span>
+                <span class="g-skel" style="flex: 1; height: 50%; border-radius: 2px; background: var(--bg2)"></span>
+                <span class="g-skel" style="flex: 1; height: 62%; border-radius: 2px; background: var(--bg2)"></span>
+                <span class="g-skel" style="flex: 1; height: 45%; border-radius: 2px; background: var(--bg2)"></span>
+                <span class="g-skel" style="flex: 1; height: 58%; border-radius: 2px; background: var(--bg2)"></span>
+              </div>
+              </div>
+            </section>
+          </div>
+
+          <div style="flex: 1 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 12px; line-height: 18px; color: var(--text-2)">패널: Query 오류</span>
+            <section style="flex: 1; height: 240px; position: relative; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+                <h2 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">frontend 오류 로그</h2>
+                <button type="button" onMouseEnter="{{tipOn}}" onMouseLeave="{{tipOff}}" onFocus="{{tipOn}}" onBlur="{{tipOff}}" aria-label="Query 실패: Loki 응답 없음" style="height: 22px; padding: 0 8px; border: 0; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--error-text); background: color-mix(in srgb, var(--error) 10%, var(--bg1))">오류</button>
+              </div>
+              <sc-if value="{{tip}}" hint-placeholder-val="{{ false }}">
+                <div role="tooltip" style="position: absolute; top: 48px; right: 20px; z-index: 5; padding: 8px 12px; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-size: 12px; line-height: 18px; white-space: nowrap">Query 실패: Loki 응답 없음</div>
+              </sc-if>
+              <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; text-align: center">
+                <span style="font-weight: 500">Query를 실행하지 못했습니다</span>
+                <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">Loki가 5초 안에 응답하지 않았습니다.</span>
+                <button type="button" onClick="{{retry}}" style="margin-top: 12px; height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">다시 시도</button>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- 빈 상태 -->
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch">
+          <div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 12px; line-height: 18px; color: var(--text-2)">빈 상태: 진행 중인 장애 없음</span>
+            <section style="flex: 1; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 48px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center">
+              <span style="font-size: 16px; line-height: 24px; font-weight: 600">진행 중인 장애가 없습니다</span>
+              <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">마지막 장애 INC-0142, 14:32:10 해결</span>
+              <a href="B3-Incidents.dc.html" style="margin-top: 16px; height: 32px; display: inline-flex; align-items: center; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); color: var(--text); font-weight: 500; text-decoration: none">장애 목록 보기</a>
+            </section>
+          </div>
+          <div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 12px; line-height: 18px; color: var(--text-2)">빈 상태: 검색 결과 없음</span>
+            <section style="flex: 1; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 48px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center">
+              <span style="font-size: 16px; line-height: 24px; font-weight: 600">검색 결과가 없습니다</span>
+              <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">adservice, Pod failure, 지난 24시간</span>
+              <button type="button" onClick="{{resetFilter}}" style="margin-top: 16px; height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">필터 초기화</button>
+            </section>
+          </div>
+        </div>
+
+        <!-- 404, 403 -->
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch">
+          <div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 12px; line-height: 18px; color: var(--text-2)">페이지: 404</span>
+            <section aria-label="404 페이지" style="flex: 1; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 48px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center">
+              <span style="font-size: 13px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">404</span>
+              <span style="font-size: 16px; line-height: 24px; font-weight: 600">페이지를 찾을 수 없습니다</span>
+              <span class="mono" style="color: var(--text-2)">/incidents/INC-9999</span>
+              <a href="B1-Overview.dc.html" style="margin-top: 16px; height: 32px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500; text-decoration: none">홈으로</a>
+            </section>
+          </div>
+          <div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 12px; line-height: 18px; color: var(--text-2)">페이지: 403</span>
+            <section aria-label="403 페이지" style="flex: 1; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 48px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center">
+              <span style="font-size: 13px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">403</span>
+              <span style="font-size: 16px; line-height: 24px; font-weight: 600">권한이 없습니다</span>
+              <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">API 키 관리는 관리자 역할이 필요합니다.</span>
+              <button type="button" onClick="{{request}}" disabled="{{requested}}" style="margin-top: 16px; height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">{{requestLabel}}</button>
+            </section>
+          </div>
+        </div>
+
+        <!-- 세션 만료 -->
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 12px; line-height: 18px; color: var(--text-2)">모달: 세션 만료 후 다시 로그인</span>
+          <section aria-label="세션 만료" style="position: relative; height: 360px; border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden; background: var(--canvas)">
+            <div aria-hidden="true" style="position: absolute; inset: 0; padding: 24px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: 96px 1fr; gap: 16px">
+              <div style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px"></div>
+              <div style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px"></div>
+              <div style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px"></div>
+              <div style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px"></div>
+              <div style="grid-column: span 4; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px"></div>
+            </div>
+            <div style="position: absolute; inset: 0; background: var(--overlay); display: flex; align-items: center; justify-content: center; padding: 16px">
+              <div role="dialog" aria-modal="true" aria-labelledby="sess-t" style="width: 400px; max-width: 100%; background: var(--bg1); border-radius: 12px; box-shadow: var(--shadow-z3); overflow: hidden">
+                <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+                  <div style="display: flex; flex-direction: column; gap: 4px">
+                    <h2 id="sess-t" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">세션이 만료되었습니다</h2>
+                    <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">jihoon.lee@example.ac.kr 계정으로 다시 로그인하세요.</span>
+                  </div>
+                  <label style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; font-weight: 500">비밀번호</span><input type="password" autocomplete="current-password" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas)">
+                  <a href="A1-Login.dc.html" style="height: 32px; display: inline-flex; align-items: center; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); color: var(--text); font-weight: 500; text-decoration: none">로그아웃</a>
+                  <a href="B1-Overview.dc.html" style="height: 32px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500; text-decoration: none">다시 로그인</a>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 90; padding: 12px 16px; border-radius: 8px; background: var(--primary); color: var(--on-primary); box-shadow: var(--shadow-z3)">{{toast}}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1600}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { theme: null, menu: true, banner: true, tip: false, requested: false, toast: null }; }
+  componentWillUnmount() { clearTimeout(this._t); }
+  flash(msg, extra) { this.setState({ ...(extra || {}), toast: msg }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 3000); }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    return {
+      theme, menuOpen: this.state.menu,
+      setTheme: (t) => this.setState({ theme: t }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      showBanner: this.state.banner, bannerGone: !this.state.banner,
+      reconnect: () => this.flash('Loki에 다시 연결했습니다', { banner: false }),
+      restore: () => this.setState({ banner: true }),
+      tip: this.state.tip, tipOn: () => this.setState({ tip: true }), tipOff: () => this.setState({ tip: false }),
+      retry: () => this.flash('Query를 다시 실행했습니다'),
+      resetFilter: () => this.flash('필터를 초기화했습니다'),
+      requested: this.state.requested, requestLabel: this.state.requested ? '요청 보냄' : '관리자에게 요청',
+      request: () => this.flash('관리자에게 권한을 요청했습니다', { requested: true }),
+      hasToast: !!this.state.toast, toast: this.state.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

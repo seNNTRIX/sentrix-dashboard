@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>SentriX 비밀번호 재설정</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-weight:500;text-align:left;padding:4px 8px;height:32px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:4px 8px;height:36px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 16px">
+    <div style="width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 32px">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center">
+        <span style="display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 10px; background: #1c1c1c; color: #ffffff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"></path><circle cx="12" cy="12" r="3.2" style="fill: #E865C0; stroke: none"></circle></svg></span>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums">{{stepNum}}</span>
+          <h1 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -0.01em">{{stepTitle}}</h1>
+          <p style="margin: 0; color: var(--text-2)">{{stepDesc}}</p>
+        </div>
+      </div>
+
+      <sc-if value="{{s1}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <label style="display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 13px; font-weight: 500">이메일</span>
+            <input type="email" autocomplete="email" value="jihoon.lee@example.ac.kr" style="height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+          </label>
+          <button type="button" onClick="{{toStep2}}" style="height: 40px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500; text-decoration: none">재설정 메일 보내기</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{s2}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <button type="button" onClick="{{toStep3}}" style="height: 40px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500; text-decoration: none">메일의 링크 열기</button>
+          <button type="button" onClick="{{resend}}" style="height: 40px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">{{resendLabel}}</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{s3}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <label style="display: flex; flex-direction: column; gap: 8px">
+            <span style="display: flex; justify-content: space-between; font-size: 13px"><span style="font-weight: 500">새 비밀번호</span><span style="color: var(--text-2)">12자 이상</span></span>
+            <input type="password" autocomplete="new-password" value="{{pw}}" onChange="{{onPw}}" style="height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 13px; font-weight: 500">비밀번호 확인</span>
+            <input type="password" autocomplete="new-password" value="{{pw2}}" onChange="{{onPw2}}" aria-invalid="{{mismatch}}" style="{{pw2Style}}">
+            <sc-if value="{{showMismatch}}" hint-placeholder-val="{{ false }}">
+              <span role="alert" style="font-size: 13px; line-height: 20px; color: var(--error-text)">{{errText}}</span>
+            </sc-if>
+          </label>
+          <button type="button" onClick="{{submit}}" style="height: 40px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500; text-decoration: none">비밀번호 변경</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{done}}" hint-placeholder-val="{{ false }}">
+        <a href="A1-Login.dc.html" style="height: 40px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500; text-decoration: none">로그인</a>
+      </sc-if>
+
+      <sc-if value="{{notDone}}" hint-placeholder-val="{{ true }}">
+        <p style="margin: 0; text-align: center; font-size: 13px"><a href="A1-Login.dc.html" style="color: var(--text-2)">로그인으로 돌아가기</a></p>
+      </sc-if>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"step":{"editor":"enum","options":["1","2","3","done"],"default":"1"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { step: null, pw: '', pw2: '', tried: false, resent: false }; }
+  renderVals() {
+    const step = this.state.step ?? String(this.props.step ?? '1');
+    const short = this.state.pw.length > 0 && this.state.pw.length < 12;
+    const mis = this.state.pw2.length > 0 && this.state.pw !== this.state.pw2;
+    const bad = this.state.tried && (short || mis || !this.state.pw);
+    const T = {
+      '1': ['1/3', '비밀번호 재설정', '가입한 이메일로 재설정 링크를 보냅니다'],
+      '2': ['2/3', '메일을 확인하세요', 'j****.lee@example.ac.kr로 보냈습니다. 링크는 10분 동안 유효합니다'],
+      '3': ['3/3', '새 비밀번호', '새로 쓸 비밀번호를 입력하세요'],
+      'done': ['', '비밀번호를 변경했습니다', '새 비밀번호로 로그인하세요']
+    }[step];
+    return {
+      theme: this.props.theme ?? 'light',
+      stepNum: T[0], stepTitle: T[1], stepDesc: T[2],
+      s1: step === '1', s2: step === '2', s3: step === '3', done: step === 'done', notDone: step !== 'done',
+      toStep2: () => this.setState({ step: '2' }),
+      toStep3: () => this.setState({ step: '3' }),
+      resend: () => this.setState({ resent: true }),
+      resendLabel: this.state.resent ? '다시 보냈습니다' : '메일 다시 보내기',
+      pw: this.state.pw, pw2: this.state.pw2,
+      onPw: (e) => this.setState({ pw: e.target.value }),
+      onPw2: (e) => this.setState({ pw2: e.target.value }),
+      showMismatch: bad || mis, mismatch: (bad || mis) ? 'true' : 'false',
+      errText: mis ? '비밀번호가 일치하지 않습니다' : '12자 이상 입력하세요',
+      pw2Style: 'height: 40px; padding: 0 12px; border-radius: 6px; background: var(--bg1); border: 1px solid ' + ((bad || mis) ? 'var(--error)' : 'var(--border)'),
+      submit: () => { if (this.state.pw.length >= 12 && this.state.pw === this.state.pw2) this.setState({ step: 'done' }); else this.setState({ tried: true }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>프로필</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-size:13px;font-weight:500;color:var(--text-2);text-align:left;padding:0 16px;height:36px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:0 16px;height:44px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:last-child td{border-bottom:0}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="홈|프로필" hrefs="B1-Overview.dc.html|" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="none" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 48px">
+      <div style="max-width: 760px; display: flex; flex-direction: column; gap: 24px">
+
+        <div style="display: flex; align-items: center; gap: 16px">
+          <span style="width: 48px; height: 48px; flex: none; border-radius: 50%; background: var(--primary); color: var(--on-primary); font-size: 18px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center">이</span>
+          <div style="display: flex; flex-direction: column">
+            <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">프로필</h1>
+            <span style="color: var(--text-2)">관리자, SentriX Lab</span>
+          </div>
+        </div>
+
+        <!-- 프로필 -->
+        <section aria-labelledby="p-h" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden">
+          <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <h2 id="p-h" style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">프로필</h2>
+              <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">이름과 이메일은 팀 멤버에게 표시됩니다.</span>
+            </div>
+            <label style="display: flex; flex-direction: column; gap: 8px; max-width: 400px"><span style="font-size: 13px; font-weight: 500">이름</span><input type="text" value="이지훈" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+            <label style="display: flex; flex-direction: column; gap: 8px; max-width: 400px"><span style="font-size: 13px; font-weight: 500">이메일</span><input type="email" value="jihoon.lee@example.ac.kr" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+            <label style="display: flex; flex-direction: column; gap: 8px; max-width: 400px"><span style="font-size: 13px; font-weight: 500">사용자 이름</span><input type="text" value="jihoon.lee" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas)">
+            <span style="font-size: 13px; color: var(--text-2)">사용자 이름은 영문, 숫자, 점만 쓸 수 있습니다.</span>
+            <button type="button" onClick="{{saveProfile}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">저장</button>
+          </div>
+        </section>
+
+        <!-- 환경 설정 -->
+        <section aria-labelledby="pref-h" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden">
+          <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <h2 id="pref-h" style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">환경 설정</h2>
+              <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">이 브라우저에서만 적용됩니다.</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <span style="font-size: 13px; font-weight: 500">테마</span>
+              <div role="radiogroup" aria-label="테마" style="display: inline-flex; align-self: flex-start; padding: 2px; gap: 2px; border-radius: 8px; background: var(--bg2)">
+                <sc-for list="{{themes}}" as="t" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{t.checked}}" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button></sc-for>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px">
+              <label style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; font-weight: 500">홈 화면</span><select style="height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option>개요</option><option>Service map</option><option>장애 목록</option></select></label>
+              <label style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; font-weight: 500">시간대</span><select style="height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option>Asia/Seoul (UTC+09:00)</option><option>브라우저 시간</option><option>UTC</option></select></label>
+              <label style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; font-weight: 500">주 시작</span><select style="height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option>월요일</option><option>일요일</option><option>토요일</option></select></label>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas)">
+            <button type="button" onClick="{{savePrefs}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">저장</button>
+          </div>
+        </section>
+
+        <!-- 비밀번호 -->
+        <section aria-labelledby="pw-h" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden">
+          <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <h2 id="pw-h" style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">비밀번호</h2>
+              <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">바꾸면 다른 기기에서는 다시 로그인해야 합니다.</span>
+            </div>
+            <label style="display: flex; flex-direction: column; gap: 8px; max-width: 400px"><span style="font-size: 13px; font-weight: 500">현재 비밀번호</span><input type="password" autocomplete="current-password" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+            <div style="display: flex; flex-direction: column; gap: 8px; max-width: 400px">
+              <label style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; font-weight: 500">새 비밀번호</span>
+                <input type="password" autocomplete="new-password" value="{{pw}}" onChange="{{onPw}}" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+              </label>
+              <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; line-height: 18px">
+                <sc-for list="{{rules}}" as="r" hint-placeholder-count="4"><li style="{{r.style}}">{{r.label}}</li></sc-for>
+              </ul>
+            </div>
+            <label style="display: flex; flex-direction: column; gap: 8px; max-width: 400px"><span style="font-size: 13px; font-weight: 500">새 비밀번호 확인</span><input type="password" autocomplete="new-password" value="{{pw2}}" onChange="{{onPw2}}" style="{{pw2Style}}">
+              <sc-if value="{{mismatch}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; line-height: 18px; color: var(--error-text)">비밀번호가 일치하지 않습니다</span></sc-if>
+            </label>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas)">
+            <span style="font-size: 13px; color: var(--text-2)">12자 이상, 대소문자, 숫자, 기호를 모두 포함해야 합니다.</span>
+            <button type="button" disabled="{{pwDisabled}}" onClick="{{changePw}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500; white-space: nowrap">비밀번호 변경</button>
+          </div>
+        </section>
+
+        <!-- 세션 -->
+        <section aria-labelledby="s-h" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden">
+          <div style="padding: 20px 24px 12px; display: flex; flex-direction: column; gap: 4px">
+            <h2 id="s-h" style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">로그인한 기기</h2>
+            <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">최근 30일 동안 로그인한 세션입니다.</span>
+          </div>
+          <div style="overflow-x: auto; border-top: 1px solid var(--border-weak)">
+            <table>
+              <thead><tr><th>브라우저와 OS</th><th>위치</th><th>IP</th><th>로그인</th><th>마지막 접속</th><th style="width: 96px"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">동작</span></th></tr></thead>
+              <tbody>
+                <tr><td><span style="display: inline-flex; align-items: center; gap: 8px">Chrome 129, macOS<span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">현재 세션</span></span></td><td>서울</td><td class="mono">203.0.113.24</td><td style="font-variant-numeric: tabular-nums">2026-10-27 09:02:14</td><td>지금</td><td></td></tr>
+                <tr style="{{otherRow}}"><td>Safari 18, iOS</td><td>서울</td><td class="mono">198.51.100.7</td><td style="font-variant-numeric: tabular-nums">2026-10-26 18:40:51</td><td>3시간 전</td><td style="text-align: right"><button type="button" onClick="{{revokeAll}}" aria-label="Safari 18, iOS 세션 로그아웃" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500">로그아웃</button></td></tr>
+                <tr style="{{otherRow}}"><td>Firefox 131, Ubuntu</td><td>수원</td><td class="mono">198.51.100.32</td><td style="font-variant-numeric: tabular-nums">2026-10-25 10:12:03</td><td>2일 전</td><td style="text-align: right"><button type="button" onClick="{{revokeAll}}" aria-label="Firefox 131, Ubuntu 세션 로그아웃" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500">로그아웃</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas)">
+            <button type="button" onClick="{{revokeAll}}" disabled="{{noOthers}}" style="height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">다른 세션 모두 로그아웃</button>
+            <a href="A1-Login.dc.html" style="height: 32px; display: inline-flex; align-items: center; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); color: var(--text); font-weight: 500; text-decoration: none">이 기기에서 로그아웃</a>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 90; padding: 12px 16px; border-radius: 8px; background: var(--primary); color: var(--on-primary); box-shadow: var(--shadow-z3)">{{toast}}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1700}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { theme: null, menu: true, pref: 'default', pw: '', pw2: '', others: true, toast: null }; }
+  componentWillUnmount() { clearTimeout(this._t); }
+  flash(msg, extra) { this.setState({ ...(extra || {}), toast: msg }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 3000); }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const pref = this.state.pref;
+    const themes = [['default', '시스템'], ['light', '라이트'], ['dark', '다크']].map(([k, label]) => ({ label, checked: pref === k ? 'true' : 'false',
+      pick: () => this.setState({ pref: k, theme: k === 'default' ? 'light' : k }),
+      style: 'height: 28px; padding: 0 12px; border: 0; border-radius: 6px; ' + (pref === k ? 'background: var(--bg1); box-shadow: var(--shadow-z1); color: var(--text); font-weight: 500' : 'background: transparent; color: var(--text-2)') }));
+    const pw = this.state.pw, pw2 = this.state.pw2;
+    const R = [['12자 이상', pw.length >= 12], ['대문자와 소문자', /[a-z]/.test(pw) && /[A-Z]/.test(pw)], ['숫자', /\d/.test(pw)], ['기호', /[^A-Za-z0-9]/.test(pw)]];
+    const rules = R.map(([label, ok]) => ({ label, style: ok ? 'color: var(--success-text); font-weight: 500' : 'color: var(--text-2)' }));
+    const allOk = R.every((x) => x[1]);
+    const mismatch = pw2.length > 0 && pw2 !== pw;
+    return {
+      theme, menuOpen: this.state.menu,
+      setTheme: (t) => this.setState({ theme: t }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      themes, rules, pw, pw2, mismatch,
+      onPw: (e) => this.setState({ pw: e.target.value }), onPw2: (e) => this.setState({ pw2: e.target.value }),
+      pw2Style: 'height: 32px; padding: 0 12px; border: 1px solid ' + (mismatch ? 'var(--error)' : 'var(--border)') + '; border-radius: 6px; background: var(--bg1)',
+      pwDisabled: !(allOk && pw2 === pw),
+      changePw: () => this.flash('비밀번호를 변경했습니다', { pw: '', pw2: '' }),
+      saveProfile: () => this.flash('프로필을 저장했습니다'),
+      savePrefs: () => this.flash('환경 설정을 저장했습니다'),
+      otherRow: this.state.others ? '' : 'display: none', noOthers: !this.state.others,
+      revokeAll: () => this.flash('다른 세션에서 로그아웃했습니다', { others: false }),
+      hasToast: !!this.state.toast, toast: this.state.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Explore Tempo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-weight:500;text-align:left;padding:4px 8px;height:32px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:4px 8px;height:36px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="홈|Explore" hrefs="B1-Overview.dc.html|" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="trace" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 48px; display: flex; flex-direction: column; gap: 24px">
+
+      <!-- 헤더 -->
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">Trace</h1>
+          <span style="color: var(--text-2)">Explore, 데이터 소스 Tempo</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+          <button type="button" aria-label="데이터 소스 Tempo" style="height: 32px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500; min-width: 160px">
+            <span style="flex: 1; text-align: left">Tempo</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--text-2)"><path d="M6 9l6 6 6-6"></path></svg>
+          </button>
+          <button type="button" style="height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">분할</button>
+          <dc-import name="TimePicker" range="지난 1시간" hint-size="330px,32px"></dc-import>
+          <button type="button" onClick="{{run}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">Run query</button>
+        </div>
+      </div>
+
+      <!-- Query 편집기 -->
+      <section aria-labelledby="qa-h" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+          <h2 id="qa-h" style="margin: 0; font-size: 14px; font-weight: 500">Query A <span style="font-weight: 400; color: var(--text-2)">Tempo</span></h2>
+          <div role="radiogroup" aria-label="Query 유형" style="display: inline-flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--bg2)">
+            <sc-for list="{{qtypes}}" as="q" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{q.on}}" onClick="{{q.pick}}" style="{{q.style}}">{{q.label}}</button></sc-for>
+          </div>
+        </div>
+        <div class="mono" style="padding: 12px 16px; border-radius: 6px; background: var(--bg2); line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere">{ <span style="color: var(--link)">resource.service.name</span> = <span style="color: var(--success-text)">"frontend"</span> &amp;&amp; <span style="color: var(--link)">duration</span> &gt; <span style="color: var(--warning-text)">200ms</span> &amp;&amp; <span style="color: var(--link)">span:status</span> = <span style="color: var(--warning-text)">error</span> || <span style="color: var(--link)">name</span> = <span style="color: var(--success-text)">"hipstershop.ProductCatalogService/GetProduct"</span> }</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--text-2)"><span>Limit 20</span><span>Spans limit 3</span><span>Table format Traces</span></div>
+      </section>
+
+      <!-- 결과 -->
+      <section aria-labelledby="res-h" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; display: flex; flex-direction: column; min-width: 0">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 16px 20px 12px">
+          <h2 id="res-h" style="margin: 0; font-size: 14px; font-weight: 500">결과</h2>
+          <span style="font-size: 13px; color: var(--text-2)">8 traces</span>
+        </div>
+        <div style="overflow-x: auto">
+          <div role="table" aria-label="trace 검색 결과" style="min-width: 800px">
+            <div role="row" style="display: grid; grid-template-columns: 180px 180px 160px minmax(0, 1fr) 100px 80px; height: 36px; align-items: center; border-top: 1px solid var(--border-weak); border-bottom: 1px solid var(--border-weak); font-size: 13px; font-weight: 500; color: var(--text-2)">
+              <span role="columnheader" style="padding: 0 16px 0 20px">Trace ID</span><span role="columnheader" style="padding: 0 16px">시작 시각</span><span role="columnheader" style="padding: 0 16px">Root service</span><span role="columnheader" style="padding: 0 16px">Root name</span><span role="columnheader" style="padding: 0 16px; text-align: right">Duration</span><span role="columnheader" style="padding: 0 20px 0 16px; text-align: right">Spans</span>
+            </div>
+            <sc-for list="{{traces}}" as="t" hint-placeholder-count="8">
+              <div role="row" style="{{t.row}}">
+                <span role="cell" style="padding: 0 16px 0 20px"><button type="button" onClick="{{t.pick}}" aria-pressed="{{t.on}}" class="mono" style="border: 0; padding: 0; background: none; color: var(--link)">{{t.id}}</button></span>
+                <span role="cell" style="padding: 0 16px; color: var(--text-2); font-size: 13px; font-variant-numeric: tabular-nums">{{t.start}}</span>
+                <span role="cell" style="padding: 0 16px">{{t.svc}}</span>
+                <span role="cell" style="padding: 0 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{t.name}}</span>
+                <span role="cell" style="{{t.durStyle}}">{{t.dur}}</span>
+                <span role="cell" style="padding: 0 20px 0 16px; text-align: right; font-variant-numeric: tabular-nums">{{t.spans}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+
+      <!-- Trace view -->
+      <section aria-labelledby="tv-h" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; display: flex; flex-direction: column; min-width: 0">
+        <div style="display: flex; flex-direction: column; gap: 8px; padding: 20px 24px 16px">
+          <div style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between">
+            <h2 id="tv-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 500; overflow-wrap: anywhere">{{tv.title}}</h2>
+            <a href="B4-Incident.dc.html" style="font-size: 13px">INC-0142 원인 분석</a>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 4px 24px; font-size: 13px; color: var(--text-2)">
+            <span>Trace ID <span class="mono" style="color: var(--text)">{{tv.id}}</span></span>
+            <span>시작 <span style="color: var(--text); font-variant-numeric: tabular-nums">{{tv.start}}</span></span>
+            <span>Duration <span style="color: var(--text); font-variant-numeric: tabular-nums">{{tv.dur}}</span></span>
+            <span>Services <span style="color: var(--text)">3</span></span>
+            <span>Depth <span style="color: var(--text)">3</span></span>
+            <span>Total spans <span style="color: var(--text)">7</span></span>
+          </div>
+        </div>
+        <div style="overflow-x: auto">
+          <div style="min-width: 900px">
+            <div style="display: grid; grid-template-columns: 360px minmax(0, 1fr); height: 36px; align-items: center; border-top: 1px solid var(--border-weak); border-bottom: 1px solid var(--border-weak); font-size: 12px; color: var(--text-2)">
+              <span style="padding: 0 16px 0 24px; font-size: 13px; font-weight: 500">Service, Operation</span>
+              <div style="position: relative; height: 36px">
+                <sc-for list="{{tv.ruler}}" as="rl" hint-placeholder-count="5"><span style="{{rl.pos}}">{{rl.label}}</span></sc-for>
+              </div>
+            </div>
+            <sc-for list="{{tv.spans}}" as="sp" hint-placeholder-count="7">
+              <div>
+                <button type="button" onClick="{{sp.toggle}}" aria-expanded="{{sp.exp}}" style="{{sp.rowStyle}}">
+                  <span style="{{sp.left}}">
+                    <span style="font-weight: 500; white-space: nowrap">{{sp.svc}}</span>
+                    <span style="color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0">{{sp.op}}</span>
+                    <sc-if value="{{sp.err}}" hint-placeholder-val="{{ false }}"><span style="flex: none; font-size: 12px; font-weight: 500; color: var(--error-text)">error</span></sc-if>
+                  </span>
+                  <span style="position: relative; display: block; height: 36px">
+                    <span style="position: absolute; left: 25%; top: 0; bottom: 0; border-left: 1px solid var(--border-weak)"></span>
+                    <span style="position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px solid var(--border-weak)"></span>
+                    <span style="position: absolute; left: 75%; top: 0; bottom: 0; border-left: 1px solid var(--border-weak)"></span>
+                    <span style="{{sp.bar}}"></span>
+                    <span style="{{sp.label}}">{{sp.dur}}</span>
+                  </span>
+                </button>
+                <sc-if value="{{sp.open}}" hint-placeholder-val="{{ false }}">
+                  <div style="padding: 16px 24px; border-bottom: 1px solid var(--border-weak); background: var(--bg2); display: flex; flex-direction: column; gap: 12px">
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px 24px; font-size: 13px; color: var(--text-2)">
+                      <span style="font-weight: 500; color: var(--text)">{{sp.op}}</span>
+                      <span>Service <span style="color: var(--text)">{{sp.svc}}</span></span>
+                      <span>Duration <span style="color: var(--text); font-variant-numeric: tabular-nums">{{sp.dur}}</span></span>
+                      <span>Start time <span style="color: var(--text); font-variant-numeric: tabular-nums">{{sp.startLabel}}</span></span>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 16px">
+                      <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+                        <div style="font-size: 13px; font-weight: 500">Span attributes</div>
+                        <div class="mono" style="display: grid; grid-template-columns: max-content minmax(0, 1fr); border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); font-size: 12px; line-height: 32px; overflow: hidden">
+                          <sc-for list="{{sp.attrs}}" as="a" hint-placeholder-count="4"><span style="{{a.kStyle}}">{{a.k}}</span><span style="{{a.vStyle}}">{{a.v}}</span></sc-for>
+                        </div>
+                      </div>
+                      <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+                        <div style="font-size: 13px; font-weight: 500">Resource attributes</div>
+                        <div class="mono" style="display: grid; grid-template-columns: max-content minmax(0, 1fr); border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); font-size: 12px; line-height: 32px; overflow: hidden">
+                          <sc-for list="{{sp.res}}" as="a" hint-placeholder-count="3"><span style="{{a.kStyle}}">{{a.k}}</span><span style="{{a.vStyle}}">{{a.v}}</span></sc-for>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { theme: null, menu: true, qtype: 1, sel: 0, open: 3 }; }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const qtypes = ['Search', 'TraceQL', 'Service Graph'].map((label, i) => ({ label, on: this.state.qtype === i ? 'true' : 'false',
+      pick: () => this.setState({ qtype: i }),
+      style: 'height: 28px; padding: 0 12px; border: 0; border-radius: 6px; font-size: 13px; ' + (this.state.qtype === i ? 'background: var(--bg1); box-shadow: var(--shadow-z1); font-weight: 500; color: var(--text)' : 'background: none; color: var(--text-2)') }));
+    const T = [
+      ['c41e88a09d3b7f12', '2026-10-27 14:27:03', 'frontend', 'GET /product/66VCHSJNUP', 1020, 7, true],
+      ['2b9d0e7c55a1f3e4', '2026-10-27 14:25:40', 'frontend', 'GET /', 612, 14, false],
+      ['7f3a9c2e41b0d6a8', '2026-10-27 14:24:12', 'frontend', 'GET /product/OLJCESPC7Z', 486, 7, false],
+      ['9a07d2f6e8c4b310', '2026-10-27 14:29:51', 'frontend', 'POST /cart', 402, 9, false],
+      ['e5c1a0d9b7f24c63', '2026-10-27 14:30:18', 'frontend', 'GET /product/1YMWWN1N4O', 377, 7, false],
+      ['3d8b6f1c0a9e2d75', '2026-10-27 14:23:02', 'frontend', 'GET /product/L9ECAV7KIM', 341, 7, false],
+      ['a1f4c7e2b8d03965', '2026-10-27 14:28:44', 'frontend', 'GET /product/2ZYFJ3GM2N', 318, 7, false],
+      ['6b2e9d4a1c7f8e03', '2026-10-27 14:31:09', 'frontend', 'GET /product/0PUK6V6EV0', 297, 7, false]
+    ];
+    const fmt = (ms) => ms >= 1000 ? (ms / 1000).toFixed(2) + ' s' : Math.round(ms) + ' ms';
+    const sel = this.state.sel;
+    const traces = T.map(([id, start, svc, name, dur, spans, err], i) => ({ id, start, svc, name, dur: fmt(dur), spans: String(spans), on: i === sel ? 'true' : 'false',
+      pick: () => this.setState({ sel: i, open: 3 }),
+      durStyle: 'padding: 0 16px; text-align: right; font-variant-numeric: tabular-nums; ' + (err ? 'color: var(--error-text)' : ''),
+      row: 'display: grid; grid-template-columns: 180px 180px 160px minmax(0, 1fr) 100px 80px; height: 44px; align-items: center; ' + (i < T.length - 1 ? 'border-bottom: 1px solid var(--border-weak); ' : '') + (i === sel ? 'background: var(--selected)' : '') }));
+    const t = T[sel];
+    const total = t[4], err = t[6];
+    const slow = total - 20;
+    const netGap = slow - 12;
+    const pid = (s) => s === 'frontend' ? 'frontend-6f9c8d7b4-q7lzt' : (s === 'currencyservice' ? 'currencyservice-5d7b9c6f8-hv2rn' : 'productcatalogservice-7c9d8f6b5-x2kq4');
+    const sp = [
+      ['frontend', t[3], 0, total, 0, false, false],
+      ['frontend', 'hipstershop.CurrencyService/GetSupportedCurrencies', 3, 6, 1, false, false],
+      ['currencyservice', 'CurrencyService/GetSupportedCurrencies', 4, 4, 2, false, false],
+      ['frontend', 'hipstershop.ProductCatalogService/GetProduct', 12, slow, 1, err, true],
+      ['productcatalogservice', 'ProductCatalogService/GetProduct', 12 + Math.round(netGap * 0.18), 6, 2, false, false],
+      ['frontend', 'hipstershop.CurrencyService/Convert', total - 7, 3, 1, false, false],
+      ['currencyservice', 'CurrencyService/Convert', total - 6, 2, 2, false, false]
+    ];
+    const kv = (rows) => rows.map(([k, v], i) => {
+      const line = i < rows.length - 1 ? 'border-bottom: 1px solid var(--border-weak); ' : '';
+      return { k, v, kStyle: 'padding: 0 12px; color: var(--text-2); ' + line,
+        vStyle: 'padding: 0 12px; overflow-wrap: anywhere; ' + line + (v === 'DEADLINE_EXCEEDED' ? 'color: var(--error-text)' : '') };
+    });
+    const spans = sp.map(([svc, op, st, d, depth, isErr, isCause], i) => {
+      const open = this.state.open === i;
+      const left = st / total * 100, w = Math.max(0.4, d / total * 100);
+      const attrs = isCause
+        ? [['rpc.system', 'grpc'], ['rpc.service', 'hipstershop.ProductCatalogService'], ['rpc.method', 'GetProduct'], ['net.peer.name', 'productcatalogservice'], ['net.peer.port', '3550'], ['rpc.grpc.status_code', isErr ? 'DEADLINE_EXCEEDED' : 'OK'], ['span.kind', 'client']]
+        : [['rpc.system', depth === 0 ? 'http' : 'grpc'], ['span.kind', depth === 2 ? 'server' : (depth === 0 ? 'server' : 'client')], ['status', 'OK']];
+      return { svc, op, dur: fmt(d), err: isErr, open, exp: open ? 'true' : 'false', startLabel: fmt(st),
+        toggle: () => this.setState({ open: open ? -1 : i }),
+        rowStyle: 'display: grid; grid-template-columns: 360px minmax(0, 1fr); width: 100%; padding: 0; border: 0; border-bottom: 1px solid var(--border-weak); text-align: left; ' + (open ? 'background: var(--selected)' : 'background: none'),
+        left: 'display: flex; align-items: center; gap: 8px; height: 36px; min-width: 0; padding: 0 16px 0 ' + (24 + depth * 16) + 'px',
+        bar: 'position: absolute; top: 12px; height: 12px; border-radius: 3px; left: ' + left.toFixed(2) + '%; width: ' + w.toFixed(2) + '%; background: ' + (isCause ? 'var(--cause)' : 'var(--border-strong)'),
+        label: 'position: absolute; top: 7px; font-size: 12px; color: ' + (isCause ? 'var(--text)' : 'var(--text-2)') + '; white-space: nowrap; font-variant-numeric: tabular-nums; ' + (left + w > 80 ? 'right: calc(' + (100 - left).toFixed(2) + '% + 8px)' : 'left: calc(' + (left + w).toFixed(2) + '% + 8px)'),
+        attrs: kv(attrs),
+        res: kv([['service.name', svc], ['k8s.pod.name', pid(svc)], ['k8s.namespace.name', 'sentrix']]) };
+    });
+    const ruler = [0, 0.25, 0.5, 0.75, 1].map((p) => ({ label: fmt(total * p),
+      pos: 'position: absolute; top: 9px; font-variant-numeric: tabular-nums; ' + (p === 1 ? 'right: 24px' : 'left: calc(' + (p * 100) + '% + 6px)') }));
+    return {
+      theme, menuOpen: this.state.menu,
+      setTheme: (x) => this.setState({ theme: x }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      qtypes, traces, run: () => this.setState({ sel: 0, open: 3 }),
+      tv: { title: 'frontend: ' + t[3], id: t[0], start: t[1], dur: fmt(total), ruler, spans }
+    };
+  }
+}
+</script>
+</body>
+</html>

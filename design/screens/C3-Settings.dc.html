@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>설정</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-weight:500;font-size:13px;text-align:left;padding:0 16px;height:36px;border-bottom:1px solid var(--border-weak);white-space:nowrap;color:var(--text-2)}
+.g td{padding:0 16px;height:44px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:last-child td{border-bottom:0}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="홈|관리|설정" hrefs="B1-Overview.dc.html|C3-Settings.dc.html|" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="settings" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 48px">
+      <div style="max-width: 1160px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">설정</h1>
+        <span style="color: var(--text-2)">SentriX Lab 워크스페이스</span>
+      </div>
+
+      <div role="tablist" aria-label="설정" style="display: flex; gap: 24px; border-bottom: 1px solid var(--border-weak); overflow-x: auto">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="6">
+          <button type="button" role="tab" onClick="{{t.pick}}" aria-selected="{{t.sel}}" style="{{t.style}}">{{t.label}}</button>
+        </sc-for>
+      </div>
+
+      <!-- 일반 -->
+      <sc-if value="{{tGeneral}}" hint-placeholder-val="{{ true }}">
+        <div style="max-width: 760px; display: flex; flex-direction: column; gap: 16px">
+          <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px">
+            <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+              <div style="display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 14px; font-weight: 500">워크스페이스 이름</h2><span style="font-size: 13px; color: var(--text-2)">팀원에게 보이는 이름입니다.</span></div>
+              <input type="text" aria-label="워크스페이스 이름" value="SentriX Lab" style="max-width: 360px; height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas); border-radius: 0 0 8px 8px"><span style="font-size: 13px; color: var(--text-2)">최대 32자</span><button type="button" onClick="{{save}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">저장</button></div>
+          </section>
+          <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px">
+            <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+              <div style="display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 14px; font-weight: 500">지역과 언어</h2><span style="font-size: 13px; color: var(--text-2)">모든 시각은 이 시간대로 표시합니다.</span></div>
+              <div style="display: flex; flex-wrap: wrap; gap: 16px">
+                <label style="display: flex; flex-direction: column; gap: 4px; width: 240px"><span style="font-size: 13px; font-weight: 500">시간대</span><select style="height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option>Asia/Seoul (UTC+09:00)</option><option>UTC</option><option>브라우저 시간</option></select></label>
+                <label style="display: flex; flex-direction: column; gap: 4px; width: 240px"><span style="font-size: 13px; font-weight: 500">언어</span><select style="height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option>한국어</option><option>English</option></select></label>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas); border-radius: 0 0 8px 8px"><span style="font-size: 13px; color: var(--text-2)"></span><button type="button" onClick="{{save}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">저장</button></div>
+          </section>
+          <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px">
+            <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+              <div style="display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 14px; font-weight: 500">테마</h2><span style="font-size: 13px; color: var(--text-2)">이 브라우저에만 적용되고 바로 반영됩니다.</span></div>
+              <div role="radiogroup" aria-label="테마" style="display: inline-flex; align-self: flex-start; gap: 2px; padding: 2px; border-radius: 8px; background: var(--bg2)">
+                <sc-for list="{{themeOpts}}" as="o" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{o.sel}}" onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for>
+              </div>
+            </div>
+          </section>
+        </div>
+      </sc-if>
+
+      <!-- 데이터 소스 -->
+      <sc-if value="{{tDs}}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{dsList}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 16px">
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between">
+              <input type="search" aria-label="데이터 소스 검색" placeholder="이름 또는 유형으로 검색" style="flex: 0 1 360px; height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+              <button type="button" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">데이터 소스 추가</button>
+            </div>
+            <section aria-label="데이터 소스" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden">
+              <sc-for list="{{sources}}" as="d" hint-placeholder-count="3">
+                <button type="button" onClick="{{d.open}}" style="{{d.row}}">
+                  <span style="{{d.logo}}">{{d.initial}}</span>
+                  <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                    <span style="display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 20px; font-weight: 500">{{d.name}}<sc-if value="{{d.isDefault}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 400; color: var(--text-2)">기본</span></sc-if></span>
+                    <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">{{d.type}} <span class="mono" style="margin-left: 8px">{{d.url}}</span></span>
+                  </span>
+                  <span style="{{d.statusStyle}}">{{d.status}}</span>
+                </button>
+              </sc-for>
+            </section>
+          </div>
+        </sc-if>
+        <sc-if value="{{dsOpen}}" hint-placeholder-val="{{ false }}">
+          <div style="max-width: 760px; display: flex; flex-direction: column; gap: 16px">
+            <button type="button" onClick="{{backDs}}" style="align-self: flex-start; border: 0; background: none; padding: 0; font-size: 13px; color: var(--text-2)">데이터 소스 목록</button>
+            <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px">
+              <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+                <div style="display: flex; align-items: center; gap: 12px"><span style="{{cur.logo}}">{{cur.initial}}</span><div style="display: flex; flex-direction: column"><span style="font-size: 16px; line-height: 24px; font-weight: 600">{{cur.name}}</span><span style="font-size: 13px; color: var(--text-2)">유형 {{cur.type}}</span></div></div>
+                <label style="display: flex; flex-direction: column; gap: 4px; max-width: 480px"><span style="font-size: 13px; font-weight: 500">이름</span><input type="text" value="{{cur.name}}" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+                <label style="display: flex; flex-direction: column; gap: 4px; max-width: 480px"><span style="font-size: 13px; font-weight: 500">URL</span><input type="text" class="mono" value="{{cur.url}}" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+                <label style="display: flex; flex-direction: column; gap: 4px; width: 160px"><span style="font-size: 13px; font-weight: 500">Timeout</span><input type="text" value="5" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-variant-numeric: tabular-nums"><span style="font-size: 12px; color: var(--text-2)">초 단위</span></label>
+                <sc-if value="{{testOk}}" hint-placeholder-val="{{ false }}"><p role="status" style="margin: 0; font-size: 13px; color: var(--success-text)">데이터 소스가 정상입니다. 마지막 수집 14:32:00</p></sc-if>
+                <sc-if value="{{testFail}}" hint-placeholder-val="{{ false }}"><p role="alert" style="margin: 0; font-size: 13px; color: var(--error-text)">연결 실패. {{cur.url}} 응답 없음 5s</p></sc-if>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas); border-radius: 0 0 8px 8px">
+                <button type="button" onClick="{{deleteDs}}" style="height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); color: var(--error-text); font-weight: 500">삭제</button>
+                <button type="button" onClick="{{testDs}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">저장 후 테스트</button>
+              </div>
+            </section>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <!-- 분석 -->
+      <sc-if value="{{tAnalysis}}" hint-placeholder-val="{{ false }}">
+        <div style="max-width: 760px; display: flex; flex-direction: column; gap: 16px">
+          <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px">
+            <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+              <div style="display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 14px; font-weight: 500">이상 탐지</h2><span style="font-size: 13px; color: var(--text-2)">Anomaly score를 계산하는 방식입니다. 바꾸면 다음 구간부터 적용됩니다.</span></div>
+              <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 240px)); gap: 16px">
+                <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; font-weight: 500">Window size</span><select style="height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option>15초</option><option selected="selected">30초</option><option>1분</option></select><span style="font-size: 12px; color: var(--text-2)">window</span></label>
+                <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; font-weight: 500">Baseline 기간</span><select style="height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option>1일</option><option selected="selected">7일</option><option>14일</option></select><span style="font-size: 12px; color: var(--text-2)">평소 범위 계산</span></label>
+                <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; font-weight: 500">Detection threshold</span><input type="text" value="0.60" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-variant-numeric: tabular-nums"><span style="font-size: 12px; color: var(--text-2)">0에서 1 사이</span></label>
+                <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; font-weight: 500">표시할 후보 수</span><select style="height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option>3</option><option selected="selected">5</option><option>10</option></select><span style="font-size: 12px; color: var(--text-2)">Top-k</span></label>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas); border-radius: 0 0 8px 8px"><span style="font-size: 13px; color: var(--text-2)">기본값 30초, 7일, 0.60, 5</span><button type="button" onClick="{{save}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">저장</button></div>
+          </section>
+        </div>
+      </sc-if>
+
+      <!-- 알림 채널 -->
+      <sc-if value="{{tChannels}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; justify-content: flex-end"><button type="button" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">연락처 추가</button></div>
+          <section aria-label="알림 채널" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden">
+            <sc-for list="{{channels}}" as="c" hint-placeholder-count="3">
+              <div style="{{c.row}}">
+                <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                  <span style="font-size: 14px; line-height: 20px; font-weight: 500">{{c.name}}</span>
+                  <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">{{c.type}} <span class="mono" style="margin: 0 8px">{{c.target}}</span> {{c.last}}</span>
+                </div>
+                <button type="button" onClick="{{c.test}}" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500">테스트</button>
+                <button type="button" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500">편집</button>
+              </div>
+            </sc-for>
+          </section>
+        </div>
+      </sc-if>
+
+      <!-- API 키 -->
+      <sc-if value="{{tKeys}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <sc-if value="{{hasNewKey}}" hint-placeholder-val="{{ false }}">
+            <section role="alert" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px">
+              <div style="display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 14px; font-weight: 500">새 API 키</h2><span style="font-size: 13px; color: var(--warning-text)">이 키는 지금만 볼 수 있습니다. 안전한 곳에 복사해 두세요.</span></div>
+              <div style="display: flex; gap: 8px; align-items: center"><code class="mono" style="flex: 1; min-width: 0; overflow-wrap: anywhere; padding: 8px 12px; border-radius: 6px; background: var(--bg2)">{{newKey}}</code><button type="button" onClick="{{copyKey}}" style="height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">{{copyLabel}}</button></div>
+            </section>
+          </sc-if>
+          <div style="display: flex; justify-content: flex-end"><button type="button" onClick="{{openAdd}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">API 키 추가</button></div>
+          <section aria-label="API 키" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow-x: auto">
+            <table>
+              <thead><tr><th>이름</th><th>키</th><th>만든 날짜</th><th>마지막 사용</th><th>만료</th><th style="width: 140px"></th></tr></thead>
+              <tbody>
+                <tr style="{{key0Style}}"><td>ci-pipeline</td><td class="mono">sx_live_7Hq2…</td><td style="font-variant-numeric: tabular-nums; color: var(--text-2)">2026-10-27 11:20:05</td><td style="font-variant-numeric: tabular-nums; color: var(--text-2)">2026-10-27 13:58:11</td><td style="color: var(--text-2)">없음</td><td style="text-align: right"><button type="button" onClick="{{revoke0}}" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500">API 키 폐기</button></td></tr>
+                <tr style="{{key1Style}}"><td>grafana-export</td><td class="mono">sx_live_Q9mc…</td><td style="font-variant-numeric: tabular-nums; color: var(--text-2)">2026-10-12 16:02:44</td><td style="font-variant-numeric: tabular-nums; color: var(--text-2)">2026-10-27 14:32:00</td><td style="font-variant-numeric: tabular-nums; color: var(--text-2)">2027-01-12</td><td style="text-align: right"><button type="button" onClick="{{revoke1}}" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500">API 키 폐기</button></td></tr>
+                <tr style="{{key2Style}}"><td>{{newKeyName}}</td><td class="mono">sx_live_Zr4t…</td><td style="font-variant-numeric: tabular-nums; color: var(--text-2)">2026-10-27 14:33:10</td><td style="color: var(--text-2)">사용 안 함</td><td style="font-variant-numeric: tabular-nums; color: var(--text-2)">2027-01-25</td><td style="text-align: right"><button type="button" onClick="{{revoke2}}" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500">API 키 폐기</button></td></tr>
+              </tbody>
+            </table>
+          </section>
+        </div>
+      </sc-if>
+
+      <!-- Retention -->
+      <sc-if value="{{tRetention}}" hint-placeholder-val="{{ false }}">
+        <div style="max-width: 760px; display: flex; flex-direction: column; gap: 16px">
+          <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px">
+            <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 12px">
+              <div style="display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 14px; font-weight: 500">Retention period과 사용량</h2><span style="font-size: 13px; color: var(--text-2)">기간이 지난 데이터는 자동으로 지웁니다.</span></div>
+              <div style="display: flex; flex-direction: column">
+                <sc-for list="{{retention}}" as="rt" hint-placeholder-count="3">
+                  <div style="{{rt.row}}">
+                    <span style="width: 96px; font-weight: 500">{{rt.name}}</span>
+                    <select aria-label="{{rt.name}} Retention period" style="width: 112px; height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option>{{rt.days}}</option><option>30일</option><option>90일</option></select>
+                    <div style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 8px">
+                      <div style="height: 6px; border-radius: 3px; background: var(--bg2); overflow: hidden"><div style="{{rt.bar}}"></div></div>
+                      <span style="font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums">{{rt.used}} / {{rt.cap}}, <span style="{{rt.pctStyle}}">{{rt.pct}}</span></span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas); border-radius: 0 0 8px 8px"><span style="font-size: 13px; color: var(--text-2)">전체 사용량 85.4 GB / 150 GB</span><button type="button" onClick="{{save}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">저장</button></div>
+          </section>
+        </div>
+      </sc-if>
+      </div>
+    </main>
+  </div>
+
+  <!-- API 키 추가 모달 -->
+  <sc-if value="{{showAdd}}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; inset: 0; z-index: 80; background: var(--overlay); display: flex; align-items: flex-start; justify-content: center; padding: 96px 16px">
+      <div role="dialog" aria-labelledby="add-h" style="width: 480px; max-width: 100%; padding: 24px; display: flex; flex-direction: column; gap: 20px; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 12px; box-shadow: var(--shadow-z3)">
+        <h2 id="add-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">API 키 추가</h2>
+        <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; font-weight: 500">이름</span><input type="text" value="{{keyName}}" onChange="{{onKeyName}}" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+        <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; font-weight: 500">만료</span><select style="height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option>90일</option><option>30일</option><option>만료 없음</option></select></label>
+        <div style="display: flex; justify-content: flex-end; gap: 8px">
+          <button type="button" onClick="{{closeAdd}}" style="height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">취소</button>
+          <button type="button" onClick="{{createKey}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">API 키 만들기</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- 폐기 확인 -->
+  <sc-if value="{{showRevoke}}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; inset: 0; z-index: 80; background: var(--overlay); display: flex; align-items: flex-start; justify-content: center; padding: 96px 16px">
+      <div role="dialog" aria-labelledby="rv-h" style="width: 440px; max-width: 100%; padding: 24px; display: flex; flex-direction: column; gap: 12px; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 12px; box-shadow: var(--shadow-z3)">
+        <h2 id="rv-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">API 키 폐기</h2>
+        <p style="margin: 0; color: var(--text-2)">{{revokeName}} 키를 폐기합니다. 이 키를 쓰는 요청은 바로 거부되고, 되돌릴 수 없습니다.</p>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px">
+          <button type="button" onClick="{{cancelRevoke}}" style="height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">취소</button>
+          <button type="button" onClick="{{confirmRevoke}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--error); color: #fff; font-weight: 500">API 키 폐기</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 90; padding: 12px 16px; border-radius: 8px; background: var(--primary); color: var(--on-primary); box-shadow: var(--shadow-z3)">{{toast}}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"tab":{"editor":"enum","options":["일반","데이터 소스","분석","알림 채널","API 키","Retention"],"default":"일반"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: null, menu: true, tab: null, pref: 'light', ds: null, tests: {}, lokiTries: 0, keys: [true, true, false], showAdd: false, keyName: 'demo-export', newKey: null, copied: false, revoke: null, toast: null };
+  }
+  componentWillUnmount() { clearTimeout(this._t); }
+  toast(m) { this.setState({ toast: m }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 4000); }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const T = ['일반', '데이터 소스', '분석', '알림 채널', 'API 키', 'Retention'];
+    const tab = this.state.tab ?? Math.max(0, T.indexOf(this.props.tab ?? '일반'));
+    const tabs = T.map((label, i) => ({ label, sel: tab === i ? 'true' : 'false', pick: () => this.setState({ tab: i, ds: null }),
+      style: 'height: 40px; padding: 0; border: 0; background: none; white-space: nowrap; ' + (tab === i ? 'color: var(--text); font-weight: 500; box-shadow: inset 0 -2px 0 var(--text)' : 'color: var(--text-2)') }));
+    const pref = this.state.pref;
+    const themeOpts = [['light', '라이트'], ['dark', '다크'], ['system', '시스템']].map(([k, label]) => ({ label, sel: pref === k ? 'true' : 'false',
+      pick: () => this.setState({ pref: k, theme: k === 'system' ? 'light' : k }),
+      style: 'height: 28px; padding: 0 14px; border: 0; border-radius: 6px; ' + (pref === k ? 'background: var(--bg1); box-shadow: var(--shadow-z1); font-weight: 500; color: var(--text)' : 'background: transparent; color: var(--text-2)') }));
+    const logo = (c) => 'width: 32px; height: 32px; flex: none; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--text); background: var(--bg2); border: 1px solid var(--border-weak)';
+    const D = [
+      { id: 'prom', name: 'Prometheus', type: 'Prometheus', url: 'http://prometheus.monitoring:9090', c: '--viz-orange', isDefault: true },
+      { id: 'tempo', name: 'Tempo', type: 'Tempo', url: 'http://tempo.monitoring:3200', c: '--viz-blue', isDefault: false },
+      { id: 'loki', name: 'Loki', type: 'Loki', url: 'http://loki.monitoring:3100', c: '--viz-yellow', isDefault: false }
+    ];
+    const tests = this.state.tests;
+    const sources = D.map((d) => {
+      const t = tests[d.id];
+      const bad = d.id === 'loki' && t !== 'ok';
+      return { ...d, initial: d.name[0], logo: logo(d.c), open: () => this.setState({ ds: d.id }),
+        status: bad ? '수집 끊김' : '연결됨',
+        row: 'display: flex; align-items: center; gap: 16px; width: 100%; padding: 12px 20px; border: 0; background: none; text-align: left; ' + (d.id !== 'loki' ? 'border-bottom: 1px solid var(--border-weak)' : ''),
+        statusStyle: 'flex: none; display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; ' + (bad ? 'color: var(--error-text); background: color-mix(in srgb, var(--error) 10%, var(--bg1))' : 'color: var(--text-2); background: var(--secondary)') };
+    });
+    const curD = sources.find((s) => s.id === this.state.ds) || sources[0];
+    const curTest = tests[curD.id];
+    const C = [
+      { name: 'sre-alerts', type: 'Slack', target: '#sre-alerts', last: '마지막 전송 14:22:00' },
+      { name: 'oncall-email', type: '이메일', target: 'oncall@example.ac.kr', last: '마지막 전송 13:12:40' },
+      { name: 'lab-webhook', type: 'Webhook', target: 'https://hooks.example.ac.kr/sentrix', last: '전송 기록 없음' }
+    ];
+    const channels = C.map((c, i) => ({ ...c, test: () => this.toast(c.name + '로 테스트 알림을 보냈습니다.'),
+      row: 'display: flex; align-items: center; gap: 8px; padding: 12px 20px; ' + (i < C.length - 1 ? 'border-bottom: 1px solid var(--border-weak)' : '') }));
+    const R = [['Prometheus', '15일', 12.4, 50], ['Tempo', '7일', 31.8, 50], ['Loki', '14일', 41.2, 50]];
+    const retention = R.map(([name, days, used, cap], i) => { const p = used / cap; return { name, days, used: used + ' GB', cap: cap + ' GB', pct: Math.round(p * 100) + '%',
+      row: 'display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 12px 0; ' + (i < R.length - 1 ? 'border-bottom: 1px solid var(--border-weak)' : ''),
+      bar: 'height: 6px; border-radius: 3px; width: ' + (p * 100).toFixed(1) + '%; background: ' + (p >= 0.8 ? 'var(--warning)' : 'var(--text)'),
+      pctStyle: p >= 0.8 ? 'color: var(--warning-text)' : '' }; });
+    const names = ['ci-pipeline', 'grafana-export', this.state.newKeyName || 'demo-export'];
+    const keys = this.state.keys;
+    const askRevoke = (i) => () => this.setState({ revoke: i });
+    return {
+      theme, menuOpen: this.state.menu,
+      setTheme: (t) => this.setState({ theme: t }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      tabs, themeOpts, sources, channels, retention,
+      tGeneral: tab === 0, tDs: tab === 1, tAnalysis: tab === 2, tChannels: tab === 3, tKeys: tab === 4, tRetention: tab === 5,
+      dsList: !this.state.ds, dsOpen: !!this.state.ds, cur: curD,
+      testOk: curTest === 'ok', testFail: curTest === 'fail',
+      backDs: () => this.setState({ ds: null }),
+      testDs: () => {
+        const id = curD.id;
+        if (id === 'loki' && this.state.lokiTries === 0) this.setState({ lokiTries: 1, tests: { ...tests, loki: 'fail' } });
+        else this.setState({ tests: { ...tests, [id]: 'ok' } });
+      },
+      deleteDs: () => this.toast(curD.name + ' 삭제는 데모에서 막혀 있습니다.'),
+      save: () => this.toast('설정을 저장했습니다.'),
+      key0Style: keys[0] ? '' : 'display: none', key1Style: keys[1] ? '' : 'display: none', key2Style: keys[2] ? '' : 'display: none', newKeyName: names[2],
+      hasNewKey: !!this.state.newKey, newKey: this.state.newKey || '', copyLabel: this.state.copied ? '복사됨' : '복사',
+      copyKey: () => this.setState({ copied: true }),
+      showAdd: this.state.showAdd, keyName: this.state.keyName,
+      onKeyName: (e) => this.setState({ keyName: e.target.value }),
+      openAdd: () => this.setState({ showAdd: true }), closeAdd: () => this.setState({ showAdd: false }),
+      createKey: () => this.setState({ showAdd: false, newKeyName: this.state.keyName || 'demo-export', newKey: 'sx_live_Zr4tK8wPq2LmN6vB3xYc9HdF1sJe7TaU', copied: false, keys: [keys[0], keys[1], true] }),
+      revoke0: askRevoke(0), revoke1: askRevoke(1), revoke2: askRevoke(2),
+      showRevoke: this.state.revoke !== null, revokeName: this.state.revoke !== null ? names[this.state.revoke] : '',
+      cancelRevoke: () => this.setState({ revoke: null }),
+      confirmRevoke: () => { const i = this.state.revoke; const k = keys.slice(); k[i] = false; this.setState({ keys: k, revoke: null, newKey: i === 2 ? null : this.state.newKey }); this.toast(names[i] + ' 키를 폐기했습니다.'); },
+      hasToast: !!this.state.toast, toast: this.state.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

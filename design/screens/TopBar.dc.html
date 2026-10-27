@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>SentriX 상단 바</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<header style="position: relative; height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 16px; box-sizing: border-box; font-family: 'Geist', 'Noto Sans KR', sans-serif; font-size: 14px; line-height: 20px; color: var(--text, #202020); background: var(--page, #ffffff); border-bottom: 1px solid var(--border-weak, #e8e8e8)">
+  <button type="button" onClick="{{menu}}" aria-label="메뉴 열기 또는 닫기" style="width: 32px; height: 32px; margin-left: -8px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: none; color: var(--text-2, #646464); cursor: pointer">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+  </button>
+  <a href="B1-Overview.dc.html" aria-label="SentriX 홈" style="display: inline-flex; flex: none; width: 24px; height: 24px; align-items: center; justify-content: center; border-radius: 6px; background: #1c1c1c; color: #ffffff">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"></path><circle cx="12" cy="12" r="3.2" style="fill: #E865C0; stroke: none"></circle></svg>
+  </a>
+
+  <nav aria-label="현재 위치" style="display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; white-space: nowrap">
+    <sc-for list="{{crumbs}}" as="c" hint-placeholder-count="3">
+      <sc-if value="{{c.notFirst}}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="color: var(--border-strong, #bbbbbb)">/</span></sc-if>
+      <sc-if value="{{c.link}}" hint-placeholder-val="{{ true }}"><a href="{{c.href}}" style="color: var(--text-2, #646464); text-decoration: none">{{c.label}}</a></sc-if>
+      <sc-if value="{{c.last}}" hint-placeholder-val="{{ false }}"><span aria-current="page" style="color: var(--text, #202020); font-weight: 500; overflow: hidden; text-overflow: ellipsis">{{c.label}}</span></sc-if>
+    </sc-for>
+  </nav>
+
+  <div style="flex: 1 1 16px"></div>
+
+  <label style="position: relative; flex: 0 1 320px; min-width: 160px; display: flex; align-items: center">
+    <span style="position: absolute; left: 10px; display: inline-flex; color: var(--text-2, #646464)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M17.5 11a6.5 6.5 0 1 1-13 0a6.5 6.5 0 1 1 13 0M16 16l4.5 4.5"></path></svg></span>
+    <input type="search" aria-label="검색" placeholder="검색" style="width: 100%; height: 32px; padding: 0 56px 0 32px; border-radius: 6px; border: 0; background: var(--bg2, #f0f0f0); color: var(--text, #202020); font: inherit; font-size: 14px; box-sizing: border-box">
+    <span style="position: absolute; right: 10px; font-size: 12px; color: var(--text-2, #646464)">Ctrl K</span>
+  </label>
+
+  <!-- 환경 -->
+  <div style="position: relative">
+    <button type="button" onClick="{{tEnv}}" aria-expanded="{{envOpen}}" style="height: 32px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--border, #d9d9d9); background: var(--bg1, #ffffff); color: inherit; font: inherit; font-size: 14px; cursor: pointer">
+      online-boutique
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--text-2, #646464)"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+    <sc-if value="{{showEnv}}" hint-placeholder-val="{{ false }}">
+      <div role="listbox" aria-label="환경" style="position: absolute; top: 40px; right: 0; z-index: 60; width: 280px; padding: 4px; background: var(--elev, #ffffff); border: 1px solid var(--border-weak, #e8e8e8); border-radius: 8px; box-shadow: var(--shadow-z3, 0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05))">
+        <div role="option" aria-selected="true" style="padding: 8px 12px; border-radius: 6px; background: var(--selected, rgba(0,0,0,.045))">
+          <div style="font-weight: 500">online-boutique</div>
+          <div style="font-size: 13px; color: var(--text-2, #646464)">k3s, namespace sentrix, v0.9.0</div>
+        </div>
+        <a href="A4-Onboarding.dc.html" style="display: flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 6px; color: var(--text, #202020); text-decoration: none">클러스터 연결 추가</a>
+      </div>
+    </sc-if>
+  </div>
+
+  <!-- 알림 -->
+  <div style="position: relative">
+    <button type="button" onClick="{{tBell}}" aria-expanded="{{bellOpen}}" aria-label="{{bellLabel}}" style="position: relative; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: none; color: var(--text-2, #646464); cursor: pointer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"></path></svg>
+      <sc-if value="{{hasUnread}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--error, #e5484d); border: 2px solid var(--page, #ffffff); box-sizing: content-box"></span></sc-if>
+    </button>
+    <sc-if value="{{showBell}}" hint-placeholder-val="{{ false }}">
+      <div role="dialog" aria-label="알림" style="position: absolute; top: 40px; right: 0; z-index: 60; width: 360px; overflow: hidden; background: var(--elev, #ffffff); border: 1px solid var(--border-weak, #e8e8e8); border-radius: 8px; box-shadow: var(--shadow-z3, 0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05))">
+        <div style="display: flex; justify-content: space-between; align-items: center; height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak, #e8e8e8)">
+          <span style="font-weight: 500">알림</span>
+          <button type="button" onClick="{{markAll}}" style="border: 0; background: none; padding: 0; color: var(--text-2, #646464); font: inherit; font-size: 13px; cursor: pointer">모두 읽음</button>
+        </div>
+        <sc-for list="{{notes}}" as="n" hint-placeholder-count="3">
+          <a href="{{n.href}}" style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 16px; border-bottom: 1px solid var(--border-weak, #e8e8e8); color: inherit; text-decoration: none">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <span style="{{n.titleStyle}}">{{n.title}}</span>
+              <span style="font-size: 13px; color: var(--text-2, #646464); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{n.body}}</span>
+            </span>
+            <span style="flex: none; font-size: 13px; color: var(--text-2, #646464); white-space: nowrap">{{n.time}}</span>
+          </a>
+        </sc-for>
+        <a href="C1-Notifications.dc.html" style="display: flex; align-items: center; height: 40px; padding: 0 16px; font-size: 13px; color: var(--text-2, #646464); text-decoration: none">알림 기록 전체 보기</a>
+      </div>
+    </sc-if>
+  </div>
+
+  <!-- 사용자 -->
+  <div style="position: relative">
+    <button type="button" onClick="{{tUser}}" aria-expanded="{{userOpen}}" aria-label="프로필 메뉴" style="width: 32px; height: 32px; margin-right: -4px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: none; cursor: pointer">
+      <span style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary, #202020); color: var(--on-primary, #ffffff); font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center">이</span>
+    </button>
+    <sc-if value="{{showUser}}" hint-placeholder-val="{{ false }}">
+      <div role="menu" style="position: absolute; top: 40px; right: 0; z-index: 60; width: 240px; padding: 4px; background: var(--elev, #ffffff); border: 1px solid var(--border-weak, #e8e8e8); border-radius: 8px; box-shadow: var(--shadow-z3, 0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05))">
+        <div style="padding: 8px 12px">
+          <div style="font-weight: 500">이지훈</div>
+          <div style="font-size: 13px; color: var(--text-2, #646464)">jihoon.lee@example.ac.kr</div>
+        </div>
+        <div style="height: 1px; margin: 4px 0; background: var(--border-weak, #e8e8e8)"></div>
+        <a role="menuitem" href="C5-Account.dc.html" style="display: flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 6px; color: inherit; text-decoration: none">프로필</a>
+        <a role="menuitem" href="C1-Notifications.dc.html" style="display: flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 6px; color: inherit; text-decoration: none">알림 기록</a>
+        <a role="menuitem" href="C3-Settings.dc.html" style="display: flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 6px; color: inherit; text-decoration: none">설정</a>
+        <button role="menuitem" type="button" onClick="{{cycleTheme}}" style="display: flex; align-items: center; justify-content: space-between; width: 100%; height: 32px; padding: 0 12px; border: 0; border-radius: 6px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer"><span>테마</span><span style="color: var(--text-2, #646464)">{{themeLabel}}</span></button>
+        <div style="height: 1px; margin: 4px 0; background: var(--border-weak, #e8e8e8)"></div>
+        <a role="menuitem" href="A1-Login.dc.html" style="display: flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 6px; color: inherit; text-decoration: none">로그아웃</a>
+      </div>
+    </sc-if>
+  </div>
+</header>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"crumbs":{"editor":"text","default":"홈|장애|INC-0142"},"hrefs":{"editor":"text","default":"B1-Overview.dc.html|B3-Incidents.dc.html|"},"theme":{"editor":null},"onTheme":{"editor":null},"onMenu":{"editor":null},"$preview":{"width":1440,"height":48}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { open: null, read: false }; }
+  renderVals() {
+    const open = this.state.open;
+    const tog = (k) => () => this.setState({ open: this.state.open === k ? null : k });
+    const labels = String(this.props.crumbs ?? '홈|장애|INC-0142').split('|');
+    const hrefs = String(this.props.hrefs ?? 'B1-Overview.dc.html|B3-Incidents.dc.html|').split('|');
+    const crumbs = labels.map((label, i) => ({ label, href: hrefs[i] || '', notFirst: i > 0, last: i === labels.length - 1, link: i < labels.length - 1 }));
+    const read = this.state.read;
+    const notes = [
+      { title: 'INC-0142 발생', body: 'frontend → productcatalogservice Network delay', time: '10분 전', href: 'B4-Incident.dc.html', unread: !read },
+      { title: 'Loki 수집 중단 후 복구', body: '14:05:12부터 42초 동안', time: '26분 전', href: 'C3-Settings.dc.html', unread: !read },
+      { title: 'INC-0141 해결됨', body: 'checkoutservice Pod failure', time: '1시간 전', href: 'B3-Incidents.dc.html', unread: false }
+    ].map((n) => ({ ...n, titleStyle: 'font-size: 14px; ' + (n.unread ? 'font-weight: 500' : 'font-weight: 400') }));
+    const unread = notes.filter((n) => n.unread).length;
+    const theme = this.props.theme ?? 'light';
+    return {
+      crumbs, notes,
+      menu: () => { if (this.props.onMenu) this.props.onMenu(); },
+      hasUnread: unread > 0, bellLabel: '알림, 읽지 않음 ' + unread + '개',
+      showEnv: open === 'env', showBell: open === 'bell', showUser: open === 'user',
+      envOpen: open === 'env' ? 'true' : 'false', bellOpen: open === 'bell' ? 'true' : 'false', userOpen: open === 'user' ? 'true' : 'false',
+      tEnv: tog('env'), tBell: tog('bell'), tUser: tog('user'),
+      markAll: () => this.setState({ read: true }),
+      themeLabel: theme === 'dark' ? '다크' : '라이트',
+      cycleTheme: () => { if (this.props.onTheme) this.props.onTheme(theme === 'dark' ? 'light' : 'dark'); }
+    };
+  }
+}
+</script>
+</body>
+</html>

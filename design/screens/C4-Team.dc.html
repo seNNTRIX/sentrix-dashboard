@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>팀과 권한</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-weight:500;font-size:13px;text-align:left;padding:0 16px;height:36px;border-bottom:1px solid var(--border-weak);white-space:nowrap;color:var(--text-2)}
+.g td{padding:0 16px;height:44px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:last-child td{border-bottom:0}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="홈|관리|팀과 권한" hrefs="B1-Overview.dc.html|C3-Settings.dc.html|" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="team" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 48px">
+      <div style="max-width: 1160px; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">팀과 권한</h1>
+          <span style="color: var(--text-2)">SentriX Lab 멤버 5명</span>
+        </div>
+        <button type="button" onClick="{{openInvite}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">멤버 초대</button>
+      </div>
+
+      <div role="tablist" aria-label="팀" style="display: flex; gap: 24px; border-bottom: 1px solid var(--border-weak); overflow-x: auto">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+          <button type="button" role="tab" onClick="{{t.pick}}" aria-selected="{{t.sel}}" style="{{t.style}}">{{t.label}}<sc-if value="{{t.hasCount}}" hint-placeholder-val="{{ true }}"><span style="margin-left: 8px; color: var(--text-2); font-weight: 400; font-variant-numeric: tabular-nums">{{t.count}}</span></sc-if></button>
+        </sc-for>
+      </div>
+
+      <!-- 멤버 -->
+      <sc-if value="{{tMembers}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 16px">
+          <label style="position: relative; display: flex; align-items: center; max-width: 360px">
+            <span style="position: absolute; left: 10px; display: inline-flex; color: var(--text-2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M17.5 11a6.5 6.5 0 1 1-13 0a6.5 6.5 0 1 1 13 0M16 16l4.5 4.5"></path></svg></span>
+            <input type="search" aria-label="멤버 검색" placeholder="이름, 이메일, 로그인으로 검색" value="{{q}}" onChange="{{onQ}}" style="width: 100%; height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); padding-left: 30px">
+          </label>
+          <section aria-label="멤버" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow-x: auto">
+            <table>
+              <thead><tr><th>멤버</th><th>로그인</th><th style="width: 160px">역할</th><th>마지막 접속</th><th style="width: 56px"></th></tr></thead>
+              <tbody>
+                <tr style="{{r0}}"><td><span style="display: flex; align-items: center; gap: 12px"><span style="flex: none; display: inline-flex; width: 28px; height: 28px; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--text); background: var(--bg2)">이</span><span style="display: flex; flex-direction: column"><span style="font-weight: 500; line-height: 20px">이지훈</span><span style="font-size: 13px; line-height: 20px; color: var(--text-2)">jihoon.lee@example.ac.kr</span></span></span></td><td style="font-size: 13px; color: var(--text-2); "><span class="mono">jihoon.lee</span></td><td><select aria-label="이지훈 역할" style="width: 128px; height: 28px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px"><option selected="selected">관리자</option><option>운영자</option><option>읽기 전용</option></select></td><td style="font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums; ">지금</td><td style="text-align: right; "></td></tr>
+                <tr style="{{r1}}"><td><span style="display: flex; align-items: center; gap: 12px"><span style="flex: none; display: inline-flex; width: 28px; height: 28px; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--text); background: var(--bg2)">박</span><span style="display: flex; flex-direction: column"><span style="font-weight: 500; line-height: 20px">박서윤</span><span style="font-size: 13px; line-height: 20px; color: var(--text-2)">seoyoon.park@example.ac.kr</span></span></span></td><td style="font-size: 13px; color: var(--text-2); "><span class="mono">seoyoon.park</span></td><td><select aria-label="박서윤 역할" style="width: 128px; height: 28px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px"><option>관리자</option><option selected="selected">운영자</option><option>읽기 전용</option></select></td><td style="font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums; ">2026-10-27 14:24:31</td><td style="text-align: right; "><button type="button" aria-label="박서윤 내보내기" style="width: 28px; height: 28px; border: 0; border-radius: 6px; background: none; color: var(--text-2); display: inline-flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button></td></tr>
+                <tr style="{{r2}}"><td><span style="display: flex; align-items: center; gap: 12px"><span style="flex: none; display: inline-flex; width: 28px; height: 28px; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--text); background: var(--bg2)">최</span><span style="display: flex; flex-direction: column"><span style="font-weight: 500; line-height: 20px">최민준</span><span style="font-size: 13px; line-height: 20px; color: var(--text-2)">minjun.choi@example.ac.kr</span></span></span></td><td style="font-size: 13px; color: var(--text-2); "><span class="mono">minjun.choi</span></td><td><select aria-label="최민준 역할" style="width: 128px; height: 28px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px"><option>관리자</option><option selected="selected">운영자</option><option>읽기 전용</option></select></td><td style="font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums; ">2026-10-26 18:02:10</td><td style="text-align: right; "><button type="button" aria-label="최민준 내보내기" style="width: 28px; height: 28px; border: 0; border-radius: 6px; background: none; color: var(--text-2); display: inline-flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button></td></tr>
+                <tr style="{{r3}}"><td><span style="display: flex; align-items: center; gap: 12px"><span style="flex: none; display: inline-flex; width: 28px; height: 28px; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--text); background: var(--bg2)">김</span><span style="display: flex; flex-direction: column"><span style="font-weight: 500; line-height: 20px">김도현</span><span style="font-size: 13px; line-height: 20px; color: var(--text-2)">dohyun.kim@example.ac.kr</span></span></span></td><td style="font-size: 13px; color: var(--text-2); "><span class="mono">dohyun.kim</span></td><td><select aria-label="김도현 역할" style="width: 128px; height: 28px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px"><option>관리자</option><option>운영자</option><option selected="selected">읽기 전용</option></select></td><td style="font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums; ">2026-10-24 10:15:00</td><td style="text-align: right; "><button type="button" aria-label="김도현 내보내기" style="width: 28px; height: 28px; border: 0; border-radius: 6px; background: none; color: var(--text-2); display: inline-flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button></td></tr>
+                <tr style="{{r4}}"><td style="border-bottom: 0"><span style="display: flex; align-items: center; gap: 12px"><span style="flex: none; display: inline-flex; width: 28px; height: 28px; border-radius: 50%; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: var(--text); background: var(--bg2)">정</span><span style="display: flex; flex-direction: column"><span style="font-weight: 500; line-height: 20px">정우진</span><span style="font-size: 13px; line-height: 20px; color: var(--text-2)">woojin.jung@example.ac.kr</span></span></span></td><td style="font-size: 13px; color: var(--text-2); border-bottom: 0"><span class="mono">woojin.jung</span></td><td style="border-bottom: 0"><select aria-label="정우진 역할" style="width: 128px; height: 28px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px"><option>관리자</option><option>운영자</option><option selected="selected">읽기 전용</option></select></td><td style="font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums; border-bottom: 0">2026-10-20 13:40:22</td><td style="text-align: right; border-bottom: 0"><button type="button" aria-label="정우진 내보내기" style="width: 28px; height: 28px; border: 0; border-radius: 6px; background: none; color: var(--text-2); display: inline-flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button></td></tr>
+              </tbody>
+            </table>
+            <sc-if value="{{noMatch}}" hint-placeholder-val="{{ false }}"><div style="padding: 32px 20px; text-align: center; color: var(--text-2)">검색 결과가 없습니다.</div></sc-if>
+          </section>
+        </div>
+      </sc-if>
+
+      <!-- 초대 대기 -->
+      <sc-if value="{{tPending}}" hint-placeholder-val="{{ false }}">
+        <section aria-label="초대 대기" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow-x: auto">
+          <table>
+            <thead><tr><th>이메일</th><th>이름</th><th>역할</th><th>초대한 사람</th><th>보낸 시각</th><th style="width: 220px"></th></tr></thead>
+            <tbody>
+              <tr style="{{p0}}"><td>reviewer@example.ac.kr</td><td>심사위원</td><td style="color: var(--text-2)">읽기 전용</td><td style="color: var(--text-2)">이지훈</td><td style="font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums">2026-10-26 17:40:00</td><td style="text-align: right; white-space: nowrap"><span style="display: inline-flex; gap: 8px"><button type="button" onClick="{{resend0}}" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500">다시 보내기</button><button type="button" onClick="{{cancel0}}" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500; color: var(--error-text)">초대 취소</button></span></td></tr>
+              <tr style="{{p1}}"><td style="border-bottom: 0">{{invEmail}}</td><td style="border-bottom: 0">{{invName}}</td><td style="border-bottom: 0; color: var(--text-2)">{{invRole}}</td><td style="border-bottom: 0; color: var(--text-2)">이지훈</td><td style="border-bottom: 0; font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums">2026-10-27 14:33:02</td><td style="border-bottom: 0; text-align: right; white-space: nowrap"><span style="display: inline-flex; gap: 8px"><button type="button" onClick="{{resend1}}" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500">다시 보내기</button><button type="button" onClick="{{cancel1}}" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500; color: var(--error-text)">초대 취소</button></span></td></tr>
+            </tbody>
+          </table>
+          <sc-if value="{{noPending}}" hint-placeholder-val="{{ false }}"><div style="padding: 32px 20px; text-align: center; color: var(--text-2)">대기 중인 초대가 없습니다.</div></sc-if>
+        </section>
+      </sc-if>
+
+      <!-- 역할 -->
+      <sc-if value="{{tRoles}}" hint-placeholder-val="{{ false }}">
+        <section aria-label="역할별 권한" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow-x: auto; max-width: 880px">
+          <table>
+            <thead><tr><th>권한</th><th style="text-align: center; width: 120px">관리자</th><th style="text-align: center; width: 120px">운영자</th><th style="text-align: center; width: 120px">읽기 전용</th></tr></thead>
+            <tbody>
+              <tr><td style="">장애 보기</td><td style="text-align: center; color: var(--text)">가능</td><td style="text-align: center; color: var(--text)">가능</td><td style="text-align: center; color: var(--text)">가능</td></tr>
+              <tr><td style="">장애 상태 변경</td><td style="text-align: center; color: var(--text)">가능</td><td style="text-align: center; color: var(--text)">가능</td><td style="text-align: center; color: var(--text-dis)">불가</td></tr>
+              <tr><td style="">메모 작성</td><td style="text-align: center; color: var(--text)">가능</td><td style="text-align: center; color: var(--text)">가능</td><td style="text-align: center; color: var(--text-dis)">불가</td></tr>
+              <tr><td style="">Alert rules 편집</td><td style="text-align: center; color: var(--text)">가능</td><td style="text-align: center; color: var(--text)">가능</td><td style="text-align: center; color: var(--text-dis)">불가</td></tr>
+              <tr><td style="">데이터 소스 설정</td><td style="text-align: center; color: var(--text)">가능</td><td style="text-align: center; color: var(--text-dis)">불가</td><td style="text-align: center; color: var(--text-dis)">불가</td></tr>
+              <tr><td style="">API 키 관리</td><td style="text-align: center; color: var(--text)">가능</td><td style="text-align: center; color: var(--text-dis)">불가</td><td style="text-align: center; color: var(--text-dis)">불가</td></tr>
+              <tr><td style="border-bottom: 0;">멤버 관리</td><td style="border-bottom: 0; text-align: center; color: var(--text)">가능</td><td style="border-bottom: 0; text-align: center; color: var(--text-dis)">불가</td><td style="border-bottom: 0; text-align: center; color: var(--text-dis)">불가</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </sc-if>
+      </div>
+    </main>
+  </div>
+
+  <sc-if value="{{showInvite}}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; inset: 0; z-index: 80; background: var(--overlay); display: flex; align-items: flex-start; justify-content: center; padding: 96px 16px">
+      <div role="dialog" aria-labelledby="inv-h" style="width: 480px; max-width: 100%; padding: 24px; display: flex; flex-direction: column; gap: 20px; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 12px; box-shadow: var(--shadow-z3)">
+        <div style="display: flex; flex-direction: column; gap: 2px"><h2 id="inv-h" style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">멤버 초대</h2><span style="font-size: 13px; color: var(--text-2)">초대 메일의 링크로 가입합니다. 링크는 7일 동안 유효합니다.</span></div>
+        <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; font-weight: 500">이메일</span><input type="email" value="{{email}}" onChange="{{onEmail}}" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+        <label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; font-weight: 500">이름 <span style="font-weight: 400; color: var(--text-2)">선택</span></span><input type="text" value="{{name}}" onChange="{{onName}}" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; font-weight: 500">역할</span>
+          <div role="radiogroup" aria-label="역할" style="display: inline-flex; align-self: flex-start; gap: 2px; padding: 2px; border-radius: 8px; background: var(--bg2)">
+            <sc-for list="{{roles}}" as="o" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{o.sel}}" onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px">
+          <button type="button" onClick="{{closeInvite}}" style="height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">취소</button>
+          <button type="button" onClick="{{sendInvite}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">초대 보내기</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 90; padding: 12px 16px; border-radius: 8px; background: var(--primary); color: var(--on-primary); box-shadow: var(--shadow-z3)">{{toast}}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"inviteOpen":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: null, menu: true, tab: 0, q: '', invite: null, email: '', name: '', role: '읽기 전용', pend: [true, false], inv: null, toast: null };
+  }
+  componentWillUnmount() { clearTimeout(this._t); }
+  toast(m) { this.setState({ toast: m }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 4000); }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const tab = this.state.tab;
+    const pend = this.state.pend;
+    const pendCount = pend.filter(Boolean).length;
+    const tabs = [['멤버', 5], ['초대 대기', pendCount], ['역할', null]].map(([label, count], i) => ({ label, count: String(count), hasCount: count !== null,
+      sel: tab === i ? 'true' : 'false', pick: () => this.setState({ tab: i }),
+      style: 'display: inline-flex; align-items: center; height: 40px; padding: 0; border: 0; background: none; white-space: nowrap; ' + (tab === i ? 'color: var(--text); font-weight: 500; box-shadow: inset 0 -2px 0 var(--text)' : 'color: var(--text-2)') }));
+    const q = (this.state.q || '').trim().toLowerCase();
+    const M = ['jihoon.lee 이지훈', 'seoyoon.park 박서윤', 'minjun.choi 최민준', 'dohyun.kim 김도현', 'woojin.jung 정우진'];
+    const vis = M.map((m) => !q || (m + '@example.ac.kr').toLowerCase().includes(q));
+    const rowStyle = (v) => v ? '' : 'display: none';
+    const role = this.state.role;
+    const roles = ['관리자', '운영자', '읽기 전용'].map((label) => ({ label, sel: role === label ? 'true' : 'false', pick: () => this.setState({ role: label }),
+      style: 'height: 28px; padding: 0 14px; border: 0; border-radius: 6px; ' + (role === label ? 'background: var(--bg1); box-shadow: var(--shadow-z1); font-weight: 500; color: var(--text)' : 'background: transparent; color: var(--text-2)') }));
+    const inv = this.state.inv;
+    const showInvite = this.state.invite ?? !!this.props.inviteOpen;
+    return {
+      theme, menuOpen: this.state.menu,
+      setTheme: (t) => this.setState({ theme: t }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      tabs, tMembers: tab === 0, tPending: tab === 1, tRoles: tab === 2,
+      q: this.state.q, onQ: (e) => this.setState({ q: e.target.value }),
+      r0: rowStyle(vis[0]), r1: rowStyle(vis[1]), r2: rowStyle(vis[2]), r3: rowStyle(vis[3]), r4: rowStyle(vis[4]),
+      noMatch: !vis.some(Boolean),
+      p0: rowStyle(pend[0]), p1: rowStyle(pend[1] && !!inv), noPending: pendCount === 0,
+      invEmail: inv ? inv.email : '', invName: inv ? inv.name : '', invRole: inv ? inv.role : '',
+      resend0: () => this.toast('reviewer@example.ac.kr로 초대를 다시 보냈습니다.'),
+      resend1: () => this.toast((inv ? inv.email : '') + '로 초대를 다시 보냈습니다.'),
+      cancel0: () => { this.setState({ pend: [false, pend[1]] }); this.toast('초대를 취소했습니다.'); },
+      cancel1: () => { this.setState({ pend: [pend[0], false] }); this.toast('초대를 취소했습니다.'); },
+      showInvite, roles, email: this.state.email, name: this.state.name,
+      onEmail: (e) => this.setState({ email: e.target.value }), onName: (e) => this.setState({ name: e.target.value }),
+      openInvite: () => this.setState({ invite: true }), closeInvite: () => this.setState({ invite: false }),
+      sendInvite: () => {
+        const email = (this.state.email || '').trim() || 'new.member@example.ac.kr';
+        this.setState({ invite: false, inv: { email, name: (this.state.name || '').trim() || '이름 없음', role }, pend: [pend[0], true], email: '', name: '', tab: 1 });
+        this.toast(email + '로 초대를 보냈습니다.');
+      },
+      hasToast: !!this.state.toast, toast: this.state.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

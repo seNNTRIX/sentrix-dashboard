@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Alert rules</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-weight:500;text-align:left;padding:4px 8px;height:32px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:4px 8px;height:36px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="{{crumbs}}" hrefs="{{hrefs}}" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="rules" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 48px">
+      <div style="max-width: 1160px; display: flex; flex-direction: column; gap: 24px">
+
+      <!-- 목록 -->
+      <sc-if value="{{isList}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">Alert rules</h1>
+            <span style="color: var(--text-2)">Anomaly score와 데이터 소스 상태를 평가해 알림을 보냅니다.</span>
+          </div>
+          <button type="button" onClick="{{openForm}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">새 Alert rules</button>
+        </div>
+
+        <label style="position: relative; display: flex; align-items: center; max-width: 360px">
+          <span style="position: absolute; left: 10px; display: inline-flex; color: var(--text-2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M17.5 11a6.5 6.5 0 1 1-13 0a6.5 6.5 0 1 1 13 0M16 16l4.5 4.5"></path></svg></span>
+          <input type="search" aria-label="규칙 검색" placeholder="이름, Labels로 검색" style="width: 100%; height: 32px; padding: 0 12px 0 32px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+        </label>
+
+        <section aria-labelledby="grp-h" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow-x: auto">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 16px 20px; border-bottom: 1px solid var(--border-weak)">
+            <h2 id="grp-h" style="margin: 0; font-size: 14px; font-weight: 500">SentriX / rca</h2>
+            <span style="font-size: 13px; color: var(--text-2)">평가 주기 30s</span>
+          </div>
+          <div role="table" aria-label="Alert rules" style="min-width: 640px">
+            <div role="row" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 64px 72px; gap: 16px; align-items: center; height: 36px; padding: 0 20px; border-bottom: 1px solid var(--border-weak); font-size: 13px; font-weight: 500; color: var(--text-2)">
+              <span role="columnheader">상태</span><span role="columnheader">이름</span><span role="columnheader">사용</span><span role="columnheader" style="text-align: right">작업</span>
+            </div>
+            <sc-for list="{{rules}}" as="r" hint-placeholder-count="4">
+              <div role="row" style="{{r.row}}">
+                <span role="cell"><span style="{{r.stateStyle}}">{{r.stateLabel}}</span></span>
+                <span role="cell" style="min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                  <span style="font-size: 14px; line-height: 20px">{{r.name}}</span>
+                  <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">{{r.labelText}}</span>
+                </span>
+                <span role="cell"><button type="button" role="switch" aria-checked="{{r.on}}" aria-label="{{r.switchLabel}}" onClick="{{r.toggle}}" style="{{r.track}}"><span style="{{r.knob}}"></span></button></span>
+                <span role="cell" style="text-align: right"><button type="button" onClick="{{openForm}}" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500">편집</button></span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </sc-if>
+
+      <!-- 규칙 만들기 -->
+      <sc-if value="{{isForm}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">새 Alert rules</h1>
+          <span style="color: var(--text-2)">조건을 정하고 알림 받을 곳을 고릅니다.</span>
+        </div>
+
+        <div style="max-width: 760px; display: flex; flex-direction: column; gap: 16px">
+          <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 14px; font-weight: 500">규칙 이름</h2><span style="font-size: 13px; color: var(--text-2)">목록과 알림 제목에 표시됩니다.</span></div>
+            <input type="text" aria-label="규칙 이름" value="{{name}}" onChange="{{onName}}" placeholder="비워 두면 조건으로 이름을 만듭니다" style="max-width: 480px; height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+          </section>
+
+          <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 14px; font-weight: 500">조건</h2><span style="font-size: 13px; color: var(--text-2)">Anomaly score가 기준을 넘은 상태가 지속 시간 동안 이어지면 발동합니다.</span></div>
+            <div style="display: flex; flex-wrap: wrap; gap: 16px">
+              <label style="display: flex; flex-direction: column; gap: 4px; width: 200px">
+                <span style="font-size: 13px; font-weight: 500">Anomaly score 기준</span>
+                <input type="number" min="0" max="1" step="0.05" value="{{threshold}}" onChange="{{onThreshold}}" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-variant-numeric: tabular-nums">
+                <span style="font-size: 12px; color: var(--text-2)">0에서 1 사이</span>
+              </label>
+              <label style="display: flex; flex-direction: column; gap: 4px; width: 200px">
+                <span style="font-size: 13px; font-weight: 500">지속 시간</span>
+                <select value="{{duration}}" onChange="{{onDuration}}" style="height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option value="30초">30초</option><option value="1분">1분</option><option value="2분">2분</option><option value="5분">5분</option></select>
+              </label>
+            </div>
+          </section>
+
+          <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+            <div style="display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 14px; font-weight: 500">대상</h2><span style="font-size: 13px; color: var(--text-2)">서비스를 고르지 않으면 전체 서비스에 적용합니다.</span></div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <span style="font-size: 13px; font-weight: 500">서비스</span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px">
+                <sc-for list="{{svcs}}" as="s" hint-placeholder-count="11"><button type="button" aria-pressed="{{s.on}}" onClick="{{s.toggle}}" style="{{s.style}}">{{s.name}}</button></sc-for>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <span style="font-size: 13px; font-weight: 500">장애 유형</span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px 20px">
+                <sc-for list="{{faults}}" as="f" hint-placeholder-count="5"><label style="display: inline-flex; align-items: center; gap: 8px"><input type="checkbox" checked="{{f.on}}" onChange="{{f.toggle}}" style="width: 16px; height: 16px; margin: 0; accent-color: var(--primary)">{{f.label}}</label></sc-for>
+              </div>
+            </div>
+          </section>
+
+          <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 14px; font-weight: 500">알림 받을 곳</h2><span style="font-size: 13px; color: var(--text-2)">채널은 설정의 알림 채널에서 추가합니다.</span></div>
+            <select aria-label="알림 받을 곳" value="{{contact}}" onChange="{{onContact}}" style="max-width: 480px; height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option value="Slack #sre-alerts">Slack #sre-alerts</option><option value="이메일 oncall@example.ac.kr">이메일 oncall@example.ac.kr</option><option value="Webhook">Webhook</option></select>
+          </section>
+
+          <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden">
+            <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 8px">
+              <h2 style="margin: 0; font-size: 14px; font-weight: 500">미리 보기</h2>
+              <p style="margin: 0; color: var(--text-2)">{{preview}}</p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas)">
+              <button type="button" onClick="{{cancel}}" style="height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">취소</button>
+              <button type="button" onClick="{{save}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">규칙 저장</button>
+            </div>
+          </section>
+        </div>
+      </sc-if>
+      </div>
+    </main>
+  </div>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 90; padding: 12px 16px; border-radius: 8px; background: var(--primary); color: var(--on-primary); box-shadow: var(--shadow-z3)">{{toast}}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"form":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      theme: null, menu: true, view: null, toast: null,
+      name: '', threshold: '0.60', duration: '30초', contact: 'Slack #sre-alerts', svcSel: {}, faultSel: { cpu: true, net: true, loss: true, pod: true, traffic: true },
+      rules: [
+        { name: 'Anomaly score ≥ 0.60, 30초 이상 → Slack #sre-alerts', state: 'firing', on: true, labels: [['severity', 'warning'], ['scope', 'all']] },
+        { name: 'Anomaly score ≥ 0.80, 2분 이상, frontend, checkoutservice → 이메일', state: 'normal', on: true, labels: [['severity', 'critical'], ['service', 'frontend, checkoutservice']] },
+        { name: '데이터 소스 연결 끊김 60초 → Slack, 이메일', state: 'normal', on: true, labels: [['severity', 'warning'], ['type', 'datasource']] },
+        { name: '장애 해결됨 → Slack', state: 'paused', on: false, labels: [['type', 'resolved']] }
+      ]
+    };
+  }
+  componentWillUnmount() { clearTimeout(this._t); }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const view = this.state.view ?? (this.props.form ? 'form' : 'list');
+    const ST = { firing: ['발동', 'color: var(--error-text); background: color-mix(in srgb, var(--error) 10%, var(--bg1))'], normal: ['정상', 'color: var(--text-2); background: var(--secondary)'], paused: ['일시 중지', 'color: var(--text-dis); background: var(--secondary)'] };
+    const nRules = this.state.rules.length;
+    const rules = this.state.rules.map((r, i) => {
+      const st = r.on ? r.state : 'paused';
+      const s = ST[st === 'paused' && r.on ? 'normal' : st];
+      return { name: r.name, on: r.on ? 'true' : 'false', switchLabel: r.name + (r.on ? ' 끄기' : ' 켜기'),
+        labelText: r.labels.map(([k, v]) => k + ' ' + v).join(', '),
+        row: 'display: grid; grid-template-columns: 96px minmax(0, 1fr) 64px 72px; gap: 16px; align-items: center; padding: 12px 20px; ' + (i < nRules - 1 ? 'border-bottom: 1px solid var(--border-weak)' : ''),
+        stateLabel: s[0],
+        stateStyle: 'display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; ' + s[1],
+        toggle: () => { const rs = this.state.rules.slice(); rs[i] = { ...rs[i], on: !rs[i].on, state: !rs[i].on ? 'normal' : 'paused' }; this.setState({ rules: rs }); },
+        track: 'position: relative; display: inline-block; width: 32px; height: 18px; padding: 0; border: 0; border-radius: 9px; transition: background .15s; background: ' + (r.on ? 'var(--primary)' : 'var(--border)'),
+        knob: 'position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; transition: transform .15s; background: var(--bg1); box-shadow: var(--shadow-z1); transform: translateX(' + (r.on ? '14px' : '0') + ')' };
+    });
+    const SV = ['frontend', 'cartservice', 'productcatalogservice', 'currencyservice', 'paymentservice', 'shippingservice', 'emailservice', 'checkoutservice', 'recommendationservice', 'adservice', 'redis-cart'];
+    const svcs = SV.map((name) => { const on = !!this.state.svcSel[name]; return { name, on: on ? 'true' : 'false',
+      toggle: () => this.setState({ svcSel: { ...this.state.svcSel, [name]: !on } }),
+      style: 'height: 28px; padding: 0 12px; border-radius: 6px; font-size: 13px; ' + (on ? 'border: 1px solid var(--primary); background: var(--primary); color: var(--on-primary)' : 'border: 1px solid var(--border); background: var(--bg1); color: var(--text)') }; });
+    const FT = [['cpu', 'CPU saturation', '--tag-cpu'], ['net', 'Network delay', '--tag-net'], ['loss', 'Packet loss', '--tag-loss'], ['pod', 'Pod failure', '--tag-pod'], ['traffic', 'Traffic spike', '--tag-traffic']];
+    const faults = FT.map(([k, label, t]) => ({ label, on: !!this.state.faultSel[k],
+      toggle: () => this.setState({ faultSel: { ...this.state.faultSel, [k]: !this.state.faultSel[k] } }),
+      tag: 'display: inline-block; padding: 0 8px; border-radius: 4px; font-size: 12px; line-height: 20px; color: var(--on-tag); background: var(' + t + ')' }));
+    const selSvcs = SV.filter((n) => this.state.svcSel[n]);
+    const target = selSvcs.length ? selSvcs.join(', ') + '에서' : '전체 서비스에서';
+    const preview = target + ' Anomaly score가 ' + this.state.threshold + ' 이상으로 ' + this.state.duration + ' 넘게 지속되면 ' + this.state.contact + '로 알립니다.';
+    const crumbs = view === 'form' ? '홈|장애|Alert rules|새 Alert rules' : '홈|장애|Alert rules';
+    const hrefs = view === 'form' ? 'B1-Overview.dc.html|B3-Incidents.dc.html|C2-AlertRules.dc.html|' : 'B1-Overview.dc.html|B3-Incidents.dc.html|';
+    return {
+      theme, menuOpen: this.state.menu, crumbs, hrefs,
+      setTheme: (t) => this.setState({ theme: t }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      isList: view === 'list', isForm: view === 'form', rules, svcs, faults, preview,
+      name: this.state.name, threshold: this.state.threshold, duration: this.state.duration, contact: this.state.contact,
+      onName: (e) => this.setState({ name: e.target.value }),
+      onThreshold: (e) => this.setState({ threshold: e.target.value }),
+      onDuration: (e) => this.setState({ duration: e.target.value }),
+      onContact: (e) => this.setState({ contact: e.target.value }),
+      openForm: () => this.setState({ view: 'form' }),
+      cancel: () => this.setState({ view: 'list' }),
+      save: () => {
+        const nm = (this.state.name || '').trim() || ('Anomaly score ≥ ' + this.state.threshold + ', ' + this.state.duration + ' 이상 → ' + this.state.contact);
+        this.setState({ view: 'list', name: '', toast: '규칙을 저장했습니다.',
+          rules: this.state.rules.concat([{ name: nm, state: 'normal', on: true, labels: [['severity', 'warning'], ['scope', selSvcs.length ? selSvcs.join(', ') : 'all']] }]) });
+        clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 4000);
+      },
+      hasToast: !!this.state.toast, toast: this.state.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

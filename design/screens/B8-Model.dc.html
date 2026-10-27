@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Model</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-size:13px;font-weight:500;color:var(--text-2);text-align:left;padding:0 16px;height:36px;border-top:1px solid var(--border-weak);border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:0 16px;height:44px;border-bottom:1px solid var(--border-weak);font-variant-numeric:tabular-nums}
+.g tbody tr:last-child td{border-bottom:0}
+.g thead + tbody tr:first-child td{border-top:0}
+.g tbody tr:hover td{background:var(--selected)}
+.g tbody:first-child tr:first-child td{border-top:1px solid var(--border-weak)}
+.g th:first-child,.g td:first-child{padding-left:20px}.g th:last-child,.g td:last-child{padding-right:20px}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="홈|Model" hrefs="B1-Overview.dc.html|" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="model" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 48px">
+      <div style="max-width: 1160px; display: flex; flex-direction: column; gap: 24px">
+
+        <!-- 헤더 -->
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between">
+          <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+            <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">Model</h1>
+            <span style="color: var(--text-2)">sentrix-rca v1.3.0, 2026-10-20 09:00:00 배포</span>
+          </div>
+          <button type="button" style="height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">평가 다시 실행</button>
+        </div>
+
+        <!-- 지표 줄 -->
+        <section aria-label="주요 평가 지표" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); overflow: hidden">
+          <sc-for list="{{stats}}" as="s" hint-placeholder-count="4">
+            <div style="{{s.cell}}">
+              <span style="font-size: 13px; color: var(--text-2)">{{s.title}}</span>
+              <span style="font-size: 24px; line-height: 32px; font-weight: 500; font-variant-numeric: tabular-nums">{{s.value}}</span>
+              <span style="font-size: 12px; color: var(--text-2)">{{s.sub}}</span>
+            </div>
+          </sc-for>
+        </section>
+
+        <!-- 모델 + 지표 묶음 -->
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch">
+          <section aria-labelledby="model-h" style="flex: 2 1 320px; min-width: 0; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; display: flex; flex-direction: column">
+            <h2 id="model-h" style="margin: 0; padding: 16px 20px 12px; font-size: 14px; font-weight: 500">사용 중인 모델</h2>
+            <table>
+              <tbody>
+                <tr><td style="width: 120px; color: var(--text-2)">모델</td><td class="mono">sentrix-rca v1.3.0</td></tr>
+                <tr><td style="color: var(--text-2)">배포</td><td style="font-variant-numeric: tabular-nums">2026-10-20 09:00:00</td></tr>
+                <tr><td style="color: var(--text-2)">입력</td><td>30초 window</td></tr>
+                <tr><td style="color: var(--text-2)">Baseline</td><td>7일</td></tr>
+                <tr><td style="color: var(--text-2)">데이터 소스</td><td>Prometheus, Tempo, Loki</td></tr>
+                <tr><td style="color: var(--text-2)">대상</td><td>Online Boutique v0.9.0, 서비스 11개</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section aria-labelledby="feat-h" style="flex: 3 1 480px; min-width: 0; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; display: flex; flex-direction: column">
+            <h2 id="feat-h" style="margin: 0; padding: 16px 20px 12px; font-size: 14px; font-weight: 500">지표 묶음</h2>
+            <div style="overflow-x: auto">
+              <table>
+                <thead><tr><th style="width: 112px">소스</th><th>Query</th><th style="width: 88px">대상</th></tr></thead>
+                <tbody>
+                  <tr><td>Tempo</td><td class="mono" style="font-size: 12px; line-height: 18px; padding-top: 12px; padding-bottom: 12px">histogram_quantile(0.9, sum by (le, client, server) (rate(traces_service_graph_request_server_seconds_bucket[30s])))</td><td>연결</td></tr>
+                  <tr><td>Tempo</td><td class="mono" style="font-size: 12px; line-height: 18px; padding-top: 12px; padding-bottom: 12px">sum by (client, server) (rate(traces_service_graph_request_failed_total[30s]))</td><td>연결</td></tr>
+                  <tr><td>Prometheus</td><td class="mono" style="font-size: 12px; line-height: 18px; padding-top: 12px; padding-bottom: 12px">rate(container_cpu_usage_seconds_total{namespace="sentrix"}[30s])</td><td>서비스</td></tr>
+                  <tr><td>Prometheus</td><td class="mono" style="font-size: 12px; line-height: 18px; padding-top: 12px; padding-bottom: 12px">rate(container_cpu_cfs_throttled_periods_total{namespace="sentrix"}[30s])</td><td>서비스</td></tr>
+                  <tr><td>Prometheus</td><td class="mono" style="font-size: 12px; line-height: 18px; padding-top: 12px; padding-bottom: 12px">container_memory_working_set_bytes{namespace="sentrix"}</td><td>서비스</td></tr>
+                  <tr><td>Prometheus</td><td class="mono" style="font-size: 12px; line-height: 18px; padding-top: 12px; padding-bottom: 12px">rate(container_network_receive_packets_dropped_total{namespace="sentrix"}[30s])</td><td>서비스</td></tr>
+                  <tr><td>Prometheus</td><td class="mono" style="font-size: 12px; line-height: 18px; padding-top: 12px; padding-bottom: 12px">increase(kube_pod_container_status_restarts_total{namespace="sentrix"}[30s])</td><td>서비스</td></tr>
+                  <tr><td>Loki</td><td class="mono" style="font-size: 12px; line-height: 18px; padding-top: 12px; padding-bottom: 12px">sum by (app) (rate({namespace="sentrix"} |= "error" [30s]))</td><td>서비스</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- Detection threshold -->
+        <section aria-labelledby="thr-h" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+            <h2 id="thr-h" style="margin: 0; font-size: 14px; font-weight: 500">Detection threshold</h2>
+            <span style="font-size: 13px; color: var(--text-2)">지난 7일 기준 알림 <span style="color: var(--text); font-variant-numeric: tabular-nums">{{alerts}}</span>건</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+            <label for="thr" style="font-size: 13px; font-weight: 500">Anomaly score 임계값</label>
+            <input id="thr" type="range" min="0.3" max="0.95" step="0.01" value="{{thr}}" onChange="{{onThr}}" style="flex: 1 1 320px; accent-color: var(--primary)">
+            <input type="text" aria-label="임계값" value="{{thrText}}" readonly="readonly" style="width: 72px; height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); text-align: right; font-variant-numeric: tabular-nums">
+            <button type="button" onClick="{{saveThr}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">임계값 저장</button>
+          </div>
+        </section>
+
+        <!-- 유형별 정확도 + fold -->
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch">
+          <section aria-labelledby="g-h" style="flex: 1 1 420px; min-width: 0; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+            <div style="display: flex; flex-direction: column; gap: 2px">
+              <h2 id="g-h" style="margin: 0; font-size: 14px; font-weight: 500">장애 유형별 Top-1 정확도</h2>
+              <span style="font-size: 12px; color: var(--text-2)">예시 값입니다. 실제 평가 결과로 교체하세요.</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px">
+              <sc-for list="{{gauges}}" as="b" hint-placeholder-count="5">
+                <div style="display: grid; grid-template-columns: 112px minmax(0, 1fr) 48px; align-items: center; gap: 12px">
+                  <span style="font-size: 13px; color: var(--text-2)">{{b.label}}</span>
+                  <div style="height: 6px; background: var(--bg2); border-radius: 3px; overflow: hidden"><div style="{{b.bar}}"></div></div>
+                  <span style="text-align: right; font-variant-numeric: tabular-nums">{{b.value}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          <section aria-labelledby="f-h" style="flex: 1 1 420px; min-width: 0; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; display: flex; flex-direction: column">
+            <div style="display: flex; flex-direction: column; gap: 2px; padding: 20px 24px 12px">
+              <h2 id="f-h" style="margin: 0; font-size: 14px; font-weight: 500">fold별 결과</h2>
+              <span style="font-size: 12px; color: var(--text-2)">fold별 값과 Top-1, Top-3은 예시 값입니다. 실제 평가 결과로 교체하세요.</span>
+            </div>
+            <div style="overflow-x: auto">
+              <table>
+                <thead><tr><th>fold</th><th style="text-align: right">Top-1</th><th style="text-align: right">Top-3</th><th style="text-align: right">Avg@5 본 서비스</th><th style="text-align: right">Avg@5 처음 보는 서비스</th></tr></thead>
+                <tbody>
+                  <tr><td>fold 1</td><td style="text-align: right">0.904</td><td style="text-align: right">0.962</td><td style="text-align: right">0.978</td><td style="text-align: right">0.952</td></tr>
+                  <tr><td>fold 2</td><td style="text-align: right">0.918</td><td style="text-align: right">0.971</td><td style="text-align: right">0.983</td><td style="text-align: right">0.961</td></tr>
+                  <tr><td>fold 3</td><td style="text-align: right">0.914</td><td style="text-align: right">0.970</td><td style="text-align: right">0.982</td><td style="text-align: right">0.964</td></tr>
+                  <tr><td style="font-weight: 500">평균</td><td style="text-align: right; font-weight: 500">0.912</td><td style="text-align: right; font-weight: 500">0.968</td><td style="text-align: right; font-weight: 500">0.981</td><td style="text-align: right; font-weight: 500">0.959</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- 모델 기록 -->
+        <section aria-labelledby="hist-h" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; display: flex; flex-direction: column; min-width: 0">
+          <h2 id="hist-h" style="margin: 0; padding: 16px 20px 12px; font-size: 14px; font-weight: 500">모델 기록</h2>
+          <div style="overflow-x: auto">
+            <table>
+              <thead><tr><th>버전</th><th>배포</th><th style="text-align: right">Avg@5 본 서비스</th><th style="text-align: right">Avg@5 처음 보는 서비스</th><th>상태</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">v1.3.0</td><td style="color: var(--text-2)">2026-10-20 09:00:00</td><td style="text-align: right">0.981</td><td style="text-align: right">0.959</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--success-text); background: color-mix(in srgb, var(--success) 12%, var(--bg1))">사용 중</span></td></tr>
+                <tr><td class="mono">v1.2.1</td><td style="color: var(--text-2)">2026-10-02 17:30:00</td><td style="text-align: right; color: var(--text-2)">[결과 입력]</td><td style="text-align: right; color: var(--text-2)">[결과 입력]</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">보관</span></td></tr>
+                <tr><td class="mono">v1.1.0</td><td style="color: var(--text-2)">2026-09-15 11:00:00</td><td style="text-align: right; color: var(--text-2)">[결과 입력]</td><td style="text-align: right; color: var(--text-2)">[결과 입력]</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">보관</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 90; padding: 12px 16px; border-radius: 8px; background: var(--primary); color: var(--on-primary); box-shadow: var(--shadow-z3)">{{toast}}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1600}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { theme: null, menu: true, thr: 0.6, toast: null }; }
+  componentWillUnmount() { clearTimeout(this._t); }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const thr = this.state.thr;
+    const S = [
+      ['Avg@5 학습 때 본 서비스', '0.981', '3-fold 평균'],
+      ['Avg@5 처음 보는 서비스', '0.959', '3-fold 평균'],
+      ['평가 방식', '3-fold', '서비스 단위 분할'],
+      ['Detection threshold', thr.toFixed(2), 'Anomaly score 기준']
+    ];
+    const stats = S.map(([title, value, sub], i) => ({ title, value, sub,
+      cell: 'display: flex; flex-direction: column; gap: 4px; padding: 16px 20px; ' + (i ? 'border-left: 1px solid var(--border-weak)' : '') }));
+    const G = [['CPU saturation', 0.94], ['Network delay', 0.91], ['Packet loss', 0.86], ['Pod failure', 0.97], ['Traffic spike', 0.89]];
+    const gauges = G.map(([label, v]) => ({ label, value: v.toFixed(2),
+      bar: 'height: 6px; border-radius: 3px; width: ' + (v * 100) + '%; background: var(--text)' }));
+    const alerts = Math.max(1, Math.round(62 * Math.pow(0.6 / thr, 3)));
+    return {
+      theme, menuOpen: this.state.menu,
+      setTheme: (t) => this.setState({ theme: t }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      stats, gauges, thr: String(thr), thrText: thr.toFixed(2), alerts: String(alerts),
+      onThr: (e) => this.setState({ thr: parseFloat(e.target.value) }),
+      saveThr: () => { this.setState({ toast: '임계값을 ' + thr.toFixed(2) + '로 저장했습니다' }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ toast: null }), 3000); },
+      hasToast: !!this.state.toast, toast: this.state.toast || ''
+    };
+  }
+}
+</script>
+</body>
+</html>

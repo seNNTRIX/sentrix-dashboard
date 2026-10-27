@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>SentriX 초대 수락</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-weight:500;text-align:left;padding:4px 8px;height:32px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:4px 8px;height:36px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 16px">
+    <div style="width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 32px">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center">
+        <span style="display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 10px; background: #1c1c1c; color: #ffffff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"></path><circle cx="12" cy="12" r="3.2" style="fill: #E865C0; stroke: none"></circle></svg></span>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <h1 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -0.01em">SentriX Lab 팀 초대</h1>
+          <p style="margin: 0; color: var(--text-2)">이지훈님이 읽기 전용 역할로 초대했습니다</p>
+        </div>
+      </div>
+
+      <form style="display: flex; flex-direction: column; gap: 16px">
+        <label style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; font-weight: 500">이메일</span>
+          <input type="email" value="reviewer@example.ac.kr" readonly style="height: 40px; padding: 0 12px; border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg2); color: var(--text-2)">
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; font-weight: 500">이름</span>
+          <input type="text" autocomplete="name" value="정우진" style="height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 8px">
+          <span style="display: flex; justify-content: space-between; font-size: 13px"><span style="font-weight: 500">비밀번호</span><span style="color: var(--text-2)">12자 이상</span></span>
+          <input type="password" autocomplete="new-password" value="{{pw}}" onChange="{{onPw}}" style="height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; font-weight: 500">비밀번호 확인</span>
+          <input type="password" autocomplete="new-password" value="{{pw2}}" onChange="{{onPw2}}" aria-invalid="{{mismatch}}" style="{{pw2Style}}">
+          <sc-if value="{{showMismatch}}" hint-placeholder-val="{{ false }}">
+            <span role="alert" style="font-size: 13px; line-height: 20px; color: var(--error-text)">비밀번호가 일치하지 않습니다</span>
+          </sc-if>
+        </label>
+        <a href="B1-Overview.dc.html" style="height: 40px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500; text-decoration: none">가입</a>
+      </form>
+      <p style="margin: 0; text-align: center; font-size: 13px; color: var(--text-2)">이미 계정이 있나요? <a href="A1-Login.dc.html">로그인</a></p>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { pw: 'sentrix-review-2026', pw2: 'sentrix-review-2026' }; }
+  renderVals() {
+    const mis = this.state.pw2.length > 0 && this.state.pw !== this.state.pw2;
+    return {
+      theme: this.props.theme ?? 'light',
+      pw: this.state.pw, pw2: this.state.pw2,
+      onPw: (e) => this.setState({ pw: e.target.value }),
+      onPw2: (e) => this.setState({ pw2: e.target.value }),
+      showMismatch: mis, mismatch: mis ? 'true' : 'false',
+      pw2Style: 'height: 40px; padding: 0 12px; border-radius: 6px; background: var(--bg1); border: 1px solid ' + (mis ? 'var(--error)' : 'var(--border)')
+    };
+  }
+}
+</script>
+</body>
+</html>

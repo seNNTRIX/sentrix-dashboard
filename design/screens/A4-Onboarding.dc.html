@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>SentriX 첫 설정</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-size:13px;font-weight:500;color:var(--text-2);text-align:left;padding:0 16px;height:36px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:0 16px;height:44px;border-bottom:1px solid var(--border-weak)}
+.g th:first-child,.g td:first-child{padding-left:0}
+.g th:last-child,.g td:last-child{padding-right:0}
+.g tbody tr:last-child td{border-bottom:0}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 48px 32px">
+  <div style="width: 100%; max-width: 960px; display: flex; flex-direction: column; gap: 32px">
+    <header style="display: flex; align-items: center; gap: 12px">
+      <span style="display: inline-flex; width: 32px; height: 32px; align-items: center; justify-content: center; border-radius: 6px; background: #1c1c1c; color: #ffffff"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"></path><circle cx="12" cy="12" r="3.2" style="fill: #E865C0; stroke: none"></circle></svg></span>
+      <div style="display: flex; flex-direction: column"><h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">SentriX 첫 설정</h1><span style="color: var(--text-2)">SentriX Lab</span></div>
+    </header>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+      <ol aria-label="설정 단계" style="flex: 0 0 200px; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px">
+        <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+          <li><button type="button" onClick="{{s.go}}" disabled="{{s.locked}}" aria-current="{{s.current}}" style="{{s.style}}"><span style="{{s.badge}}">{{s.mark}}</span>{{s.label}}</button></li>
+        </sc-for>
+      </ol>
+
+      <section style="flex: 1 1 520px; min-width: 0; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column">
+        <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px">
+
+          <sc-if value="{{s0}}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">클러스터 연결</h2>
+              <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">분석할 Kubernetes 클러스터와 namespace를 정하고 에이전트를 설치합니다.</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px">
+              <label style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; font-weight: 500">클러스터 이름</span><input type="text" value="k3s-lab" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+              <label style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; font-weight: 500">namespace</span><input type="text" value="sentrix" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <span style="font-size: 13px; font-weight: 500">에이전트 설치</span>
+              <div style="display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; border-radius: 8px; background: var(--bg2)">
+                <code class="mono" style="flex: 1; min-width: 0; overflow-wrap: anywhere">helm install sentrix-agent sentrix/agent -n sentrix --set cluster=k3s-lab</code>
+                <button type="button" onClick="{{copy}}" style="flex: none; height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500">{{copyLabel}}</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{s1}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">데이터 소스</h2>
+              <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">세 곳 모두 연결 테스트를 통과해야 다음으로 넘어갑니다.</span>
+            </div>
+            <sc-for list="{{sources}}" as="d" hint-placeholder-count="3">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span style="font-size: 13px; font-weight: 500">{{d.name}}</span>
+                <div style="display: flex; gap: 8px">
+                  <input type="text" class="mono" aria-label="{{d.name}} URL" value="{{d.url}}" style="flex: 1; min-width: 0; height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+                  <button type="button" onClick="{{d.test}}" style="flex: none; height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">테스트</button>
+                </div>
+                <sc-if value="{{d.ok}}" hint-placeholder-val="{{ false }}">
+                  <div role="status" style="font-size: 12px; line-height: 18px; color: var(--success-text)">연결됨 {{d.ms}}</div>
+                </sc-if>
+                <sc-if value="{{d.fail}}" hint-placeholder-val="{{ false }}">
+                  <div role="alert" style="font-size: 12px; line-height: 18px; color: var(--error-text)">응답 없음</div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </sc-if>
+
+          <sc-if value="{{s2}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">서비스 발견</h2>
+              <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">서비스 11개, Pod 12개, 연결 11개를 찾았습니다.</span>
+            </div>
+            <div style="overflow-x: auto">
+              <table>
+                <thead><tr><th>서비스</th><th style="text-align: right">Pods</th><th style="width: 120px">상태</th></tr></thead>
+                <tbody>
+                  <tr><td>frontend</td><td style="text-align: right">1</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">Running</span></td></tr>
+                  <tr><td>cartservice</td><td style="text-align: right">1</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">Running</span></td></tr>
+                  <tr><td>productcatalogservice</td><td style="text-align: right">2</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">Running</span></td></tr>
+                  <tr><td>currencyservice</td><td style="text-align: right">1</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">Running</span></td></tr>
+                  <tr><td>paymentservice</td><td style="text-align: right">1</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">Running</span></td></tr>
+                  <tr><td>shippingservice</td><td style="text-align: right">1</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">Running</span></td></tr>
+                  <tr><td>emailservice</td><td style="text-align: right">1</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">Running</span></td></tr>
+                  <tr><td>checkoutservice</td><td style="text-align: right">1</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">Running</span></td></tr>
+                  <tr><td>recommendationservice</td><td style="text-align: right">1</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">Running</span></td></tr>
+                  <tr><td>adservice</td><td style="text-align: right">1</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">Running</span></td></tr>
+                  <tr><td>redis-cart</td><td style="text-align: right">1</td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">Running</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{s3}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">알림 채널</h2>
+              <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">선택 사항입니다. 나중에 설정에서 바꿀 수 있습니다.</span>
+            </div>
+            <label style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; font-weight: 500">Slack Webhook URL</span><input type="text" class="mono" placeholder="https://hooks.slack.com/services/..." style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+            <label style="display: flex; flex-direction: column; gap: 8px; max-width: 320px"><span style="font-size: 13px; font-weight: 500">채널</span><input type="text" value="#sre-alerts" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"></label>
+          </sc-if>
+
+          <sc-if value="{{s4}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600">수집을 시작했습니다</h2>
+              <span style="font-size: 13px; line-height: 20px; color: var(--text-2)">Baseline 7일이 쌓이기 전까지 Anomaly score는 참고용입니다.</span>
+            </div>
+            <dl style="margin: 0; display: grid; grid-template-columns: 160px minmax(0, 1fr)">
+              <dt style="padding: 12px 0; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">클러스터</dt><dd style="margin: 0; padding: 12px 0; border-bottom: 1px solid var(--border-weak)">k3s-lab, namespace sentrix</dd>
+              <dt style="padding: 12px 0; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">데이터 소스</dt><dd style="margin: 0; padding: 12px 0; border-bottom: 1px solid var(--border-weak)">Prometheus, Tempo, Loki</dd>
+              <dt style="padding: 12px 0; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">서비스</dt><dd style="margin: 0; padding: 12px 0; border-bottom: 1px solid var(--border-weak)">11개</dd>
+              <dt style="padding: 12px 0; color: var(--text-2)">알림 채널</dt><dd style="margin: 0; padding: 12px 0">{{channelSummary}}</dd>
+            </dl>
+          </sc-if>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas)">
+          <sc-if value="{{showFooter}}" hint-placeholder-val="{{ true }}">
+            <button type="button" onClick="{{prev}}" disabled="{{atFirst}}" style="height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">이전</button>
+            <div style="display: flex; gap: 8px">
+              <sc-if value="{{s3}}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{skip}}" style="height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">건너뛰기</button></sc-if>
+              <button type="button" onClick="{{next}}" disabled="{{nextLocked}}" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">다음</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{s4}}" hint-placeholder-val="{{ false }}">
+            <span style="font-size: 13px; color: var(--text-2)">설정은 관리 메뉴에서 언제든 바꿀 수 있습니다.</span>
+            <a href="B1-Overview.dc.html" style="height: 32px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500; text-decoration: none">Dashboard로 이동</a>
+          </sc-if>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { step: 0, max: 0, tests: {}, lokiTries: 0, copied: false, skipped: false }; }
+  renderVals() {
+    const step = this.state.step;
+    const max = this.state.max;
+    const L = ['클러스터 연결', '데이터 소스', '서비스 발견', '알림 채널', '완료'];
+    const steps = L.map((label, i) => {
+      const cur = i === step;
+      const done = !cur && i < max;
+      return { label, mark: String(i + 1), current: cur ? 'step' : 'false', locked: i > max,
+        go: () => this.setState({ step: i }),
+        style: 'display: flex; align-items: center; gap: 12px; width: 100%; height: 36px; padding: 0 8px; border: 0; border-radius: 6px; text-align: left; ' + (cur ? 'background: var(--selected); font-weight: 600; color: var(--text)' : 'background: transparent; color: var(--text-2)'),
+        badge: 'width: 22px; height: 22px; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; ' + (cur ? 'background: var(--primary); color: var(--on-primary)' : done ? 'background: var(--secondary); color: var(--text-2)' : 'border: 1px solid var(--border); color: var(--text-2)') };
+    });
+    const tests = this.state.tests;
+    const D = [['prom', 'Prometheus', 'http://prometheus.monitoring:9090', '38 ms'], ['tempo', 'Tempo', 'http://tempo.monitoring:3200', '52 ms'], ['loki', 'Loki', 'http://loki.monitoring:3100', '61 ms']];
+    const sources = D.map(([id, name, url, ms]) => ({ name, url, ms, ok: tests[id] === 'ok', fail: tests[id] === 'fail',
+      test: () => {
+        if (id === 'loki' && this.state.lokiTries === 0) this.setState({ lokiTries: 1, tests: { ...this.state.tests, loki: 'fail' } });
+        else this.setState({ tests: { ...this.state.tests, [id]: 'ok' } });
+      } }));
+    const allOk = D.every(([id]) => tests[id] === 'ok');
+    const go = (n) => this.setState({ step: n, max: Math.max(this.state.max, n) });
+    return {
+      theme: this.props.theme ?? 'light', steps, sources,
+      s0: step === 0, s1: step === 1, s2: step === 2, s3: step === 3, s4: step === 4,
+      showFooter: step < 4, atFirst: step === 0, nextLocked: step === 1 && !allOk,
+      prev: () => this.setState({ step: Math.max(0, step - 1) }),
+      next: () => go(step + 1),
+      skip: () => { this.setState({ skipped: true }); go(4); },
+      copy: () => this.setState({ copied: true }), copyLabel: this.state.copied ? '복사됨' : '복사',
+      channelSummary: this.state.skipped ? '나중에 설정' : 'Slack #sre-alerts'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>SentriX 시간 범위 선택</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: relative; display: inline-flex; align-items: center; gap: 8px; font-family: 'Geist', 'Noto Sans KR', sans-serif; font-size: 14px; line-height: 22px; color: var(--text, #202020)">
+  <div style="display: inline-flex">
+    <button type="button" onClick="{{toggle}}" aria-expanded="{{expanded}}" aria-haspopup="dialog" style="height: 32px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--border, #d9d9d9); border-radius: 6px 0 0 6px; background: var(--bg1, #ffffff); color: inherit; font: inherit; font-weight: 500; cursor: pointer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20.5 12a8.5 8.5 0 1 1-17 0a8.5 8.5 0 1 1 17 0M12 7.5V12l3 2"></path></svg>
+      <span>{{label}}</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+    <button type="button" aria-label="시간 범위 넓히기" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border, #d9d9d9); border-left: 0; border-radius: 0 6px 6px 0; background: var(--bg1, #ffffff); color: inherit; cursor: pointer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M17 10.5a6.5 6.5 0 1 1-13 0a6.5 6.5 0 1 1 13 0M15.5 15.5L20 20M8 10.5h5"></path></svg>
+    </button>
+  </div>
+  <div style="display: inline-flex">
+    <button type="button" aria-label="새로고침" style="height: 32px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--border, #d9d9d9); border-radius: 6px 0 0 6px; background: var(--bg1, #ffffff); color: inherit; font: inherit; font-weight: 500; cursor: pointer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"></path></svg>새로고침
+    </button>
+    <button type="button" aria-label="자동 새로고침 간격" style="height: 32px; display: inline-flex; align-items: center; gap: 4px; padding: 0 8px; border: 1px solid var(--border, #d9d9d9); border-left: 0; border-radius: 0 6px 6px 0; background: var(--bg1, #ffffff); color: inherit; font: inherit; font-weight: 500; cursor: pointer">30s
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+    </button>
+  </div>
+
+  <sc-if value="{{open}}" hint-placeholder-val="{{ false }}">
+    <div role="dialog" aria-label="시간 범위" style="position: absolute; top: 38px; right: 0; z-index: 70; width: 560px; display: flex; background: var(--elev, #ffffff); border: 1px solid var(--border-weak, #e8e8e8); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-z3, 0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05))">
+      <div style="flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; border-right: 1px solid var(--border-weak, #e8e8e8)">
+        <div style="font-size: 14px; font-weight: 500">절대 시간 범위</div>
+        <label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 500">시작
+          <input type="text" value="2026-10-27 14:02:00" style="height: 32px; padding: 0 8px; border: 1px solid var(--border, #d9d9d9); border-radius: 6px; background: var(--page, #ffffff); color: var(--text, #202020); font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 400">
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 500">끝
+          <input type="text" value="now" style="height: 32px; padding: 0 8px; border: 1px solid var(--border, #d9d9d9); border-radius: 6px; background: var(--page, #ffffff); color: var(--text, #202020); font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 400">
+        </label>
+        <button type="button" onClick="{{applyAbs}}" style="align-self: flex-start; height: 32px; padding: 0 16px; border: 0; border-radius: 6px; background: var(--primary, #202020); color: var(--on-primary, #ffffff); font: inherit; font-weight: 500; cursor: pointer">시간 범위 적용</button>
+        <div style="font-size: 12px; color: var(--text-2, #646464)">브라우저 시간 Asia/Seoul, UTC+09:00</div>
+      </div>
+      <div style="width: 220px; padding: 8px 0">
+        <div style="padding: 0 8px 8px"><input type="search" aria-label="빠른 범위 검색" placeholder="빠른 범위 검색" style="width: 100%; box-sizing: border-box; height: 32px; padding: 0 8px; border: 1px solid var(--border, #d9d9d9); border-radius: 6px; background: var(--page, #ffffff); color: var(--text, #202020); font: inherit"></div>
+        <sc-for list="{{quick}}" as="q" hint-placeholder-count="7">
+          <button type="button" onClick="{{q.pick}}" style="{{q.style}}">{{q.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"range":{"editor":"text","default":"지난 1시간"},"$preview":{"width":420,"height":40}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { open: false, label: null }; }
+  renderVals() {
+    const label = this.state.label ?? this.props.range ?? '지난 1시간';
+    const quick = ['지난 5분', '지난 15분', '지난 30분', '지난 1시간', '지난 3시간', '지난 6시간', '지난 12시간', '지난 24시간', '지난 7일'].map((l) => ({ label: l,
+      pick: () => this.setState({ label: l, open: false }),
+      style: 'display: block; width: 100%; height: 32px; padding: 0 16px; border: 0; text-align: left; font: inherit; cursor: pointer; color: var(--text, #202020); ' + (l === label ? 'background: var(--selected, rgba(0,0,0,.045)); box-shadow: none' : 'background: none') }));
+    return {
+      label, quick, open: this.state.open, expanded: this.state.open ? 'true' : 'false',
+      toggle: () => this.setState({ open: !this.state.open }),
+      applyAbs: () => this.setState({ label: '14:02:00 ~ now', open: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+/* SentriX design tokens (light default, dark via [data-theme=dark]) */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600&display=swap');
+
+:root{
+  --canvas:#f9f9f9;
+  --page:#ffffff;
+  --bg1:#ffffff;
+  --bg2:#f0f0f0;
+  --elev:#ffffff;
+  --text:#202020;
+  --text-2:#646464;
+  --text-dis:#8d8d8d;
+  --link:#0d74ce;
+  --border-weak:#e8e8e8;
+  --border:#d9d9d9;
+  --border-strong:#bbbbbb;
+  --primary:#202020;
+  --primary-text:#202020;
+  --on-primary:#ffffff;
+  --secondary:#f0f0f0;
+  --secondary-shade:#e8e8e8;
+  --hover:rgba(0,0,0,.05);
+  --selected:rgba(0,0,0,.045);
+  --error:#e5484d;
+  --error-text:#ce2c31;
+  --success:#30a46c;
+  --success-text:#218358;
+  --warning:#ffc53d;
+  --warning-text:#ab6400;
+  --viz-red:#e5484d;
+  --viz-orange:#f76b15;
+  --viz-yellow:#ffc53d;
+  --viz-green:#30a46c;
+  --viz-blue:#0090ff;
+  --viz-purple:#6e56cf;
+  --cause:#6e56cf;
+  --shade:rgba(229,72,77,.07);
+  --brand-v:linear-gradient(#202020,#202020);
+  --brand-h:linear-gradient(#202020,#202020);
+  --shadow-z1:0 1px 2px rgba(0,0,0,.05);
+  --shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);
+  --overlay:rgba(0,0,0,.32);
+  --tag-cpu:#ffefd6;
+  --tag-net:#e6f4fe;
+  --tag-loss:#fff7c2;
+  --tag-pod:#f0f0f0;
+  --tag-traffic:#e6f6eb;
+  --on-tag:#202020;
+  --font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;
+  --mono:'Geist Mono','Noto Sans KR',monospace
+}
+
+[data-theme=dark]{
+  --canvas:#111111;
+  --page:#111111;
+  --bg1:#191919;
+  --bg2:#222222;
+  --elev:#222222;
+  --text:#eeeeee;
+  --text-2:#b4b4b4;
+  --text-dis:#7b7b7b;
+  --link:#70b8ff;
+  --border-weak:#2a2a2a;
+  --border:#3a3a3a;
+  --border-strong:#606060;
+  --primary:#eeeeee;
+  --primary-text:#eeeeee;
+  --on-primary:#111111;
+  --secondary:#222222;
+  --secondary-shade:#2a2a2a;
+  --hover:rgba(255,255,255,.06);
+  --selected:rgba(255,255,255,.05);
+  --error:#e5484d;
+  --error-text:#ff9592;
+  --success:#30a46c;
+  --success-text:#3dd68c;
+  --warning:#ffc53d;
+  --warning-text:#ffca16;
+  --cause:#7d66d9;
+  --shade:rgba(229,72,77,.12);
+  --brand-v:linear-gradient(#eeeeee,#eeeeee);
+  --brand-h:linear-gradient(#eeeeee,#eeeeee);
+  --shadow-z1:0 1px 2px rgba(0,0,0,.5);
+  --shadow-z3:0 12px 32px rgba(0,0,0,.6);
+  --overlay:rgba(0,0,0,.6);
+  --tag-cpu:#331e0b;
+  --tag-net:#0d2847;
+  --tag-loss:#302008;
+  --tag-pod:#222222;
+  --tag-traffic:#132d21;
+  --on-tag:#eeeeee
+}

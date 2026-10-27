@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>알림 기록</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-weight:500;text-align:left;padding:4px 8px;height:32px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:4px 8px;height:36px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="홈|장애|알림 기록" hrefs="B1-Overview.dc.html|B3-Incidents.dc.html|" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="alerts" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 48px; display: flex; flex-direction: column; gap: 24px; max-width: 1200px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">알림 기록</h1>
+        <div style="color: var(--text-2)">지난 24시간</div>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between">
+        <div role="radiogroup" aria-label="알림 종류" style="display: inline-flex; padding: 2px; gap: 2px; border-radius: 8px; background: var(--bg2)">
+          <sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+            <button type="button" role="radio" aria-checked="{{f.checked}}" onClick="{{f.pick}}" style="{{f.style}}">{{f.label}}</button>
+          </sc-for>
+        </div>
+        <button type="button" onClick="{{markAll}}" disabled="{{noUnread}}" style="height: 32px; padding: 0 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">모두 읽음</button>
+      </div>
+
+      <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden">
+        <sc-if value="{{hasItems}}" hint-placeholder-val="{{ true }}">
+          <ul style="list-style: none; margin: 0; padding: 0">
+            <sc-for list="{{items}}" as="n" hint-placeholder-count="10">
+              <li style="{{n.row}}">
+                <a href="{{n.href}}" style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; color: var(--text); text-decoration: none">
+                  <span style="{{n.titleStyle}}">{{n.title}}</span>
+                  <span style="font-size: 13px; line-height: 20px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{n.body}}</span>
+                </a>
+                <span style="flex: none; width: 64px; text-align: right; font-size: 13px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums">{{n.time}}</span>
+                <button type="button" onClick="{{n.read}}" disabled="{{n.isRead}}" aria-label="{{n.readLabel}}" title="읽음으로 표시" style="width: 28px; height: 28px; flex: none; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: none; color: var(--text-2)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+                </button>
+              </li>
+            </sc-for>
+          </ul>
+        </sc-if>
+        <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 64px 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--text-2)">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"></path></svg>
+            <div style="font-size: 16px; line-height: 24px; font-weight: 500; color: var(--text)">읽지 않은 알림이 없습니다</div>
+            <button type="button" onClick="{{showAll}}" style="height: 32px; padding: 0 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">전체 보기</button>
+          </div>
+        </sc-if>
+      </section>
+
+      <div style="color: var(--text-2)">알림 받을 곳과 조건은 <a href="C2-AlertRules.dc.html">Alert rules</a>에서 바꿉니다.</div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: null, menu: true, filter: 'all', read: {} };
+  }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const ALL = [
+      { id: 1, cat: 'inc', tone: '--error', title: 'INC-0142 발생', body: 'frontend → productcatalogservice, Network delay, 점수 0.84', time: '14:22:00', href: 'B4-Incident.dc.html', unread: true },
+      { id: 2, cat: 'ds', tone: '--success', title: 'Loki 수집 복구', body: 'http://loki.monitoring:3100, 42초 중단 후 정상', time: '14:05:54', href: 'C3-Settings.dc.html', unread: true },
+      { id: 3, cat: 'ds', tone: '--warning', title: 'Loki 수집 중단', body: 'http://loki.monitoring:3100 응답 없음', time: '14:05:12', href: 'C3-Settings.dc.html', unread: true },
+      { id: 4, cat: 'inc', tone: '--success', title: 'INC-0141 해결됨', body: 'checkoutservice, Pod failure, 6분 30초', time: '13:18:40', href: 'B3-Incidents.dc.html', unread: false },
+      { id: 5, cat: 'inc', tone: '--error', title: 'INC-0141 발생', body: 'checkoutservice, Pod failure, 점수 0.91', time: '13:12:10', href: 'B3-Incidents.dc.html', unread: false },
+      { id: 6, cat: 'inc', tone: '--success', title: 'INC-0140 해결됨', body: 'checkoutservice → paymentservice, Packet loss, 12분', time: '11:00:00', href: 'B3-Incidents.dc.html', unread: false },
+      { id: 7, cat: 'inc', tone: '--error', title: 'INC-0140 발생', body: 'checkoutservice → paymentservice, Packet loss, 점수 0.77', time: '10:48:00', href: 'B3-Incidents.dc.html', unread: false },
+      { id: 8, cat: 'etc', tone: '--primary', title: '테스트 알림 전송', body: 'Slack #sre-alerts', time: '10:31:12', href: 'C2-AlertRules.dc.html', unread: false },
+      { id: 9, cat: 'etc', tone: '--primary', title: 'Alert rules 변경', body: '박서윤, Anomaly score ≥ 0.80 규칙의 지속 시간 1분에서 2분으로', time: '09:58:40', href: 'C6-Audit.dc.html', unread: false },
+      { id: 10, cat: 'ds', tone: '--warning', title: 'Prometheus 수집 지연', body: 'scrape 지연 18초, 자동 복구', time: '09:12:05', href: 'C3-Settings.dc.html', unread: false }
+    ];
+    const isUnread = (n) => n.unread && !this.state.read[n.id];
+    const f = this.state.filter;
+    const shown = ALL.filter((n) => f === 'all' ? true : f === 'unread' ? isUnread(n) : n.cat === f);
+    const items = shown.map((n) => {
+      const u = isUnread(n);
+      return { title: n.title, body: n.body, time: n.time, href: n.href, isRead: !u,
+        readLabel: n.title + ' 읽음으로 표시',
+        read: () => this.setState({ read: { ...this.state.read, [n.id]: true } }),
+        row: 'display: flex; align-items: center; gap: 16px; padding: 12px 16px 12px 20px; ' + (n === shown[shown.length - 1] ? '' : 'border-bottom: 1px solid var(--border-weak)'),
+        titleStyle: 'font-size: 14px; line-height: 20px; ' + (u ? 'font-weight: 500; color: var(--text)' : 'font-weight: 400; color: var(--text)') };
+    });
+    const unreadCount = ALL.filter(isUnread).length;
+    const F = [['all', '전체'], ['unread', '읽지 않음 ' + unreadCount], ['inc', '장애'], ['ds', '데이터 소스']];
+    const filters = F.map(([k, label]) => ({ label, checked: f === k ? 'true' : 'false',
+      pick: () => this.setState({ filter: k }),
+      style: 'height: 28px; padding: 0 12px; border: 0; border-radius: 6px; ' + (f === k ? 'background: var(--bg1); box-shadow: var(--shadow-z1); color: var(--text); font-weight: 500' : 'background: none; color: var(--text-2)') }));
+    return {
+      theme, menuOpen: this.state.menu,
+      setTheme: (t) => this.setState({ theme: t }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      filters, items, hasItems: items.length > 0, empty: items.length === 0,
+      noUnread: unreadCount === 0,
+      markAll: () => { const r = {}; ALL.forEach((n) => { r[n.id] = true; }); this.setState({ read: r }); },
+      showAll: () => this.setState({ filter: 'all' })
+    };
+  }
+}
+</script>
+</body>
+</html>

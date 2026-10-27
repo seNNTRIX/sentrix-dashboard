@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Service map</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-size:13px;font-weight:500;color:var(--text-2);text-align:left;padding:0 16px;height:36px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:0 16px;height:44px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:last-child td{border-bottom:0}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="홈|Service map" hrefs="B1-Overview.dc.html|" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="map" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 48px; display: flex; flex-direction: column; gap: 24px">
+
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">Service map</h1>
+          <span style="color: var(--text-2)">online-boutique, 서비스 11개, 연결 14개</span>
+        </div>
+        <dc-import name="TimePicker" range="지난 1시간" hint-size="330px,32px"></dc-import>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center">
+        <label style="position: relative; display: flex; align-items: center; width: 260px">
+          <span style="position: absolute; left: 10px; display: inline-flex; color: var(--text-2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M17.5 11a6.5 6.5 0 1 1-13 0a6.5 6.5 0 1 1 13 0M16 16l4.5 4.5"></path></svg></span>
+          <input type="search" aria-label="서비스 검색" placeholder="서비스 검색" value="{{q}}" onChange="{{onQ}}" style="width: 100%; height: 32px; padding: 0 12px 0 32px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+        </label>
+        <div role="radiogroup" aria-label="색 기준" style="display: inline-flex; padding: 2px; gap: 2px; border-radius: 8px; background: var(--bg2)">
+          <sc-for list="{{modes}}" as="m" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{m.checked}}" onClick="{{m.pick}}" style="{{m.style}}">{{m.label}}</button></sc-for>
+        </div>
+        <button type="button" role="switch" aria-checked="{{showCauseAttr}}" onClick="{{toggleCause}}" style="display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; padding: 0; font-size: 13px; color: var(--text-2)">
+          <span style="{{switchTrack}}"><span style="{{switchKnob}}"></span></span>원인 후보 표시
+        </button>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch">
+        <section aria-label="Service map" style="flex: 1 1 620px; min-width: 0; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+          <div style="position: relative; aspect-ratio: 1000 / 660; min-height: 420px">
+            <svg viewBox="0 0 1000 660" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%" aria-hidden="true">
+              <defs>
+                <marker id="mN" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10z" style="fill: var(--border-strong)"></path></marker>
+                <marker id="mR" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10z" style="fill: var(--text-2)"></path></marker>
+                <marker id="mC" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" style="fill: var(--cause)"></path></marker>
+              </defs>
+              <path d="{{e0.d}}" fill="none" style="{{e0.style}}" marker-mid="{{e0.marker}}"></path>
+              <path d="{{e1.d}}" fill="none" style="{{e1.style}}" marker-mid="{{e1.marker}}"></path>
+              <path d="{{e2.d}}" fill="none" style="{{e2.style}}" marker-mid="{{e2.marker}}"></path>
+              <path d="{{e3.d}}" fill="none" style="{{e3.style}}" marker-mid="{{e3.marker}}"></path>
+              <path d="{{e4.d}}" fill="none" style="{{e4.style}}" marker-mid="{{e4.marker}}"></path>
+              <path d="{{e5.d}}" fill="none" style="{{e5.style}}" marker-mid="{{e5.marker}}"></path>
+              <path d="{{e6.d}}" fill="none" style="{{e6.style}}" marker-mid="{{e6.marker}}"></path>
+              <path d="{{e7.d}}" fill="none" style="{{e7.style}}" marker-mid="{{e7.marker}}"></path>
+              <path d="{{e8.d}}" fill="none" style="{{e8.style}}" marker-mid="{{e8.marker}}"></path>
+              <path d="{{e9.d}}" fill="none" style="{{e9.style}}" marker-mid="{{e9.marker}}"></path>
+              <path d="{{e10.d}}" fill="none" style="{{e10.style}}" marker-mid="{{e10.marker}}"></path>
+              <path d="{{e11.d}}" fill="none" style="{{e11.style}}" marker-mid="{{e11.marker}}"></path>
+              <path d="{{e12.d}}" fill="none" style="{{e12.style}}" marker-mid="{{e12.marker}}"></path>
+              <path d="{{e13.d}}" fill="none" style="{{e13.style}}" marker-mid="{{e13.marker}}"></path>
+            </svg>
+            <sc-if value="{{showCause}}" hint-placeholder-val="{{ true }}">
+              <span style="position: absolute; left: 34.5%; top: 33%; transform: translate(-50%, -150%); white-space: nowrap; background: var(--bg1); padding: 0 4px; font-size: 12px; color: var(--cause)">1순위 p90 222 ms</span>
+            </sc-if>
+            <sc-for list="{{nodes}}" as="n" hint-placeholder-count="11">
+              <button type="button" onClick="{{n.pick}}" aria-pressed="{{n.pressed}}" aria-label="{{n.aria}}" style="{{n.pos}}">
+                <span style="{{n.nameStyle}}">{{n.label}}</span>
+                <span style="font-size: 12px; line-height: 16px; color: var(--text-2); font-variant-numeric: tabular-nums">{{n.main}}, {{n.sub}}<sc-if value="{{n.hasRank}}" hint-placeholder-val="{{ false }}"><span style="color: var(--cause)"> {{n.rank}}순위</span></sc-if></span>
+              </button>
+            </sc-for>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--text-2)">
+            <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--border)"></span>{{legendOk}}</span>
+            <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--warning)"></span>{{legendWarn}}</span>
+            <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--error)"></span>{{legendBad}}</span>
+            <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 12px; height: 2px; background: var(--cause)"></span>원인 후보 연결</span>
+            <span>선 두께는 호출량, 진한 선은 p90 200 ms 이상</span>
+          </div>
+        </section>
+
+        <sc-if value="{{hasSel}}" hint-placeholder-val="{{ true }}">
+          <aside aria-label="{{sel.label}}" style="flex: 0 1 320px; min-width: 280px; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px">
+            <div style="display: flex; align-items: flex-start; gap: 8px">
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+                <h2 style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 500; overflow-wrap: break-word">{{sel.label}}</h2>
+                <span style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center"><span style="{{sel.stateStyle}}">{{sel.stateLabel}}</span><sc-if value="{{sel.hasRank}}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; color: var(--cause)">원인 후보 {{sel.rank}}순위</span></sc-if></span>
+              </div>
+              <button type="button" onClick="{{close}}" aria-label="패널 닫기" style="width: 28px; height: 28px; flex: none; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: none; color: var(--text-2)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+            </div>
+            <dl style="margin: 0; display: flex; flex-direction: column">
+              <div style="display: flex; justify-content: space-between; height: 36px; align-items: center; border-bottom: 1px solid var(--border-weak)"><dt style="color: var(--text-2)">Requests</dt><dd style="margin: 0; font-variant-numeric: tabular-nums">{{sel.rps}}/s</dd></div>
+              <div style="display: flex; justify-content: space-between; height: 36px; align-items: center; border-bottom: 1px solid var(--border-weak)"><dt style="color: var(--text-2)">Error rate</dt><dd style="margin: 0; font-variant-numeric: tabular-nums">{{sel.err}}%</dd></div>
+              <div style="display: flex; justify-content: space-between; height: 36px; align-items: center; border-bottom: 1px solid var(--border-weak)"><dt style="color: var(--text-2)">p50</dt><dd style="margin: 0; font-variant-numeric: tabular-nums">{{sel.p50}} ms</dd></div>
+              <div style="display: flex; justify-content: space-between; height: 36px; align-items: center; border-bottom: 1px solid var(--border-weak)"><dt style="color: var(--text-2)">p90</dt><dd style="margin: 0; font-variant-numeric: tabular-nums">{{sel.p90}} ms</dd></div>
+              <div style="display: flex; justify-content: space-between; height: 36px; align-items: center"><dt style="color: var(--text-2)">p99</dt><dd style="margin: 0; font-variant-numeric: tabular-nums">{{sel.p99}} ms</dd></div>
+            </dl>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <span style="font-size: 13px; color: var(--text-2)">p99 latency</span>
+              <svg viewBox="0 0 600 80" preserveAspectRatio="none" style="width: 100%; height: 80px; display: block" role="img" aria-label="{{sel.aria}}">
+                <line x1="0" y1="79.5" x2="600" y2="79.5" style="stroke: var(--border-weak)" vector-effect="non-scaling-stroke"></line>
+                <rect x="495" y="0" width="105" height="80" style="fill: var(--shade)"></rect>
+                <path d="{{sel.spark}}" fill="none" style="stroke: var(--text)" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+              </svg>
+              <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums"><span>13:32</span><span>14:32</span></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <a href="B5-Service.dc.html" style="height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500; text-decoration: none">서비스 Dashboard</a>
+              <a href="B4-Incident.dc.html" style="height: 32px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); color: var(--text); font-weight: 500; text-decoration: none">INC-0142 원인 분석</a>
+              <a href="B6-Trace.dc.html" style="height: 32px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); color: var(--text); font-weight: 500; text-decoration: none">관련 trace</a>
+            </div>
+          </aside>
+        </sc-if>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { theme: null, menu: true, mode: 0, cause: true, sel: 'productcatalogservice', q: '' }; }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const mode = this.state.mode, showCause = this.state.cause;
+    const D = {
+      frontend: [90, 330, 38, 271, 486, 18.6, 0.42],
+      adservice: [330, 60, 3, 9, 15, 6.3, 0],
+      recommendationservice: [330, 190, 12, 238, 301, 7.9, 0, 3],
+      checkoutservice: [330, 460, 61, 118, 164, 2.4, 0],
+      cartservice: [330, 590, 2, 6, 12, 5.2, 0],
+      productcatalogservice: [600, 120, 4, 9, 17, 41.2, 0.03, 2],
+      currencyservice: [600, 300, 3, 8, 31, 22.1, 0],
+      'redis-cart': [600, 590, 1, 2, 4, 9.8, 0],
+      paymentservice: [860, 360, 3, 7, 11, 2.4, 0],
+      shippingservice: [860, 470, 2, 5, 9, 4.1, 0],
+      emailservice: [860, 590, 5, 12, 20, 2.4, 0]
+    };
+    const status = (k) => k === 'frontend' ? 2 : (k === 'recommendationservice' ? 1 : 0);
+    const tone = (k) => {
+      const d = D[k];
+      const lvl = mode === 0 ? status(k) : mode === 1 ? (d[4] >= 400 ? 2 : d[4] >= 200 ? 1 : 0) : (d[6] >= 1 ? 2 : d[6] >= 0.2 ? 1 : 0);
+      return ['--border', '--warning', '--error'][lvl];
+    };
+    const q = (this.state.q || '').trim().toLowerCase();
+    const selK = this.state.sel;
+    const nodes = Object.keys(D).map((k) => {
+      const d = D[k], rank = showCause && d[7] ? String(d[7]) : '';
+      const dim = q && !k.includes(q);
+      return { label: k, rank, hasRank: !!rank, pressed: selK === k ? 'true' : 'false', aria: k + ' 선택',
+        main: mode === 2 ? d[6].toFixed(2) + '%' : d[4] + ' ms', sub: d[5] + '/s',
+        pick: () => this.setState({ sel: k }),
+        pos: 'position: absolute; left: ' + (d[0] / 10) + '%; top: ' + (d[1] / 6.6) + '%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: flex-start; gap: 0; padding: 8px 12px; border-radius: 6px; text-align: left; white-space: nowrap; background: var(--bg1); border: 1.5px solid var(' + (selK === k ? '--text' : (rank && tone(k) === '--border' ? '--cause' : tone(k))) + ')' + (selK === k ? '; box-shadow: var(--shadow-z1)' : '') + (dim ? '; opacity: .3' : ''),
+        nameStyle: 'font-size: 13px; line-height: 18px; color: var(--text); ' + (selK === k ? 'font-weight: 500' : '') };
+    });
+    const E = [
+      ['frontend', 'adservice', 6.3, 9], ['frontend', 'recommendationservice', 7.9, 238], ['frontend', 'productcatalogservice', 18.6, 222, true],
+      ['frontend', 'currencyservice', 16.0, 8], ['frontend', 'cartservice', 5.2, 6], ['frontend', 'checkoutservice', 2.4, 118], ['frontend', 'shippingservice', 1.7, 5],
+      ['recommendationservice', 'productcatalogservice', 7.9, 41], ['checkoutservice', 'paymentservice', 2.4, 7], ['checkoutservice', 'shippingservice', 2.4, 5],
+      ['checkoutservice', 'emailservice', 2.4, 12], ['checkoutservice', 'currencyservice', 6.1, 8], ['cartservice', 'redis-cart', 9.8, 2], ['checkoutservice', 'cartservice', 2.4, 6]
+    ];
+    const edges = {};
+    E.forEach(([a, b, rps, p90, cause], i) => {
+      const [x1, y1] = D[a], [x2, y2] = D[b];
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      const w = (1 + rps / 8).toFixed(1);
+      const isCause = cause && showCause;
+      const hot = p90 >= 200;
+      edges['e' + i] = {
+        d: 'M' + x1 + ' ' + y1 + ' L' + mx + ' ' + my + ' L' + x2 + ' ' + y2,
+        style: isCause ? 'stroke: var(--cause); stroke-width: 3' : 'stroke: var(' + (hot ? '--text-2' : '--border-strong') + '); stroke-width: ' + w,
+        marker: isCause ? 'url(#mC)' : (hot ? 'url(#mR)' : 'url(#mN)')
+      };
+    });
+    const s = D[selK];
+    const r = (i, k) => { const x = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+    let spark = '';
+    if (s) {
+      const base = selK === 'frontend' ? 276 : s[4], after = s[4];
+      const max = Math.max(after, base) * 1.4;
+      spark = Array.from({ length: 60 }, (_, i) => { const v = (i < 50 ? base : after) * (0.92 + r(i, s[0]) * 0.16); return (i ? 'L' : 'M') + (i * 10 + 5) + ',' + (80 - v / max * 80).toFixed(1); }).join('');
+    }
+    const st = s ? status(selK) : 0;
+    const sel = s ? { label: selK, rps: s[5].toFixed(1), err: s[6].toFixed(2), p50: s[2], p90: s[3], p99: s[4], spark,
+      aria: selK + ' p99 latency 추이', hasRank: !!(showCause && s[7]), rank: String(s[7] || ''),
+      stateLabel: ['정상', '경고', '이상'][st], stateStyle: 'display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; ' + ['color: var(--text-2); background: var(--secondary)', 'color: var(--warning-text); background: color-mix(in srgb, var(--warning) 18%, var(--bg1))', 'color: var(--error-text); background: color-mix(in srgb, var(--error) 10%, var(--bg1))'][st] } : {};
+    const on = showCause;
+    const modes = ['상태', '지연', '오류'].map((label, i) => ({ label, checked: mode === i ? 'true' : 'false', pick: () => this.setState({ mode: i }),
+      style: 'height: 28px; padding: 0 12px; border: 0; border-radius: 6px; ' + (mode === i ? 'background: var(--bg1); color: var(--text); font-weight: 500; box-shadow: var(--shadow-z1)' : 'background: none; color: var(--text-2)') }));
+    const legends = [['정상', '경고', '이상'], ['p99 200 ms 미만', '200~400 ms', '400 ms 이상'], ['오류 0.2% 미만', '0.2~1%', '1% 이상']][mode];
+    return {
+      theme, menuOpen: this.state.menu,
+      setTheme: (t) => this.setState({ theme: t }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      nodes, ...edges, modes, sel, hasSel: !!s, showCause,
+      legendOk: legends[0], legendWarn: legends[1], legendBad: legends[2],
+      showCauseAttr: on ? 'true' : 'false', toggleCause: () => this.setState({ cause: !on }),
+      switchTrack: 'position: relative; width: 32px; height: 16px; border-radius: 8px; transition: background .15s; background: ' + (on ? 'var(--primary)' : 'var(--secondary-shade)') + '; border: 1px solid ' + (on ? 'var(--primary)' : 'var(--border)'),
+      switchKnob: 'position: absolute; top: 1px; left: 1px; width: 12px; height: 12px; border-radius: 50%; background: var(--on-primary); transition: transform .15s; transform: translateX(' + (on ? '16px' : '0') + ')',
+      close: () => this.setState({ sel: null }),
+      q: this.state.q, onQ: (e) => this.setState({ q: e.target.value })
+    };
+  }
+}
+</script>
+</body>
+</html>

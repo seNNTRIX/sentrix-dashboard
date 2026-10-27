@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>SentriX 로그인</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-weight:500;text-align:left;padding:4px 8px;height:32px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:4px 8px;height:36px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <main style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px 16px">
+    <div style="width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 32px">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center">
+        <span style="display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 10px; background: #1c1c1c; color: #ffffff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"></path><circle cx="12" cy="12" r="3.2" style="fill: #E865C0; stroke: none"></circle></svg></span>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <h1 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -0.01em">SentriX에 로그인</h1>
+          <p style="margin: 0; color: var(--text-2)">Kubernetes 마이크로서비스 이상 탐지와 원인 분석</p>
+          <sc-if value="{{showError}}" hint-placeholder-val="{{ false }}">
+            <p role="alert" style="margin: 8px 0 0; font-size: 13px; line-height: 20px; color: var(--error-text)">이메일 또는 비밀번호가 올바르지 않습니다</p>
+          </sc-if>
+        </div>
+      </div>
+
+      <form style="display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <a href="B1-Overview.dc.html" style="position: relative; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: #FEE500; color: rgba(0,0,0,.85); font-weight: 500; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="position: absolute; left: 14px"><path d="M12 3.5c-5 0-9 3.1-9 7 0 2.5 1.7 4.7 4.2 5.9l-.9 3.4c-.1.3.3.6.6.4l4-2.7c.4 0 .7.1 1.1.1 5 0 9-3.1 9-7s-4-7.1-9-7.1z" style="fill: #000000"></path></svg>카카오로 로그인</a>
+          <a href="B1-Overview.dc.html" style="position: relative; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 6px; background: #FFFFFF; color: #1F1F1F; font-weight: 500; text-decoration: none"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true" style="position: absolute; left: 14px"><path d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" style="fill: #FFC107"></path><path d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" style="fill: #FF3D00"></path><path d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z" style="fill: #4CAF50"></path><path d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" style="fill: #1976D2"></path></svg>Google로 로그인</a>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-2)"><span style="flex: 1; height: 1px; background: var(--border-weak)"></span>또는 이메일로<span style="flex: 1; height: 1px; background: var(--border-weak)"></span></div>
+
+        <label style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; font-weight: 500">이메일</span>
+          <input type="text" autocomplete="username" value="jihoon.lee@example.ac.kr" style="{{inputStyle}}">
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 8px">
+          <span style="display: flex; justify-content: space-between; font-size: 13px"><span style="font-weight: 500">비밀번호</span><a href="A3-Reset.dc.html" style="color: var(--text-2)">비밀번호 찾기</a></span>
+          <span style="position: relative; display: flex">
+            <input type="{{pwType}}" autocomplete="current-password" value="sentrix-demo" style="{{inputStyle}}; width: 100%; padding-right: 44px">
+            <button type="button" onClick="{{togglePw}}" aria-label="{{pwLabel}}" style="position: absolute; right: 4px; top: 4px; width: 32px; height: 32px; border: 0; border-radius: 6px; background: none; color: var(--text-2); display: inline-flex; align-items: center; justify-content: center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{eye}}"></path></svg>
+            </button>
+          </span>
+        </label>
+        <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2)"><input type="checkbox" checked style="width: 16px; height: 16px; margin: 0; accent-color: var(--primary)">로그인 상태 유지</label>
+        <a href="B1-Overview.dc.html" style="height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500; text-decoration: none">로그인</a>
+      </form>
+
+      <p style="margin: 0; text-align: center; font-size: 13px; color: var(--text-2)">초대를 받으셨나요? <a href="A2-Signup.dc.html">초대 수락</a></p>
+    </div>
+  </main>
+  <footer style="display: flex; justify-content: center; gap: 16px; padding: 16px; font-size: 12px; color: var(--text-2)">
+    <a href="Main.dc.html" style="color: var(--text-2)">문서</a>
+    <a href="C7-States.dc.html" style="color: var(--text-2)">지원</a>
+    <span>SentriX v1.0</span>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"error":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { showPw: false }; }
+  renderVals() {
+    const err = !!this.props.error;
+    const show = this.state.showPw;
+    return {
+      theme: this.props.theme ?? 'light',
+      showError: err,
+      pwType: show ? 'text' : 'password',
+      pwLabel: show ? '비밀번호 숨기기' : '비밀번호 보기',
+      eye: show ? 'M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.1A9.5 9.5 0 0 1 12 5c5 0 9 4.5 10 7a12 12 0 0 1-2.4 3.4M6.1 6.1C3.9 7.6 2.5 9.8 2 12c1 2.5 5 7 10 7a9.6 9.6 0 0 0 4-.9' : 'M2 12c1-2.5 5-7 10-7s9 4.5 10 7c-1 2.5-5 7-10 7S3 14.5 2 12zM15 12a3 3 0 1 1-6 0a3 3 0 1 1 6 0',
+      togglePw: () => this.setState({ showPw: !show }),
+      inputStyle: 'height: 40px; padding: 0 12px; border-radius: 6px; background: var(--bg1); border: 1px solid ' + (err ? 'var(--error)' : 'var(--border)')
+    };
+  }
+}
+</script>
+</body>
+</html>

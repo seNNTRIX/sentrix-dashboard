@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>장애</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-weight:500;text-align:left;padding:4px 8px;height:32px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:4px 8px;height:36px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="홈|장애" hrefs="B1-Overview.dc.html|" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="incidents" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 48px; display: flex; flex-direction: column; gap: 24px">
+
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between">
+        <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">장애</h1>
+        <a href="C2-AlertRules.dc.html" style="height: 32px; display: inline-flex; align-items: center; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); color: var(--text); font-weight: 500; text-decoration: none">Alert rules
+        </a>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: flex-end">
+        <label style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 240px; max-width: 360px">
+          <span style="font-size: 13px; font-weight: 500">검색</span>
+          <span style="position: relative; display: flex; align-items: center">
+            <span style="position: absolute; left: 8px; display: inline-flex; color: var(--text-2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M17.5 11a6.5 6.5 0 1 1-13 0a6.5 6.5 0 1 1 13 0M16 16l4.5 4.5"></path></svg></span>
+            <input type="search" placeholder="장애 검색" value="{{q}}" onChange="{{onQ}}" style="width: 100%; height: 32px; padding: 0 8px 0 28px; border: 1px solid var(--border); border-radius: 6px; background: var(--page)">
+          </span>
+        </label>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 13px; font-weight: 500">상태</span>
+          <div role="radiogroup" aria-label="상태" style="display: inline-flex; padding: 2px; gap: 2px; border-radius: 8px; background: var(--bg2)">
+            <sc-for list="{{statusOpts}}" as="o" hint-placeholder-count="4"><button type="button" role="radio" aria-checked="{{o.checked}}" onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for>
+          </div>
+        </div>
+        <label style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 13px; font-weight: 500">장애 유형</span>
+          <select value="{{fault}}" onChange="{{onFault}}" style="height: 32px; min-width: 150px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--page)">
+            <option value="">전체</option><option value="cpu">CPU saturation</option><option value="net">Network delay</option><option value="loss">Packet loss</option><option value="pod">Pod failure</option><option value="traffic">Traffic spike</option>
+          </select>
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 13px; font-weight: 500">서비스</span>
+          <select value="{{svc}}" onChange="{{onSvc}}" style="height: 32px; min-width: 180px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--page)">
+            <option value="">전체</option><option>frontend</option><option>productcatalogservice</option><option>checkoutservice</option><option>paymentservice</option><option>recommendationservice</option><option>cartservice</option><option>redis-cart</option><option>currencyservice</option>
+          </select>
+        </label>
+        <div style="margin-left: auto"><dc-import name="TimePicker" range="지난 7일" hint-size="330px,32px"></dc-import></div>
+      </div>
+
+      <div style="color: var(--text-2)">{{summary}}</div>
+
+      <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow-x: auto">
+        <div style="min-width: 860px">
+          <div role="row" style="display: grid; grid-template-columns: 40px 110px minmax(0, 1fr) 80px 120px 104px; align-items: center; height: 36px; padding: 0 16px 0 8px; border-bottom: 1px solid var(--border-weak); font-size: 13px; font-weight: 500; color: var(--text-2)">
+            <span></span>
+            <span>Status</span>
+            <span>Incident</span>
+            <button type="button" onClick="{{sortScore}}" aria-label="점수로 정렬" style="{{hScore}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{iScore}}"></path></svg>Score</button>
+            <button type="button" onClick="{{sortStart}}" aria-label="시작 시각으로 정렬" style="{{hStart}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{iStart}}"></path></svg>Started</button>
+            <button type="button" onClick="{{sortDur}}" aria-label="지속 시간으로 정렬" style="{{hDur}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{iDur}}"></path></svg>Duration</button>
+          </div>
+
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="7">
+            <div style="border-bottom: 1px solid var(--border-weak)">
+              <div style="display: grid; grid-template-columns: 40px 110px minmax(0, 1fr) 80px 120px 104px; align-items: center; min-height: 64px; padding: 12px 16px 12px 8px">
+                <button type="button" onClick="{{r.toggle}}" aria-expanded="{{r.expanded}}" aria-label="{{r.toggleLabel}}" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 4px; background: none; color: var(--text-2)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{r.chev}}"><path d="M9 6l6 6-6 6"></path></svg>
+                </button>
+                <span><span style="{{r.stateStyle}}">{{r.stateLabel}}</span></span>
+                <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px">
+                  <a href="B4-Incident.dc.html" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-weight: 500">{{r.title}}</a>
+                  <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; line-height: 20px; color: var(--text-2)">
+                    <span>{{r.id}}</span><span>{{r.faultLabel}}</span><span>영향 서비스 {{r.impact}}개</span>
+                  </div>
+                </div>
+                <span style="text-align: right; font-size: 14px; line-height: 22px; color: var(--text); font-variant-numeric: tabular-nums">{{r.score}}</span>
+                <span style="text-align: right; font-size: 14px; line-height: 22px; color: var(--text-2); font-variant-numeric: tabular-nums">{{r.start}}</span>
+                <span style="text-align: right; font-size: 14px; line-height: 22px; color: var(--text-2); font-variant-numeric: tabular-nums">{{r.dur}}</span>
+              </div>
+              <sc-if value="{{r.open}}" hint-placeholder-val="{{ false }}">
+                <div style="margin: 0 8px 12px 158px; padding: 12px 16px; border-radius: 8px; background: var(--bg2); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px">
+                  <div style="display: flex; flex-direction: column; min-width: 0"><span style="font-size: 12px; line-height: 18px; color: var(--text-2)">1순위 원인 후보</span><span style="font-size: 13px; line-height: 20px; font-weight: 500">{{r.target}}</span></div>
+                  <div style="display: flex; flex-direction: column"><span style="font-size: 12px; line-height: 18px; color: var(--text-2)">장애 유형</span><span style="font-size: 13px; line-height: 20px">{{r.faultLabel}}</span></div>
+                  <div style="display: flex; flex-direction: column"><span style="font-size: 12px; line-height: 18px; color: var(--text-2)">영향 서비스</span><span style="font-size: 13px; line-height: 20px">{{r.impact}}개</span></div>
+                  <div style="display: flex; flex-direction: column"><span style="font-size: 12px; line-height: 18px; color: var(--text-2)">감지</span><span style="font-size: 13px; line-height: 20px; font-variant-numeric: tabular-nums">{{r.detect}}</span></div>
+                  <a href="B4-Incident.dc.html" style="margin-left: auto; height: 32px; display: inline-flex; align-items: center; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); color: var(--text); font-weight: 500; text-decoration: none">원인 분석 열기</a>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+
+          <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}">
+            <div style="padding: 32px 16px; text-align: center; color: var(--text-2)">조건에 맞는 장애가 없습니다.</div>
+          </sc-if>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { theme: null, menu: true, status: 'all', fault: '', svc: '', q: '', sort: 'start', dir: -1, open: { 'INC-0142': true } }; }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const FT = { cpu: ['CPU saturation', '--tag-cpu', 'cpu-saturation'], net: ['Network delay', '--tag-net', 'network-delay'], loss: ['Packet loss', '--tag-loss', 'packet-loss'], pod: ['Pod failure', '--tag-pod', 'pod-failure'], traffic: ['Traffic spike', '--tag-traffic', 'traffic-surge'] };
+    const I = [
+      ['INC-0142', 'open', 'frontend → productcatalogservice', 'net', 0.84, 2, '2026-10-27 14:21:30', 635, '14:22:00', ['frontend', 'productcatalogservice']],
+      ['INC-0141', 'resolved', 'checkoutservice', 'pod', 0.91, 3, '2026-10-27 13:12:10', 390, '13:12:40', ['checkoutservice']],
+      ['INC-0140', 'resolved', 'checkoutservice → paymentservice', 'loss', 0.77, 2, '2026-10-27 10:48:00', 720, '10:48:30', ['checkoutservice', 'paymentservice']],
+      ['INC-0139', 'resolved', 'recommendationservice', 'cpu', 0.88, 2, '2026-10-26 16:05:30', 510, '16:06:00', ['recommendationservice']],
+      ['INC-0138', 'resolved', 'frontend', 'traffic', 0.72, 5, '2026-10-26 11:20:00', 930, '11:20:30', ['frontend']],
+      ['INC-0137', 'resolved', 'cartservice → redis-cart', 'net', 0.81, 3, '2026-10-25 21:42:30', 540, '21:43:00', ['cartservice', 'redis-cart']],
+      ['INC-0136', 'resolved', 'currencyservice', 'cpu', 0.69, 4, '2026-10-25 15:10:00', 450, '15:10:30', ['currencyservice']]
+    ];
+    const SL = { open: ['진행 중', '', '', 'color: var(--error-text); background: color-mix(in srgb, var(--error) 10%, var(--bg1))'], ack: ['확인함', '', '', 'color: var(--warning-text); background: color-mix(in srgb, var(--warning) 18%, var(--bg1))'], resolved: ['해결됨', '', '', 'color: var(--text-2); background: var(--secondary)'] };
+    const fmt = (s) => Math.floor(s / 60) + '분 ' + String(s % 60).padStart(2, '0') + '초';
+    const { status, fault, svc, sort, dir } = this.state;
+    const q = (this.state.q || '').trim().toLowerCase();
+    let list = I.filter((x) => (status === 'all' || x[1] === status) && (!fault || x[3] === fault) && (!svc || x[9].includes(svc)) &&
+      (!q || (x[0] + ' ' + x[2] + ' ' + FT[x[3]][0]).toLowerCase().includes(q)));
+    const key = { score: (x) => x[4], start: (x) => x[6], dur: (x) => x[7] }[sort];
+    list = list.slice().sort((a, b) => (key(a) > key(b) ? 1 : key(a) < key(b) ? -1 : 0) * dir);
+    const rows = list.map((x) => {
+      const open = !!this.state.open[x[0]];
+      return {
+        id: x[0], title: x[2] + ' ' + FT[x[3]][0], target: x[2], score: x[4].toFixed(2), start: x[6].slice(5, 16), dur: fmt(x[7]),
+        detect: x[8], impact: String(x[5]), svcLabel: x[9][0], faultKey: FT[x[3]][2], faultLabel: FT[x[3]][0],
+        tag: 'display: inline-block; padding: 0 8px; border-radius: 4px; font-size: 12px; line-height: 20px; color: var(--on-tag); background: var(' + FT[x[3]][1] + ')',
+        stateLabel: SL[x[1]][0], stateIcon: SL[x[1]][2],
+        stateStyle: 'display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; ' + SL[x[1]][3],
+        open, expanded: open ? 'true' : 'false', toggleLabel: x[0] + (open ? ' 접기' : ' 펼치기'),
+        chev: 'transition: transform .15s; transform: rotate(' + (open ? '90' : '0') + 'deg)',
+        toggle: () => this.setState({ open: { ...this.state.open, [x[0]]: !open } })
+      };
+    });
+    const opts = [['all', '전체'], ['open', '진행 중'], ['ack', '확인함'], ['resolved', '해결됨']];
+    const statusOpts = opts.map(([k, label]) => ({ label, checked: status === k ? 'true' : 'false', pick: () => this.setState({ status: k }),
+      style: 'height: 28px; padding: 0 12px; border: 0; border-radius: 6px; ' + (status === k ? 'background: var(--bg1); box-shadow: var(--shadow-z1); color: var(--text); font-weight: 500' : 'background: none; color: var(--text-2)') }));
+    const hdr = (k) => 'display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; width: 100%; padding: 0; border: 0; background: none; font-size: 13px; font-weight: 500; ' + (sort === k ? 'color: var(--text)' : 'color: var(--text-2)');
+    const ico = (k) => sort !== k ? '' : (dir > 0 ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6');
+    const setSort = (k) => () => this.setState({ sort: k, dir: sort === k ? -dir : -1 });
+    const nOpen = list.filter((x) => x[1] === 'open').length, nAck = list.filter((x) => x[1] === 'ack').length, nRes = list.filter((x) => x[1] === 'resolved').length;
+    return {
+      theme, menuOpen: this.state.menu,
+      setTheme: (t) => this.setState({ theme: t }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      rows, statusOpts, empty: rows.length === 0,
+      summary: '장애 ' + list.length + '건: 진행 중 ' + nOpen + ', 확인함 ' + nAck + ', 해결됨 ' + nRes,
+      q: this.state.q, onQ: (e) => this.setState({ q: e.target.value }),
+      fault, onFault: (e) => this.setState({ fault: e.target.value }),
+      svc, onSvc: (e) => this.setState({ svc: e.target.value }),
+      sortScore: setSort('score'), sortStart: setSort('start'), sortDur: setSort('dur'),
+      hScore: hdr('score'), hStart: hdr('start'), hDur: hdr('dur'),
+      iScore: ico('score'), iStart: ico('start'), iDur: ico('dur')
+    };
+  }
+}
+</script>
+</body>
+</html>

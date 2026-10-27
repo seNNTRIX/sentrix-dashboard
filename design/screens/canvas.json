@@ -1,0 +1,341 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "A1-Login.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "entry",
+      "title": "A1 로그인",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "A2-Signup.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "entry",
+      "title": "A2 회원가입 / 초대 수락",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "A3-Reset.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "entry",
+      "title": "A3 비밀번호 재설정",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "A4-Onboarding.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "page": "entry",
+      "title": "A4 첫 설정(온보딩)",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "B1-Overview.dc.html": {
+      "expand": "fill",
+      "h": 1700,
+      "is_interactive": true,
+      "page": "core",
+      "title": "B1 개요",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "B2-ServiceMap.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "page": "core",
+      "title": "B2 Service map",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "B3-Incidents.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "page": "core",
+      "title": "B3 장애 목록",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "B4-Incident.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "page": "core",
+      "title": "B4 장애 상세 / 원인 분석",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "B5-Service.dc.html": {
+      "expand": "fill",
+      "h": 1700,
+      "is_interactive": true,
+      "page": "core",
+      "title": "B5 서비스 상세",
+      "w": 1440,
+      "x": 0,
+      "y": 3080
+    },
+    "B6-Trace.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "is_interactive": true,
+      "page": "core",
+      "title": "B6 Trace",
+      "w": 1440,
+      "x": 1520,
+      "y": 3080
+    },
+    "B7-Logs.dc.html": {
+      "expand": "fill",
+      "h": 1200,
+      "is_interactive": true,
+      "page": "core",
+      "title": "B7 로그",
+      "w": 1440,
+      "x": 3040,
+      "y": 3080
+    },
+    "B8-Model.dc.html": {
+      "expand": "fill",
+      "h": 1600,
+      "is_interactive": true,
+      "page": "core",
+      "title": "B8 Model",
+      "w": 1440,
+      "x": 4560,
+      "y": 3080
+    },
+    "C1-Notifications.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "is_interactive": true,
+      "page": "sys",
+      "title": "C1 알림 센터",
+      "w": 1440,
+      "x": 3040,
+      "y": 0
+    },
+    "C2-AlertRules.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "is_interactive": true,
+      "page": "sys",
+      "title": "C2 Alert rules",
+      "w": 1440,
+      "x": 4560,
+      "y": 0
+    },
+    "C3-Settings.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "is_interactive": true,
+      "page": "sys",
+      "title": "C3 설정",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "C4-Team.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "is_interactive": true,
+      "page": "sys",
+      "title": "C4 팀과 권한",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "C5-Account.dc.html": {
+      "expand": "fill",
+      "h": 1700,
+      "is_interactive": true,
+      "page": "sys",
+      "title": "C5 내 계정",
+      "w": 1440,
+      "x": 0,
+      "y": 1720
+    },
+    "C6-Audit.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "is_interactive": true,
+      "page": "sys",
+      "title": "C6 Audit log",
+      "w": 1440,
+      "x": 1520,
+      "y": 1720
+    },
+    "C7-States.dc.html": {
+      "expand": "fill",
+      "h": 1600,
+      "is_interactive": true,
+      "page": "sys",
+      "title": "C7 상태 화면 모음",
+      "w": 1440,
+      "x": 3040,
+      "y": 1720
+    },
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 2700,
+      "is_interactive": true,
+      "page": "ds",
+      "title": "디자인 시스템",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "SideNav.dc.html": {
+      "h": 760,
+      "is_interactive": true,
+      "page": "ds",
+      "title": "공통 · 메뉴",
+      "w": 240,
+      "x": 1520,
+      "y": 0
+    },
+    "TimePicker.dc.html": {
+      "h": 40,
+      "is_interactive": true,
+      "page": "ds",
+      "title": "공통 · 시간 범위 선택",
+      "w": 420,
+      "x": 1520,
+      "y": 1040
+    },
+    "TopBar.dc.html": {
+      "h": 48,
+      "is_interactive": true,
+      "page": "ds",
+      "title": "공통 · 상단 바",
+      "w": 1440,
+      "x": 1520,
+      "y": 880
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-27T05:30:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "t_core1": {
+      "kind": "title1",
+      "maxW": 6000,
+      "page": "core",
+      "text": "장애 상세, 개요, Service map, 장애 목록",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "t_core2": {
+      "kind": "title1",
+      "maxW": 6000,
+      "page": "core",
+      "text": "서비스 Dashboard, Trace, 로그, 모델 평가",
+      "w": 240,
+      "x": 0,
+      "y": 2780
+    },
+    "t_ds": {
+      "kind": "title1",
+      "maxW": 2960,
+      "page": "ds",
+      "text": "디자인 시스템과 공통 부품",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "t_entry": {
+      "kind": "title1",
+      "maxW": 6000,
+      "page": "entry",
+      "text": "로그인, 가입, 비밀번호 재설정, 첫 설정",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "t_sys1": {
+      "kind": "title1",
+      "maxW": 6000,
+      "page": "sys",
+      "text": "설정, 팀, 알림",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "t_sys2": {
+      "kind": "title1",
+      "maxW": 4480,
+      "page": "sys",
+      "text": "프로필, Audit log, 상태 화면",
+      "w": 240,
+      "x": 0,
+      "y": 1420
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "SideNav.dc.html",
+    "TopBar.dc.html",
+    "TimePicker.dc.html",
+    "B4-Incident.dc.html",
+    "B1-Overview.dc.html",
+    "B2-ServiceMap.dc.html",
+    "B3-Incidents.dc.html",
+    "B5-Service.dc.html",
+    "B6-Trace.dc.html",
+    "B7-Logs.dc.html",
+    "B8-Model.dc.html",
+    "A1-Login.dc.html",
+    "A2-Signup.dc.html",
+    "A3-Reset.dc.html",
+    "A4-Onboarding.dc.html",
+    "C3-Settings.dc.html",
+    "C4-Team.dc.html",
+    "C1-Notifications.dc.html",
+    "C2-AlertRules.dc.html",
+    "C5-Account.dc.html",
+    "C6-Audit.dc.html",
+    "C7-States.dc.html"
+  ],
+  "pages": [
+    {
+      "id": "ds",
+      "name": "디자인 시스템"
+    },
+    {
+      "id": "core",
+      "name": "핵심 분석"
+    },
+    {
+      "id": "entry",
+      "name": "계정·진입"
+    },
+    {
+      "id": "sys",
+      "name": "시스템"
+    }
+  ],
+  "title": "SentriX Dashboard UI"
+}

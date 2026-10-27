@@ -1,0 +1,14 @@
+body { margin: 0; background: var(--canvas); }
+.demo-notice { padding: 4px 16px; background: var(--bg2); color: var(--text-2); font: 12px/20px var(--font); text-align: center; border-bottom: 1px solid var(--border-weak); }
+@media(max-width: 769px) {
+ .g main { padding: 20px 16px 32px !important; flex-basis: 100% !important; }
+ .g nav { width: 100% !important; min-height: auto !important; }
+ .g [role="dialog"] { max-width: calc(100vw - 32px); }
+}
+@media(max-width: 600px) {
+ .g header { gap: 8px !important; padding: 0 16px !important; }
+ .g header > label, .g header nav[aria-label="현재 위치"] { display: none !important; }
+ .g nav[aria-label="주 메뉴"] { width: 100vw !important; border-bottom: 1px solid var(--border-weak); }
+ .g section[aria-label="주요 지표"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+ .g main > * { max-width: 100%; }
+}

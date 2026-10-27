@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Explore Loki</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-weight:500;text-align:left;padding:4px 8px;height:32px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:4px 8px;height:36px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="홈|Explore" hrefs="B1-Overview.dc.html|" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="logs" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 48px; display: flex; flex-direction: column; gap: 24px">
+
+      <!-- 헤더 -->
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">로그</h1>
+          <span style="color: var(--text-2)">Explore, 데이터 소스 Loki</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+          <button type="button" aria-label="데이터 소스 Loki" style="height: 32px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500; min-width: 160px">
+            <span style="flex: 1; text-align: left">Loki</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--text-2)"><path d="M6 9l6 6 6-6"></path></svg>
+          </button>
+          <button type="button" style="height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">분할</button>
+          <dc-import name="TimePicker" range="지난 1시간" hint-size="330px,32px"></dc-import>
+          <button type="button" style="height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500">Run query</button>
+        </div>
+      </div>
+
+      <!-- Query 편집기 -->
+      <section aria-labelledby="qa-h" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+          <h2 id="qa-h" style="margin: 0; font-size: 14px; font-weight: 500">Query A <span style="font-weight: 400; color: var(--text-2)">Loki</span></h2>
+          <button type="button" style="height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500">Label browser</button>
+        </div>
+        <div class="mono" style="padding: 12px 16px; border-radius: 6px; background: var(--bg2); line-height: 20px; overflow-wrap: anywhere">{<span style="color: var(--link)">namespace</span>=<span style="color: var(--success-text)">"sentrix"</span>, <span style="color: var(--link)">app</span>=<span style="color: var(--success-text)">"frontend"</span>} |= <span style="color: var(--success-text)">"error"</span> | <span style="color: var(--warning-text)">logfmt</span></div>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--text-2)"><span>Type Range</span><span>Line limit 1000</span><span>Resolution 1/1</span></div>
+      </section>
+
+      <!-- Logs volume -->
+      <section aria-labelledby="vol-h" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px">
+          <h2 id="vol-h" style="margin: 0; font-size: 14px; font-weight: 500">Logs volume</h2>
+          <div style="display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px">
+            <sc-for list="{{levels}}" as="lv" hint-placeholder-count="3">
+              <button type="button" onClick="{{lv.toggle}}" aria-pressed="{{lv.on}}" style="{{lv.style}}"><span style="{{lv.sw}}"></span>{{lv.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <div style="display: flex; flex-direction: column; justify-content: space-between; width: 24px; height: 120px; font-size: 12px; line-height: 12px; color: var(--text-2); text-align: right; font-variant-numeric: tabular-nums"><span>60</span><span>30</span><span>0</span></div>
+          <svg viewBox="0 0 600 120" preserveAspectRatio="none" style="flex: 1; min-width: 0; height: 120px; display: block" role="img" aria-label="분당 로그 수. 14시 21분 이후 error와 warning 증가">
+            <line x1="0" y1="119.5" x2="600" y2="119.5" style="stroke: var(--border-weak)" vector-effect="non-scaling-stroke"></line>
+            <rect x="495" y="0" width="105" height="120" style="fill: var(--shade)"></rect>
+            <path d="{{vol.info}}" style="fill: var(--border)"></path>
+            <path d="{{vol.warn}}" style="fill: var(--warning)"></path>
+            <path d="{{vol.err}}" style="fill: var(--error)"></path>
+          </svg>
+        </div>
+        <div style="position: relative; height: 16px; margin-left: 32px; font-size: 12px; color: var(--text-2)"><sc-for list="{{ticks}}" as="tk" hint-placeholder-count="6"><span style="{{tk.pos}}">{{tk.label}}</span></sc-for></div>
+      </section>
+
+      <!-- Logs -->
+      <section aria-labelledby="logs-h" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; display: flex; flex-direction: column; min-width: 0">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 16px 20px 12px">
+          <h2 id="logs-h" style="margin: 0; font-size: 14px; font-weight: 500">Logs</h2>
+          <span style="font-size: 13px; color: var(--text-2)">{{count}}줄</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; padding: 0 20px 12px; border-bottom: 1px solid var(--border-weak)">
+          <sc-for list="{{switches}}" as="sw" hint-placeholder-count="4">
+            <button type="button" role="switch" aria-checked="{{sw.on}}" onClick="{{sw.toggle}}" style="display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0; border: 0; background: none; font-size: 13px">
+              <span style="{{sw.track}}"><span style="{{sw.knob}}"></span></span>
+              <span>{{sw.label}}</span>
+            </button>
+          </sc-for>
+          <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px">
+            <span style="color: var(--text-2)">Dedup</span>
+            <span role="radiogroup" aria-label="Dedup" style="display: inline-flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--bg2)">
+              <sc-for list="{{dedup}}" as="d" hint-placeholder-count="4"><button type="button" role="radio" aria-checked="{{d.on}}" onClick="{{d.pick}}" style="{{d.style}}">{{d.label}}</button></sc-for>
+            </span>
+          </span>
+          <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px">
+            <span style="color: var(--text-2)">정렬</span>
+            <span role="radiogroup" aria-label="정렬" style="display: inline-flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--bg2)">
+              <sc-for list="{{orders}}" as="o" hint-placeholder-count="2"><button type="button" role="radio" aria-checked="{{o.on}}" onClick="{{o.pick}}" style="{{o.style}}">{{o.label}}</button></sc-for>
+            </span>
+          </span>
+        </div>
+        <div style="padding: 8px 0">
+          <sc-for list="{{lines}}" as="l" hint-placeholder-count="12">
+            <div>
+              <button type="button" onClick="{{l.toggle}}" aria-expanded="{{l.exp}}" class="mono" style="{{l.row}}">
+                <sc-if value="{{showTime}}" hint-placeholder-val="{{ true }}"><span style="flex: none; color: var(--text-2)">{{l.time}}</span></sc-if>
+                <span style="{{l.lvStyle}}">{{l.lvl}}</span>
+                <sc-if value="{{showLabels}}" hint-placeholder-val="{{ false }}"><span style="flex: none; color: var(--text-2)">{{l.labels}}</span></sc-if>
+                <span style="{{l.textStyle}}">{{l.text}}</span>
+              </button>
+              <sc-if value="{{l.open}}" hint-placeholder-val="{{ false }}">
+                <div style="margin: 4px 20px 12px; padding: 16px; border-radius: 6px; background: var(--bg2); display: flex; flex-direction: column; gap: 8px">
+                  <div style="font-size: 13px; font-weight: 500">Fields</div>
+                  <div class="mono" style="display: grid; grid-template-columns: max-content minmax(0, 1fr); border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); font-size: 12px; line-height: 32px; overflow: hidden">
+                    <sc-for list="{{l.fields}}" as="f" hint-placeholder-count="6"><span style="{{f.kStyle}}">{{f.k}}</span><span style="{{f.vStyle}}">{{f.v}}</span></sc-for>
+                  </div>
+                  <sc-if value="{{l.hasTrace}}" hint-placeholder-val="{{ false }}">
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; padding-top: 4px; font-size: 13px">
+                      <span style="font-weight: 500">Links</span>
+                      <span class="mono" style="font-size: 12px; color: var(--text-2)">traceID {{l.trace}}</span>
+                      <a href="B6-Trace.dc.html">Tempo에서 보기</a>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+          <sc-if value="{{empty}}" hint-placeholder-val="{{ false }}"><div style="padding: 32px 20px; color: var(--text-2); text-align: center">선택한 레벨의 로그가 없습니다.</div></sc-if>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { theme: null, menu: true, hide: {}, sw: { time: true, labels: false, wrap: false, pretty: false }, dedup: 0, order: 0, open: 0 }; }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const N = 60, S = 50;
+    const r = (i, k) => { const x = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+    const ser = (k, a, ja, b, jb) => Array.from({ length: N }, (_, i) => i < S ? a + (r(i, k) - .5) * 2 * ja : b + (r(i, k) - .5) * 2 * jb);
+    const bars = (v, max, h, base) => v.map((y, i) => { const b = base ? base[i] / max * h : 0; const bh = Math.max(0, y) / max * h; return 'M' + (i * 10 + 1.5) + ',' + (h - b - bh).toFixed(1) + 'h7v' + bh.toFixed(1) + 'h-7Z'; }).join('');
+    const hide = this.state.hide;
+    const info = ser(1, 22, 4, 21, 4).map((v) => hide.info ? 0 : v);
+    const warn = ser(2, 1.2, 1, 9, 3).map((v) => hide.warn ? 0 : Math.max(0, v));
+    const err = ser(3, 0.3, 0.3, 3.5, 1.5).map((v) => hide.error ? 0 : Math.max(0, v));
+    const base2 = info.map((v, i) => v + warn[i]);
+    const vol = { info: bars(info, 60, 120), warn: bars(warn, 60, 120, info), err: bars(err, 60, 120, base2) };
+    const ticks = [['13:40', 13.33], ['13:50', 30], ['14:00', 46.67], ['14:10', 63.33], ['14:20', 80], ['14:30', 96.67]]
+      .map(([label, p]) => ({ label, pos: 'position: absolute; left: ' + p + '%; transform: translateX(-50%)' }));
+    const LV = { error: '--error', warn: '--warning', info: '--border' };
+    const LT = { error: 'var(--error-text)', warn: 'var(--warning-text)', info: 'var(--text-2)' };
+    const levels = [['error', 'error'], ['warn', 'warning'], ['info', 'info']].map(([k, label]) => ({ label, on: hide[k] ? 'false' : 'true',
+      toggle: () => this.setState({ hide: { ...hide, [k]: !hide[k] } }),
+      style: 'display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; ' + (hide[k] ? 'color: var(--text-dis); text-decoration: line-through' : 'color: var(--text-2)'),
+      sw: 'width: 12px; height: 2px; background: var(' + LV[k] + ')' + (hide[k] ? '; opacity: .3' : '') }));
+    const L = [
+      ['14:31:58.204', 'error', 'frontend-6f9c8d7b4-q7lzt', 'frontend', 'level=error ts=2026-10-27T05:31:58.204Z msg="request error" http.req.path=/product/2ZYFJ3GM2N err="rpc error: code = DeadlineExceeded desc = context deadline exceeded" service=productcatalogservice', 'f02a6c19d4e8b371'],
+      ['14:31:09.618', 'warn', 'frontend-6f9c8d7b4-q7lzt', 'frontend', 'level=warn ts=2026-10-27T05:31:09.618Z msg="slow downstream call" method=GetProduct latency=231ms service=productcatalogservice', '6b2e9d4a1c7f8e03'],
+      ['14:30:18.442', 'warn', 'frontend-6f9c8d7b4-q7lzt', 'frontend', 'level=warn ts=2026-10-27T05:30:18.442Z msg="slow downstream call" method=GetProduct latency=219ms service=productcatalogservice', 'e5c1a0d9b7f24c63'],
+      ['14:29:51.311', 'info', 'checkoutservice-8b6c5f9d7-kx4sd', 'checkoutservice', 'level=info ts=2026-10-27T05:29:51.311Z msg="payment went through" transaction_id=7c1e2f0a-4b9d-4a8e-9f3c-2d5b6a7e8c10', ''],
+      ['14:29:51.004', 'info', 'frontend-6f9c8d7b4-q7lzt', 'frontend', 'level=info ts=2026-10-27T05:29:51.004Z msg="request started" http.req.method=POST http.req.path=/cart', '9a07d2f6e8c4b310'],
+      ['14:27:04.881', 'error', 'frontend-6f9c8d7b4-q7lzt', 'frontend', 'level=error ts=2026-10-27T05:27:04.881Z msg="request error" http.req.path=/product/66VCHSJNUP err="rpc error: code = DeadlineExceeded desc = context deadline exceeded" service=productcatalogservice', 'c41e88a09d3b7f12'],
+      ['14:27:03.877', 'info', 'frontend-6f9c8d7b4-q7lzt', 'frontend', 'level=info ts=2026-10-27T05:27:03.877Z msg="request started" http.req.method=GET http.req.path=/product/66VCHSJNUP', 'c41e88a09d3b7f12'],
+      ['14:25:40.733', 'warn', 'frontend-6f9c8d7b4-q7lzt', 'frontend', 'level=warn ts=2026-10-27T05:25:40.733Z msg="slow downstream call" method=ListProducts latency=236ms service=productcatalogservice', '2b9d0e7c55a1f3e4'],
+      ['14:24:12.873', 'info', 'productcatalogservice-7c9d8f6b5-x2kq4', 'productcatalogservice', 'level=info ts=2026-10-27T05:24:12.873Z msg="successfully parsed product catalog json"', ''],
+      ['14:24:12.870', 'warn', 'frontend-6f9c8d7b4-q7lzt', 'frontend', 'level=warn ts=2026-10-27T05:24:12.870Z msg="slow downstream call" method=GetProduct latency=214ms service=productcatalogservice', '7f3a9c2e41b0d6a8'],
+      ['14:21:58.102', 'info', 'frontend-6f9c8d7b4-q7lzt', 'frontend', 'level=info ts=2026-10-27T05:21:58.102Z msg="request complete" http.resp.status=200 http.resp.took_ms=38', ''],
+      ['14:05:12.009', 'warn', 'checkoutservice-8b6c5f9d7-kx4sd', 'checkoutservice', 'level=warn ts=2026-10-27T05:05:12.009Z msg="failed to send order confirmation" err="rpc error: code = Unavailable" service=emailservice', '']
+    ];
+    const sw = this.state.sw;
+    let rows = L.map((x, i) => ({ x, i })).filter(({ x }) => !hide[x[1]]);
+    if (this.state.order === 1) rows = rows.slice().reverse();
+    const lines = rows.map(({ x: [time, lvl, pod, app, text, trace], i }) => {
+      const open = this.state.open === i;
+      const kv = [];
+      const re = /(\w[\w.]*)=("([^"]*)"|\S+)/g; let m;
+      while ((m = re.exec(text))) kv.push({ k: m[1], v: m[3] !== undefined ? m[3] : m[2] });
+      const raw = [{ k: 'app', v: app }, { k: 'namespace', v: 'sentrix' }, { k: 'pod', v: pod }].concat(kv.filter((f) => f.k !== 'ts')).concat(trace ? [{ k: 'traceID', v: trace }] : []);
+      const fields = raw.map((f, j) => {
+        const line = j < raw.length - 1 ? 'border-bottom: 1px solid var(--border-weak); ' : '';
+        return { k: f.k, v: f.v, kStyle: 'padding: 0 12px; color: var(--text-2); ' + line, vStyle: 'padding: 0 12px; overflow-wrap: anywhere; ' + line };
+      });
+      return { time, text, open, exp: open ? 'true' : 'false', fields, hasTrace: !!trace, trace,
+        lvl: lvl === 'warn' ? 'warn' : lvl,
+        lvStyle: 'flex: none; width: 40px; font-weight: 500; color: ' + LT[lvl],
+        labels: 'app=' + app,
+        toggle: () => this.setState({ open: open ? -1 : i }),
+        row: 'display: flex; gap: 12px; align-items: flex-start; width: 100%; padding: 4px 20px; border: 0; text-align: left; font-size: 12px; line-height: 20px; ' + (open ? 'background: var(--selected)' : 'background: none'),
+        textStyle: 'min-width: 0; ' + (sw.wrap ? 'white-space: pre-wrap; overflow-wrap: anywhere' : 'white-space: nowrap; overflow: hidden; text-overflow: ellipsis') };
+    });
+    const swDefs = [['time', 'Time'], ['labels', 'Unique labels'], ['wrap', 'Wrap lines'], ['pretty', 'Prettify JSON']];
+    const switches = swDefs.map(([k, label]) => ({ label, on: sw[k] ? 'true' : 'false',
+      toggle: () => this.setState({ sw: { ...sw, [k]: !sw[k] } }),
+      track: 'position: relative; flex: none; width: 28px; height: 16px; border-radius: 8px; background: ' + (sw[k] ? 'var(--primary)' : 'var(--border)'),
+      knob: 'position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; transition: transform .15s; background: var(--bg1); transform: translateX(' + (sw[k] ? '12px' : '0') + ')' }));
+    const rb = (sel, i) => 'height: 28px; padding: 0 12px; border: 0; border-radius: 6px; white-space: nowrap; font-size: 13px; ' + (sel === i ? 'background: var(--bg1); box-shadow: var(--shadow-z1); font-weight: 500; color: var(--text)' : 'background: none; color: var(--text-2)');
+    const dedup = ['None', 'Exact', 'Numbers', 'Signature'].map((label, i) => ({ label, on: this.state.dedup === i ? 'true' : 'false', pick: () => this.setState({ dedup: i }), style: rb(this.state.dedup, i) }));
+    const orders = ['최신 순', '오래된 순'].map((label, i) => ({ label, on: this.state.order === i ? 'true' : 'false', pick: () => this.setState({ order: i }), style: rb(this.state.order, i) }));
+    return {
+      theme, menuOpen: this.state.menu,
+      setTheme: (x) => this.setState({ theme: x }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      vol, ticks, levels, lines, switches, dedup, orders,
+      count: String(lines.length), empty: lines.length === 0,
+      showTime: sw.time, showLabels: sw.labels
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Online Boutique 개요</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-size:13px;font-weight:500;color:var(--text-2);text-align:left;padding:0 16px;height:36px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:0 16px;height:44px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:last-child td{border-bottom:0}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="홈" hrefs="" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="overview" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; max-width: 1224px; padding: 24px 32px 48px; display: flex; flex-direction: column; gap: 24px">
+
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">개요</h1>
+          <span style="color: var(--text-2)">online-boutique, namespace sentrix, 서비스 11개</span>
+        </div>
+        <dc-import name="TimePicker" range="지난 1시간" hint-size="330px,32px"></dc-import>
+      </div>
+
+      <a href="B4-Incident.dc.html" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 16px 20px; border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); color: var(--text); text-decoration: none">
+        <span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; min-width: 0">
+          <span style="font-weight: 500; color: var(--error-text)">진행 중</span>
+          <span style="font-weight: 500">frontend → productcatalogservice 지연</span>
+          <span style="color: var(--text-2)">INC-0142, 14:21:30부터, 1순위 후보 0.84</span>
+        </span>
+        <span style="color: var(--text-2); white-space: nowrap">원인 분석 보기</span>
+      </a>
+
+      <section aria-label="주요 지표" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); overflow: hidden">
+        <sc-for list="{{kpis}}" as="k" hint-placeholder-count="5">
+          <div style="{{k.cell}}">
+            <span style="font-size: 13px; color: var(--text-2)">{{k.label}}</span>
+            <span class="mono" style="{{k.valueStyle}}">{{k.value}}<span style="font-size: 14px; color: var(--text-2); margin-left: 4px">{{k.unit}}</span></span>
+            <span style="font-size: 12px; color: var(--text-2)">{{k.note}}</span>
+          </div>
+        </sc-for>
+      </section>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch">
+        <section aria-labelledby="score-h" style="flex: 7 1 480px; min-width: 0; border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); padding: 20px 24px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+            <h2 id="score-h" style="margin: 0; font-size: 14px; font-weight: 500">Anomaly score</h2>
+            <span class="mono" style="font-size: 13px; color: var(--text-2)">현재 0.94, 임계값 0.60</span>
+          </div>
+          <div style="position: relative">
+            <svg viewBox="0 0 600 160" preserveAspectRatio="none" style="width: 100%; height: 160px; display: block" role="img" aria-label="Anomaly score가 14시 21분 30초부터 임계값 0.6을 넘어 0.94까지 오름">
+              <line x1="0" y1="159.5" x2="600" y2="159.5" style="stroke: var(--border-weak)" vector-effect="non-scaling-stroke"></line>
+              <rect x="495" y="0" width="105" height="160" style="fill: var(--shade)"></rect>
+              <line x1="0" y1="64" x2="600" y2="64" style="stroke: var(--border-strong)" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"></line>
+              <path d="{{scoreLine2}}" fill="none" style="stroke: var(--text)" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+            </svg>
+          </div>
+          <div style="position: relative; height: 16px; font-size: 12px; color: var(--text-2)"><sc-for list="{{ticks}}" as="tk" hint-placeholder-count="6"><span style="{{tk.pos}}">{{tk.label}}</span></sc-for></div>
+        </section>
+
+        <section aria-labelledby="map-h" style="flex: 5 1 340px; min-width: 0; border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); padding: 20px 24px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+            <h2 id="map-h" style="margin: 0; font-size: 14px; font-weight: 500">Service map</h2>
+            <a href="B2-ServiceMap.dc.html" style="font-size: 13px; color: var(--text-2)">전체 보기</a>
+          </div>
+          <a href="B2-ServiceMap.dc.html" aria-label="Service map 열기" style="position: relative; display: block; flex: 1; min-height: 200px; aspect-ratio: 600 / 300">
+            <svg viewBox="0 0 600 300" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%" aria-hidden="true">
+              <path d="M110 150L330 60M110 150L330 150M110 150L330 240M330 240L520 150M330 150L520 240M110 150L520 150" fill="none" style="stroke: var(--border)" stroke-width="1.2"></path>
+              <path d="M110 150L330 60" fill="none" style="stroke: var(--cause)" stroke-width="2"></path>
+            </svg>
+            <sc-for list="{{miniNodes}}" as="n" hint-placeholder-count="6">
+              <span style="{{n.pos}}">{{n.label}}</span>
+            </sc-for>
+          </a>
+        </section>
+      </div>
+
+      <section aria-labelledby="st-h" style="border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); padding: 20px 24px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap">
+          <h2 id="st-h" style="margin: 0; font-size: 14px; font-weight: 500">서비스 상태</h2>
+          <span style="display: flex; gap: 16px; font-size: 12px; color: var(--text-2)">
+            <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 12px; height: 8px; border-radius: 2px; background: var(--bg2)"></span>정상</span>
+            <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 12px; height: 8px; border-radius: 2px; background: var(--warning)"></span>경고</span>
+            <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 12px; height: 8px; border-radius: 2px; background: var(--error)"></span>이상</span>
+          </span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <sc-for list="{{timeline}}" as="row" hint-placeholder-count="11">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <a href="B5-Service.dc.html" style="width: 168px; flex: none; font-size: 13px; line-height: 20px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{row.name}}</a>
+              <div style="flex: 1; min-width: 0; display: flex; height: 16px; gap: 2px">
+                <sc-for list="{{row.segs}}" as="sg" hint-placeholder-count="2"><span title="{{sg.tip}}" style="{{sg.style}}"></span></sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="position: relative; height: 16px; margin-left: 180px; font-size: 12px; color: var(--text-2)"><sc-for list="{{ticks}}" as="tk" hint-placeholder-count="6"><span style="{{tk.pos}}">{{tk.label}}</span></sc-for></div>
+      </section>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px">
+        <sc-for list="{{red}}" as="ch" hint-placeholder-count="3">
+          <section style="border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+              <h2 style="margin: 0; font-size: 14px; font-weight: 500">{{ch.title}}</h2>
+              <span style="font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums">{{ch.now}}</span>
+            </div>
+            <div style="display: flex; gap: 8px">
+              <div style="display: flex; flex-direction: column; justify-content: space-between; width: 44px; height: 120px; font-size: 12px; line-height: 12px; color: var(--text-2); text-align: right"><span>{{ch.ymax}}</span><span>0</span></div>
+              <svg viewBox="0 0 600 120" preserveAspectRatio="none" style="flex: 1; min-width: 0; height: 120px; display: block" role="img" aria-label="{{ch.aria}}">
+                <line x1="0" y1="119.5" x2="600" y2="119.5" style="stroke: var(--border-weak)" vector-effect="non-scaling-stroke"></line>
+                <rect x="495" y="0" width="105" height="120" style="fill: var(--shade)"></rect>
+                <path d="{{ch.bars}}" style="{{ch.barsStyle}}"></path>
+                <path d="{{ch.p3}}" fill="none" style="{{ch.p3style}}" stroke-width="1.25" vector-effect="non-scaling-stroke"></path>
+                <path d="{{ch.p2}}" fill="none" style="{{ch.p2style}}" stroke-width="1.25" vector-effect="non-scaling-stroke"></path>
+                <path d="{{ch.p1}}" fill="none" style="{{ch.p1style}}" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+              </svg>
+            </div>
+            <div style="position: relative; height: 16px; margin-left: 52px; font-size: 12px; color: var(--text-2)"><sc-for list="{{ticksShort}}" as="tk" hint-placeholder-count="3"><span style="{{tk.pos}}">{{tk.label}}</span></sc-for></div>
+            <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--text-2)">
+              <sc-for list="{{ch.legend}}" as="lg" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; gap: 8px"><span style="{{lg.sw}}"></span>{{lg.label}}</span></sc-for>
+            </div>
+          </section>
+        </sc-for>
+      </div>
+
+      <section aria-labelledby="recent-h" style="border: 1px solid var(--border-weak); border-radius: 8px; background: var(--bg1); overflow: hidden">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 20px 24px 12px">
+          <h2 id="recent-h" style="margin: 0; font-size: 14px; font-weight: 500">최근 장애</h2>
+          <a href="B3-Incidents.dc.html" style="font-size: 13px; color: var(--text-2)">장애 목록</a>
+        </div>
+        <div style="overflow-x: auto">
+          <table>
+            <thead><tr><th>ID</th><th>상태</th><th>1순위 원인 후보</th><th>장애 유형</th><th style="text-align: right">점수</th><th>시작</th><th style="text-align: right">지속</th></tr></thead>
+            <tbody>
+                <tr><td><a class="mono" href="B4-Incident.dc.html">INC-0142</a></td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--error-text); background: color-mix(in srgb, var(--error) 10%, var(--bg1))">진행 중</span></td><td>frontend → productcatalogservice</td><td style="color: var(--text-2)">Network delay</td><td style="text-align: right; font-variant-numeric: tabular-nums">0.84</td><td style="color: var(--text-2); font-variant-numeric: tabular-nums">2026-10-27 14:21:30</td><td style="text-align: right; color: var(--text-2); font-variant-numeric: tabular-nums">10분 35초</td></tr>
+                <tr><td><a class="mono" href="B4-Incident.dc.html">INC-0141</a></td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--text-2); background: var(--secondary)">해결됨</span></td><td>checkoutservice</td><td style="color: var(--text-2)">Pod failure</td><td style="text-align: right; font-variant-numeric: tabular-nums">0.91</td><td style="color: var(--text-2); font-variant-numeric: tabular-nums">2026-10-27 13:12:10</td><td style="text-align: right; color: var(--text-2); font-variant-numeric: tabular-nums">6분 30초</td></tr>
+                <tr><td><a class="mono" href="B4-Incident.dc.html">INC-0140</a></td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--text-2); background: var(--secondary)">해결됨</span></td><td>checkoutservice → paymentservice</td><td style="color: var(--text-2)">Packet loss</td><td style="text-align: right; font-variant-numeric: tabular-nums">0.77</td><td style="color: var(--text-2); font-variant-numeric: tabular-nums">2026-10-27 10:48:00</td><td style="text-align: right; color: var(--text-2); font-variant-numeric: tabular-nums">12분 00초</td></tr>
+                <tr><td><a class="mono" href="B4-Incident.dc.html">INC-0139</a></td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--text-2); background: var(--secondary)">해결됨</span></td><td>recommendationservice</td><td style="color: var(--text-2)">CPU saturation</td><td style="text-align: right; font-variant-numeric: tabular-nums">0.88</td><td style="color: var(--text-2); font-variant-numeric: tabular-nums">2026-10-26 16:05:30</td><td style="text-align: right; color: var(--text-2); font-variant-numeric: tabular-nums">8분 30초</td></tr>
+                <tr><td><a class="mono" href="B4-Incident.dc.html">INC-0138</a></td><td><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; color: var(--text-2); background: var(--secondary)">해결됨</span></td><td>frontend</td><td style="color: var(--text-2)">Traffic spike</td><td style="text-align: right; font-variant-numeric: tabular-nums">0.72</td><td style="color: var(--text-2); font-variant-numeric: tabular-nums">2026-10-26 11:20:00</td><td style="text-align: right; color: var(--text-2); font-variant-numeric: tabular-nums">15분 30초</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1700}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { theme: null, menu: true }; }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const N = 60, S = 50;
+    const r = (i, k) => { const x = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+    const ser = (k, a, ja, b, jb) => Array.from({ length: N }, (_, i) => i < S ? a + (r(i, k) - .5) * 2 * ja : b + (r(i, k) - .5) * 2 * jb);
+    const line = (v, max, h) => v.map((y, i) => (i ? 'L' : 'M') + (i * 10 + 5) + ',' + (h - Math.max(0, Math.min(y, max)) / max * h).toFixed(1)).join('');
+    const area = (v, max, h) => line(v, max, h) + 'L595,' + h + 'L5,' + h + 'Z';
+    const bars = (v, max, h) => v.map((y, i) => { const bh = Math.max(0, Math.min(y, max)) / max * h; return 'M' + (i * 10 + 1.5) + ',' + (h - bh).toFixed(1) + 'h7v' + bh.toFixed(1) + 'h-7Z'; }).join('');
+
+    const score = Array.from({ length: N }, (_, i) => i < S ? 0.07 + r(i, 21) * 0.15 : 0.72 + r(i, 22) * 0.22);
+    const tx = ser(9, 2.4, 0.15, 2.5, 0.15);
+    const err = ser(5, 0.1, 0.04, 0.42, 0.08);
+    const p99 = ser(10, 276, 20, 486, 25);
+    const p90 = ser(11, 120, 12, 271, 18);
+    const p50 = ser(12, 38, 4, 41, 4);
+    const req = ser(1, 18.4, 1.2, 18.0, 1.4);
+    const inc = ser(16, 0, 0, 1, 0);
+
+    const ticks = [['13:40', 13.33], ['13:50', 30], ['14:00', 46.67], ['14:10', 63.33], ['14:20', 80], ['14:30', 96.67]]
+      .map(([label, p]) => ({ label, pos: 'position: absolute; left: ' + p + '%; transform: translateX(-50%)' }));
+
+    const stat = (title, value, unit, data, max, color, span, note) => ({ title, value, unit, note: note || '',
+      span: 'grid-column: span ' + span + '; position: relative; height: 120px; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column',
+      valueStyle: 'position: relative; font-size: 36px; line-height: 40px; font-weight: 500; color: var(' + color + ')',
+      line: line(data, max, 60), area: area(data, max, 60),
+      lineStyle: 'stroke: var(' + color + ')', areaStyle: 'fill: var(' + color + '); opacity: .15' });
+    const stats = [
+      stat('진행 중 장애', '1', '', inc, 2, '--viz-red', 4),
+      stat('Throughput', '2.4', 'tx/s', tx, 6, '--viz-green', 6, '용량 6'),
+      stat('Error rate', '0.42', '%', err, 0.8, '--viz-orange', 5),
+      stat('p99 latency', '486', 'ms', p99, 700, '--viz-red', 5)
+    ];
+
+    const mini = [
+      ['frontend', 90, 130, 4], ['productcatalogservice', 300, 50, 0.3], ['currencyservice', 300, 130, 0], ['recommendationservice', 300, 210, 0],
+      ['checkoutservice', 510, 130, 0], ['cartservice', 510, 210, 0]
+    ].map(([label, x, y, e]) => ({ label,
+      pos: 'position: absolute; left: ' + (x / 6) + '%; top: ' + (y / 2.6) + '%; transform: translate(-50%, -20px); display: flex; flex-direction: column; align-items: center; gap: 2px',
+      ring: 'width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(var(--viz-red) 0 ' + e + '%, var(--viz-green) ' + e + '% 100%)' + (label === 'frontend' ? '; box-shadow: 0 0 0 2px var(--bg1), 0 0 0 4px var(--viz-red)' : '') }));
+
+    const seg = (from, to, c, name, label) => ({ tip: name + ' ' + label, style: 'flex: 0 0 calc(' + (to - from) + '% - 2px); height: 16px; border-radius: 2px; background: var(' + c + ')' });
+    const names = ['frontend', 'productcatalogservice', 'recommendationservice', 'currencyservice', 'cartservice', 'redis-cart', 'checkoutservice', 'paymentservice', 'shippingservice', 'emailservice', 'adservice'];
+    const timeline = names.map((name) => {
+      let segs = [seg(0, 100, '--bg2', name, '정상')];
+      if (name === 'frontend') segs = [seg(0, 82.5, '--bg2', name, '정상 ~14:21:30'), seg(82.5, 100, '--error', name, '이상 14:21:30~')];
+      if (name === 'recommendationservice') segs = [seg(0, 83, '--bg2', name, '정상'), seg(83, 100, '--warning', name, '경고 CPU 49%')];
+      if (name === 'checkoutservice') segs = [seg(0, 6, '--bg2', name, '정상'), seg(6, 17, '--error', name, '이상 INC-0141'), seg(17, 100, '--bg2', name, '정상')];
+      return { name, segs };
+    });
+    const ticksShort = [['13:40', 13.33], ['14:00', 46.67], ['14:20', 80]].map(([label, p]) => ({ label, pos: 'position: absolute; left: ' + p + '%; transform: translateX(-50%)' }));
+
+    const sw = (c, dash) => dash ? 'width: 12px; border-top: 2px dashed var(' + c + ')' : 'width: 12px; height: 2px; background: var(' + c + ')';
+    const red = [
+      { title: 'Requests', now: '18.2 req/s', ymax: '30/s', aria: '초당 Requests 약 18 유지', bars: bars(req, 30, 120), barsStyle: 'fill: var(--border)', p1: '', p2: '', p3: '', p1style: '', p2style: '', p3style: '', legend: [{ label: 'frontend req/s', sw: sw('--border') }] },
+      { title: 'Error rate', now: '0.42%', ymax: '1%', aria: 'Error rate 0.1%에서 0.42%로 증가', bars: '', barsStyle: '', p1: line(err, 1, 120), p1style: 'stroke: var(--text)', p2: '', p2style: '', p3: '', p3style: '', legend: [{ label: 'frontend Error rate', sw: sw('--text') }] },
+      { title: '지연', now: 'p99 486 ms', ymax: '600 ms', aria: 'p99 276 ms에서 486 ms로 증가', bars: '', barsStyle: '',
+        p1: line(p99, 600, 120), p1style: 'stroke: var(--text)', p2: line(p90, 600, 120), p2style: 'stroke: var(--text-2)', p3: line(p50, 600, 120), p3style: 'stroke: var(--border-strong)',
+        legend: [{ label: 'p99', sw: sw('--text') }, { label: 'p90', sw: sw('--text-2') }, { label: 'p50', sw: sw('--border-strong') }] }
+    ];
+
+    const kcell = (i) => 'display: flex; flex-direction: column; gap: 4px; padding: 16px 20px; ' + (i ? 'border-left: 1px solid var(--border-weak)' : '');
+    const kpis = [
+      ['현재 상태', '이상', '', '14:22:00 감지', 'color: var(--error-text)'],
+      ['진행 중 장애', '1', '', '오늘 해결 2건', ''],
+      ['Throughput', '2.4', 'tx/s', '용량 6 tx/s', ''],
+      ['Error rate', '0.42', '%', '평소 0.11%', ''],
+      ['p99 latency', '486', 'ms', '평소 276 ms', '']
+    ].map(([label, value, unit, note, c], i) => ({ label, value, unit, note, cell: kcell(i), valueStyle: 'font-size: 24px; line-height: 32px; font-weight: 500; font-family: var(--font); ' + c }));
+    const miniNodes = [
+      ['frontend', 110, 150, 'err'], ['productcatalogservice', 330, 60, 'cause'], ['currencyservice', 330, 150], ['recommendationservice', 330, 240],
+      ['checkoutservice', 520, 150], ['cartservice', 520, 240]
+    ].map(([label, x, y, k]) => ({ label,
+      pos: 'position: absolute; left: ' + (x / 6) + '%; top: ' + (y / 3) + '%; transform: translate(-50%, -50%); padding: 2px 8px; border-radius: 6px; background: var(--bg1); white-space: nowrap; font-size: 12px; color: ' + (k === 'err' ? 'var(--error-text)' : 'var(--text)') + '; border: 1px solid ' + (k === 'cause' ? 'var(--cause)' : (k === 'err' ? 'color-mix(in srgb, var(--error) 50%, var(--border))' : 'var(--border)')) }));
+    return {
+      theme, menuOpen: this.state.menu, kpis, miniNodes, scoreLine2: line(score, 1, 160),
+      setTheme: (t) => this.setState({ theme: t }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      ticks, ticksShort, stats, mini, timeline, red,
+      scoreLine: line(score, 1, 180), scoreArea: area(score, 1, 180)
+    };
+  }
+}
+</script>
+</body>
+</html>

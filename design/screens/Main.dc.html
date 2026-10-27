@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>SentriX 디자인 시스템</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-weight:500;text-align:left;padding:4px 8px;height:32px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:4px 8px;height:36px;border-bottom:1px solid var(--border-weak)}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (max-width: 769px){.g .grid > *{grid-column:1 / -1 !important}}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; padding: 48px 32px 64px">
+<div style="max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px">
+
+  <header style="display: flex; align-items: center; gap: 16px">
+    <span style="display: inline-flex; flex: none; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 10px; background: #1c1c1c; color: #ffffff"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"></path><circle cx="12" cy="12" r="3.2" style="fill: #E865C0; stroke: none"></circle></svg></span>
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">SentriX 디자인 시스템</h1>
+      <span style="color: var(--text-2)">Vercel Dashboard, Linear, Sentry 화면을 기준으로 정한 규격. 색은 Radix 회색 스케일, 서체는 Geist.</span>
+    </div>
+  </header>
+
+  <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 20px 24px 12px"><h2 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">색 토큰</h2><span style="font-size: 13px; color: var(--text-2)">라이트 / 다크</span></div>
+    <div style="overflow-x: auto">
+      <table>
+        <thead><tr><th style="height: 36px; padding: 0 16px; font-size: 13px; font-weight: 500; color: var(--text-2); text-align: left; border-bottom: 1px solid var(--border-weak); white-space: nowrap"></th><th style="height: 36px; padding: 0 16px; font-size: 13px; font-weight: 500; color: var(--text-2); text-align: left; border-bottom: 1px solid var(--border-weak); white-space: nowrap">토큰</th><th style="height: 36px; padding: 0 16px; font-size: 13px; font-weight: 500; color: var(--text-2); text-align: left; border-bottom: 1px solid var(--border-weak); white-space: nowrap">쓰는 곳</th><th style="height: 36px; padding: 0 16px; font-size: 13px; font-weight: 500; color: var(--text-2); text-align: left; border-bottom: 1px solid var(--border-weak); white-space: nowrap">라이트</th><th style="height: 36px; padding: 0 16px; font-size: 13px; font-weight: 500; color: var(--text-2); text-align: left; border-bottom: 1px solid var(--border-weak); white-space: nowrap">다크</th></tr></thead>
+        <tbody>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--canvas); border: 1px solid var(--border-weak)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--canvas</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">앱 바탕</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#f9f9f9</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#111111</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--bg1); border: 1px solid var(--border-weak)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--bg1</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">카드, 패널</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#ffffff</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#191919</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--bg2); border: 1px solid var(--border-weak)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--bg2</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">입력 배경, 트랙, 펼친 상세</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#f0f0f0</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#222222</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--text)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--text</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">본문, 제목, 차트 주 계열</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#202020</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#eeeeee</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--text-2)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--text-2</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">보조 글자, Labels, 축</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#646464</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#b4b4b4</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--text-dis)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--text-dis</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">비활성 글자</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#8d8d8d</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#7b7b7b</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--border-weak); background: var(--bg1)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--border-weak</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">카드, 표 구분선</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#e8e8e8</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#2a2a2a</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg1)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--border</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">입력, 보조 버튼 테두리</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#d9d9d9</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#3a3a3a</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--border-strong)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--border-strong</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">비교 계열, 임계값 점선</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#bbbbbb</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#606060</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--primary)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--primary</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">주 버튼</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#202020</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#eeeeee</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--link)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--link</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">링크</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#0d74ce</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#70b8ff</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--error)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--error</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">오류, 진행 중</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#e5484d</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#e5484d</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--warning)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--warning</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">경고, 확인함</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#ffc53d</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#ffc53d</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--success)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--success</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">정상 연결 결과</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#30a46c</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#30a46c</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--cause)"></span></td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">--cause</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">원인 후보 연결</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#6e56cf</td><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">#7d66d9</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; width: 56px"><span style="display: block; width: 24px; height: 24px; border-radius: 6px; background: var(--shade)"></span></td><td class="mono" style="height: 44px; padding: 0 16px">--shade</td><td style="height: 44px; padding: 0 16px; color: var(--text-2)">장애 구간 음영</td><td class="mono" style="height: 44px; padding: 0 16px; color: var(--text-2)">rgba(229,72,77,.07)</td><td class="mono" style="height: 44px; padding: 0 16px; color: var(--text-2)">rgba(229,72,77,.12)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch">
+    <section style="flex: 3 1 560px; min-width: 0; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 20px 24px 12px"><h2 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">타이포그래피</h2><span style="font-size: 13px; color: var(--text-2)">Geist, 한글 Noto Sans KR</span></div>
+      <div style="overflow-x: auto">
+        <table>
+          <tbody>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 160px">페이지 제목</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 140px; color: var(--text-2); font-variant-numeric: tabular-nums">22 / 30 / 600</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)"><span style="font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">장애 상세</span></td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 160px">카드 제목</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 140px; color: var(--text-2); font-variant-numeric: tabular-nums">14 / 20 / 500</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)"><span style="font-size: 14px; line-height: 20px; font-weight: 500">원인 후보</span></td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 160px">본문</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 140px; color: var(--text-2); font-variant-numeric: tabular-nums">14 / 22 / 400</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)"><span style="font-size: 14px; line-height: 22px">frontend → productcatalogservice 지연</span></td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 160px">보조 글자</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 140px; color: var(--text-2); font-variant-numeric: tabular-nums">13 / 20 / 400</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)"><span style="font-size: 13px; line-height: 20px; color: var(--text-2)">14:21:30 시작, 10분 35초째</span></td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 160px">Labels, 표 머리</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 140px; color: var(--text-2); font-variant-numeric: tabular-nums">13 / 20 / 500</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)"><span style="font-size: 13px; line-height: 20px; font-weight: 500; color: var(--text-2)">소요 시간</span></td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 160px">캡션, 축</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); width: 140px; color: var(--text-2); font-variant-numeric: tabular-nums">12 / 16 / 400</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)"><span style="font-size: 12px; line-height: 16px; color: var(--text-2)">14:05  14:10  14:15</span></td></tr>
+<tr><td style="height: 44px; padding: 0 16px; width: 160px">코드, ID</td><td style="height: 44px; padding: 0 16px; width: 140px; color: var(--text-2); font-variant-numeric: tabular-nums">Geist Mono 13</td><td style="height: 44px; padding: 0 16px"><span style="font-family: var(--mono); font-size: 13px">c41e88a09d3b7f12</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section style="flex: 2 1 360px; min-width: 0; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; display: flex; flex-direction: column">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 20px 24px 12px"><h2 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">간격</h2></div>
+      <div style="padding: 0 24px 20px; display: flex; flex-direction: column; gap: 20px">
+        <div style="display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap"><div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><span style="display: block; width: 4px; height: 4px; border-radius: 2px; background: var(--border)"></span><span style="font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums">4</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><span style="display: block; width: 8px; height: 8px; border-radius: 2px; background: var(--border)"></span><span style="font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums">8</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><span style="display: block; width: 12px; height: 12px; border-radius: 2px; background: var(--border)"></span><span style="font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums">12</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><span style="display: block; width: 16px; height: 16px; border-radius: 2px; background: var(--border)"></span><span style="font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums">16</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><span style="display: block; width: 20px; height: 20px; border-radius: 2px; background: var(--border)"></span><span style="font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums">20</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><span style="display: block; width: 24px; height: 24px; border-radius: 2px; background: var(--border)"></span><span style="font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums">24</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><span style="display: block; width: 32px; height: 32px; border-radius: 2px; background: var(--border)"></span><span style="font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums">32</span></div><div style="display: flex; flex-direction: column; align-items: center; gap: 8px"><span style="display: block; width: 48px; height: 48px; border-radius: 2px; background: var(--border)"></span><span style="font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums">48</span></div></div>
+        <dl style="margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; font-size: 13px; line-height: 20px">
+          <dt style="color: var(--text-2)">페이지 여백</dt><dd style="margin: 0">24 32 48</dd>
+          <dt style="color: var(--text-2)">블록 사이</dt><dd style="margin: 0">24</dd>
+          <dt style="color: var(--text-2)">카드 안 여백</dt><dd style="margin: 0">20 24, 작은 카드 16 20</dd>
+          <dt style="color: var(--text-2)">목록 행</dt><dd style="margin: 0">12 20</dd>
+          <dt style="color: var(--text-2)">모서리</dt><dd style="margin: 0">카드 8, 버튼과 입력 6, 태그 4</dd>
+        </dl>
+      </div>
+    </section>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch">
+    <section style="flex: 1 1 420px; min-width: 0; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; display: flex; flex-direction: column">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 20px 24px 12px"><h2 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">상태 배지, 장애 유형</h2></div>
+      <div style="padding: 0 24px 20px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px"><span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--error-text); background: color-mix(in srgb, var(--error) 10%, var(--bg1))">진행 중</span>
+<span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--warning-text); background: color-mix(in srgb, var(--warning) 18%, var(--bg1))">확인함</span>
+<span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">해결됨</span>
+<span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--error-text); background: color-mix(in srgb, var(--error) 10%, var(--bg1))">오류</span>
+<span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--warning-text); background: color-mix(in srgb, var(--warning) 18%, var(--bg1))">경고</span>
+<span style="display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--text-2); background: var(--secondary)">정상</span></div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px"><span style="display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 4px; font-size: 12px; line-height: 20px; color: var(--on-tag); background: var(--tag-cpu)">CPU saturation</span><span style="display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 4px; font-size: 12px; line-height: 20px; color: var(--on-tag); background: var(--tag-net)">Network delay</span><span style="display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 4px; font-size: 12px; line-height: 20px; color: var(--on-tag); background: var(--tag-loss)">Packet loss</span><span style="display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 4px; font-size: 12px; line-height: 20px; color: var(--on-tag); background: var(--tag-pod)">Pod failure</span><span style="display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 4px; font-size: 12px; line-height: 20px; color: var(--on-tag); background: var(--tag-traffic)">Traffic spike</span></div>
+        <p style="margin: 0; font-size: 13px; line-height: 20px; color: var(--text-2)">배지에는 글자만 넣습니다. 장애 유형은 옅은 태그 또는 회색 글자로 씁니다.</p>
+      </div>
+    </section>
+    <section style="flex: 1 1 420px; min-width: 0; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; display: flex; flex-direction: column">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 20px 24px 12px"><h2 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">버튼, 입력</h2></div>
+      <div style="padding: 0 24px 20px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <button type="button" style="height: 32px; padding: 0 14px; border-radius: 6px; font-size: 14px; font-weight: 500; border: 0; background: var(--primary); color: var(--on-primary)">해결됨으로 표시</button>
+          <button type="button" style="height: 32px; padding: 0 14px; border-radius: 6px; font-size: 14px; font-weight: 500; border: 1px solid var(--border); background: var(--bg1)">확인함</button>
+          <button type="button" style="height: 32px; padding: 0 14px; border-radius: 6px; font-size: 14px; font-weight: 500; border: 0; background: var(--error); color: #ffffff">API 키 폐기</button>
+          <button type="button" disabled style="height: 32px; padding: 0 14px; border-radius: 6px; font-size: 14px; font-weight: 500; border: 1px solid var(--border); background: var(--bg1)">저장</button>
+        </div>
+        <label style="display: flex; flex-direction: column; gap: 8px; max-width: 360px">
+          <span style="display: flex; justify-content: space-between; font-size: 13px"><span style="font-weight: 500">Detection threshold</span><span style="color: var(--text-2)">0에서 1 사이</span></span>
+          <input type="text" value="0.60" style="height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+        </label>
+        <div role="radiogroup" aria-label="보기" style="display: inline-flex; align-self: flex-start; gap: 2px; padding: 2px; border-radius: 8px; background: var(--bg2)">
+          <sc-for list="{{segs}}" as="s" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{s.checked}}" onClick="{{s.pick}}" style="{{s.style}}">{{s.label}}</button></sc-for>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch">
+    <section style="flex: 1 1 420px; min-width: 0; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; display: flex; flex-direction: column">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 20px 24px 12px"><h2 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">카드와 목록</h2><span style="font-size: 13px; color: var(--text-2)">행 12 20</span></div>
+      <ul style="list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border-weak)">
+        <li style="display: flex; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 1px solid var(--border-weak)"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 500">INC-0142 발생</span><span style="font-size: 13px; line-height: 20px; color: var(--text-2)">frontend → productcatalogservice Network delay</span></span><span style="font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums">14:22:00</span></li>
+        <li style="display: flex; align-items: center; gap: 16px; padding: 12px 20px"><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span>INC-0141 해결됨</span><span style="font-size: 13px; line-height: 20px; color: var(--text-2)">checkoutservice Pod failure</span></span><span style="font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums">13:18:40</span></li>
+      </ul>
+    </section>
+    <section style="flex: 1 1 420px; min-width: 0; background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 20px 24px 12px"><h2 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">표</h2><span style="font-size: 13px; color: var(--text-2)">머리 36, 행 44</span></div>
+      <div style="overflow-x: auto">
+        <table>
+          <thead><tr><th style="height: 36px; padding: 0 16px; font-size: 13px; font-weight: 500; color: var(--text-2); text-align: left; border-bottom: 1px solid var(--border-weak); white-space: nowrap">Trace ID</th><th style="height: 36px; padding: 0 16px; font-size: 13px; font-weight: 500; color: var(--text-2); text-align: left; border-bottom: 1px solid var(--border-weak); white-space: nowrap">요청</th><th style="height: 36px; padding: 0 16px; font-size: 13px; font-weight: 500; color: var(--text-2); text-align: left; border-bottom: 1px solid var(--border-weak); white-space: nowrap; text-align: right">소요 시간</th></tr></thead>
+          <tbody>
+            <tr><td class="mono" style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">c41e88a09d3b7f12</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">GET /product/66VCHSJNUP</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); text-align: right; font-variant-numeric: tabular-nums; color: var(--error-text)">1.02 s</td></tr>
+            <tr><td class="mono" style="height: 44px; padding: 0 16px">7f3a9c2e41b0d6a8</td><td style="height: 44px; padding: 0 16px">GET /product/OLJCESPC7Z</td><td style="height: 44px; padding: 0 16px; text-align: right; font-variant-numeric: tabular-nums">486 ms</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px"><h2 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">차트</h2><span style="font-size: 13px; color: var(--text-2)">Span p90, 14:02~14:32</span></div>
+    <svg viewBox="0 0 600 120" preserveAspectRatio="none" style="width: 100%; height: 120px; display: block" role="img" aria-label="Span p90이 14시 21분 30초부터 늘어난 예시 그래프">
+      <line x1="0" y1="119.5" x2="600" y2="119.5" style="stroke: var(--border-weak)" vector-effect="non-scaling-stroke"></line>
+      <rect x="390" y="0" width="210" height="120" style="fill: var(--shade)"></rect>
+      <line x1="0" y1="48" x2="600" y2="48" style="stroke: var(--border-strong)" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"></line>
+      <path d="{{d2}}" fill="none" style="stroke: var(--border-strong)" stroke-width="1.25" vector-effect="non-scaling-stroke"></path>
+      <path d="{{d1}}" fill="none" style="stroke: var(--text)" stroke-width="1.5" vector-effect="non-scaling-stroke"></path>
+    </svg>
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--text-2)">
+      <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 12px; height: 2px; background: var(--text)"></span>주 계열</span>
+      <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 12px; height: 2px; background: var(--border-strong)"></span>비교 계열</span>
+      <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 12px; height: 8px; background: var(--shade)"></span>장애 구간</span>
+      <span style="display: inline-flex; align-items: center; gap: 8px"><span style="width: 12px; border-top: 1px dashed var(--border-strong)"></span>임계값</span>
+    </div>
+  </section>
+
+  <section style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 20px 24px 12px"><h2 style="margin: 0; font-size: 14px; line-height: 20px; font-weight: 500">하기, 하지 않기</h2></div>
+    <div style="overflow-x: auto">
+      <table>
+        <thead><tr><th style="height: 36px; padding: 0 16px; font-size: 13px; font-weight: 500; color: var(--text-2); text-align: left; border-bottom: 1px solid var(--border-weak); white-space: nowrap; width: 50%">하기</th><th style="height: 36px; padding: 0 16px; font-size: 13px; font-weight: 500; color: var(--text-2); text-align: left; border-bottom: 1px solid var(--border-weak); white-space: nowrap">하지 않기</th></tr></thead>
+        <tbody>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">상태는 글자만 든 배지로 표시</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">상태 앞에 아이콘, 점, ✓ ✕ 기호</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">구분은 1px 선과 여백으로</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">카드 왼쪽 색 막대, 색 채운 아이콘 칸</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">카드 하나에 한 가지 내용</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">카드 안에 카드</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">숫자는 본문 서체의 고정 숫자 폭</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">숫자에 모노 서체, 색 숫자</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">차트는 검은 선 하나와 회색 비교선</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">계열마다 다른 원색</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">업계 용어는 영어 그대로 (Evidence, Span, p99)</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">어색한 번역어</td></tr>
+<tr><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak)">간격은 4, 8, 12, 16, 20, 24, 32, 48</td><td style="height: 44px; padding: 0 16px; border-bottom: 1px solid var(--border-weak); color: var(--text-2)">5, 6, 7, 10 같은 임의 값</td></tr>
+<tr><td style="height: 44px; padding: 0 16px">링크 문구는 동작만</td><td style="height: 44px; padding: 0 16px; color: var(--text-2)">문구 끝 화살표, 가운뎃점, 대시</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":2700}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { seg: 0 }; }
+  renderVals() {
+    const N = 60, S = 39;
+    const r = (i, k) => { const x = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+    const ser = (k, a, ja, b, jb) => Array.from({ length: N }, (_, i) => i < S ? a + (r(i, k) - .5) * 2 * ja : b + (r(i, k) - .5) * 2 * jb);
+    const line = (v, max, h) => v.map((y, i) => (i ? 'L' : 'M') + (i * 10 + 5) + ',' + (h - Math.max(0, Math.min(y, max)) / max * h).toFixed(1)).join('');
+    const segs = ['요약', '타임라인', '전파 경로'].map((label, i) => ({ label, checked: this.state.seg === i ? 'true' : 'false',
+      pick: () => this.setState({ seg: i }),
+      style: 'height: 28px; padding: 0 12px; border: 0; border-radius: 6px; font-size: 13px; ' + (this.state.seg === i ? 'background: var(--bg1); color: var(--text); font-weight: 500; box-shadow: var(--shadow-z1)' : 'background: none; color: var(--text-2)') }));
+    return {
+      theme: this.props.theme ?? 'light', segs,
+      d1: line(ser(1, 42, 4, 222, 12), 260, 120), d2: line(ser(2, 28, 3, 31, 3), 260, 120)
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>SentriX 메뉴</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+<nav aria-label="주 메뉴" style="width: 240px; min-height: 100%; box-sizing: border-box; padding: 12px 8px; font-family: 'Geist', 'Noto Sans KR', sans-serif; font-size: 14px; line-height: 20px; color: var(--text, #202020); background: var(--page, #ffffff); border-right: 1px solid var(--border-weak, #e8e8e8)">
+  <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px">
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="6">
+      <li style="display: flex; flex-direction: column; gap: 2px">
+        <div style="display: flex; align-items: center; gap: 2px">
+          <a href="{{it.href}}" aria-current="{{it.current}}" style="{{it.style}}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{it.iconStyle}}"><path d="{{it.icon}}"></path></svg>
+            <span style="flex: 1">{{it.label}}</span>
+          </a>
+          <sc-if value="{{it.hasKids}}" hint-placeholder-val="{{ false }}">
+            <button type="button" onClick="{{it.toggle}}" aria-expanded="{{it.expanded}}" aria-label="{{it.toggleLabel}}" style="width: 28px; height: 28px; flex: none; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: none; color: var(--text-2, #646464); cursor: pointer">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{it.chev}}"><path d="M6 9l6 6 6-6"></path></svg>
+            </button>
+          </sc-if>
+        </div>
+        <sc-if value="{{it.showKids}}" hint-placeholder-val="{{ false }}">
+          <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px">
+            <sc-for list="{{it.kids}}" as="k" hint-placeholder-count="2">
+              <li><a href="{{k.href}}" aria-current="{{k.current}}" style="{{k.style}}">{{k.label}}</a></li>
+            </sc-for>
+          </ul>
+        </sc-if>
+      </li>
+    </sc-for>
+  </ul>
+</nav>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["overview","map","incidents","rules","alerts","trace","logs","model","settings","team","audit","states","none"],"default":"incidents"},"open":{"editor":"boolean","default":true},"$preview":{"width":240,"height":760}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { exp: {} }; }
+  renderVals() {
+    const active = this.props.active ?? 'incidents';
+    const open = this.props.open ?? true;
+    const T = 'var(--text, #202020)', T2 = 'var(--text-2, #646464)';
+    const linkStyle = (on, indent) => 'flex: 1; display: flex; align-items: center; gap: 12px; height: 32px; padding: 0 8px 0 ' + (indent ? 34 : 8) + 'px; border-radius: 6px; text-decoration: none; ' +
+      (on ? 'color: ' + T + '; font-weight: 500; background: var(--selected, rgba(0,0,0,.045))' : 'color: ' + T2);
+    const S = [
+      ['overview', '홈', 'B1-Overview.dc.html', 'M4 11l8-7 8 7v9h-5v-6h-6v6H4z', []],
+      ['map', 'Service map', 'B2-ServiceMap.dc.html', 'M8.5 6a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0M20.5 8a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0M11.5 18a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0M8.5 6.4l7 1.2M6.6 8.4l1.6 7.2M16.4 10l-5.4 6.2', []],
+      ['incidents', '장애', 'B3-Incidents.dc.html', 'M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0',
+        [['incidents', '장애 목록', 'B3-Incidents.dc.html'], ['rules', 'Alert rules', 'C2-AlertRules.dc.html'], ['alerts', '알림 기록', 'C1-Notifications.dc.html']]],
+      ['explore', 'Explore', 'B6-Trace.dc.html', 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M15.5 8.5l-2 5-5 2 2-5z',
+        [['trace', 'Trace', 'B6-Trace.dc.html'], ['logs', '로그', 'B7-Logs.dc.html']]],
+      ['model', '모델 평가', 'B8-Model.dc.html', 'M9.5 3h5M10.5 3v6.2L5 18.2A1.9 1.9 0 0 0 6.7 21h10.6a1.9 1.9 0 0 0 1.7-2.8l-5.5-9V3M7.4 15h9.2', []],
+      ['admin', '관리', 'C3-Settings.dc.html', 'M12 15a3 3 0 1 0 0-6a3 3 0 1 0 0 6M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+        [['settings', '설정', 'C3-Settings.dc.html'], ['team', '팀과 권한', 'C4-Team.dc.html'], ['audit', 'Audit log', 'C6-Audit.dc.html'], ['states', '상태 화면', 'C7-States.dc.html']]]
+    ];
+    const items = S.map(([key, label, href, icon, kids]) => {
+      const kidOn = kids.some((k) => k[0] === active);
+      const on = key === active && !kids.length;
+      const ex = this.state.exp[key] ?? kidOn;
+      return {
+        label, href, icon, current: on ? 'page' : 'false', style: linkStyle(on, false),
+        iconStyle: 'flex: none; color: ' + (on || kidOn ? T : T2),
+        hasKids: kids.length > 0, showKids: kids.length > 0 && ex, expanded: ex ? 'true' : 'false',
+        toggleLabel: label + (ex ? ' 접기' : ' 펼치기'),
+        chev: 'transition: transform .15s; transform: rotate(' + (ex ? '180' : '0') + 'deg)',
+        toggle: () => this.setState({ exp: { ...this.state.exp, [key]: !ex } }),
+        kids: kids.map(([k, l, h]) => ({ label: l, href: h, current: k === active ? 'page' : 'false', style: 'display: flex; ' + linkStyle(k === active, true) }))
+      };
+    });
+    return { open, items };
+  }
+}
+</script>
+</body>
+</html>

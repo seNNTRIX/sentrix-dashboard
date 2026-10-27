@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Audit log</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;500;600&amp;display=swap">
+<style>
+:root{--canvas:#f9f9f9;--page:#ffffff;--bg1:#ffffff;--bg2:#f0f0f0;--elev:#ffffff;--text:#202020;--text-2:#646464;--text-dis:#8d8d8d;--link:#0d74ce;--border-weak:#e8e8e8;--border:#d9d9d9;--border-strong:#bbbbbb;--primary:#202020;--primary-text:#202020;--on-primary:#ffffff;--secondary:#f0f0f0;--secondary-shade:#e8e8e8;--hover:rgba(0,0,0,.05);--selected:rgba(0,0,0,.045);--error:#e5484d;--error-text:#ce2c31;--success:#30a46c;--success-text:#218358;--warning:#ffc53d;--warning-text:#ab6400;--viz-red:#e5484d;--viz-orange:#f76b15;--viz-yellow:#ffc53d;--viz-green:#30a46c;--viz-blue:#0090ff;--viz-purple:#6e56cf;--cause:#6e56cf;--shade:rgba(229,72,77,.07);--brand-v:linear-gradient(#202020,#202020);--brand-h:linear-gradient(#202020,#202020);--shadow-z1:0 1px 2px rgba(0,0,0,.05);--shadow-z3:0 12px 32px rgba(0,0,0,.10),0 2px 6px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.32);--tag-cpu:#ffefd6;--tag-net:#e6f4fe;--tag-loss:#fff7c2;--tag-pod:#f0f0f0;--tag-traffic:#e6f6eb;--on-tag:#202020;--font:'Geist','Noto Sans KR','Helvetica','Arial',sans-serif;--mono:'Geist Mono','Noto Sans KR',monospace}
+[data-theme=dark]{--canvas:#111111;--page:#111111;--bg1:#191919;--bg2:#222222;--elev:#222222;--text:#eeeeee;--text-2:#b4b4b4;--text-dis:#7b7b7b;--link:#70b8ff;--border-weak:#2a2a2a;--border:#3a3a3a;--border-strong:#606060;--primary:#eeeeee;--primary-text:#eeeeee;--on-primary:#111111;--secondary:#222222;--secondary-shade:#2a2a2a;--hover:rgba(255,255,255,.06);--selected:rgba(255,255,255,.05);--error:#e5484d;--error-text:#ff9592;--success:#30a46c;--success-text:#3dd68c;--warning:#ffc53d;--warning-text:#ffca16;--cause:#7d66d9;--shade:rgba(229,72,77,.12);--brand-v:linear-gradient(#eeeeee,#eeeeee);--brand-h:linear-gradient(#eeeeee,#eeeeee);--shadow-z1:0 1px 2px rgba(0,0,0,.5);--shadow-z3:0 12px 32px rgba(0,0,0,.6);--overlay:rgba(0,0,0,.6);--tag-cpu:#331e0b;--tag-net:#0d2847;--tag-loss:#302008;--tag-pod:#222222;--tag-traffic:#132d21;--on-tag:#eeeeee}
+html,body{overflow-x:clip}
+body{margin:0;background:var(--canvas)}
+.g{font-family:var(--font);font-size:14px;line-height:22px;color:var(--text);background:var(--canvas);font-feature-settings:'tnum'}
+.g *{box-sizing:border-box}
+.g .mono{font-family:var(--mono);font-size:13px}
+.g a{color:var(--link);text-decoration:none}.g a:hover{text-decoration:underline}
+.g button{font:inherit;color:inherit;cursor:pointer}
+.g input,.g textarea,.g select{font:inherit;color:var(--text)}
+.g :focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.g table{border-collapse:collapse;width:100%}
+.g th{font-size:13px;font-weight:500;color:var(--text-2);text-align:left;padding:0 16px;height:36px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g td{padding:0 16px;height:44px;border-bottom:1px solid var(--border-weak);white-space:nowrap}
+.g tbody tr:last-child td{border-bottom:0}
+.g tbody tr:hover td{background:var(--selected)}
+.g button:disabled{opacity:.38;cursor:not-allowed}
+@media (prefers-reduced-motion: reduce){.g *{transition:none!important;animation:none!important}}
+</style>
+</helmet>
+<div class="g" data-theme="{{theme}}" style="min-height: 100vh; display: flex; flex-direction: column">
+  <div style="position: relative; z-index: 50">
+    <dc-import name="TopBar" crumbs="홈|관리|Audit log" hrefs="B1-Overview.dc.html|C3-Settings.dc.html|" theme="{{theme}}" on-theme="{{setTheme}}" on-menu="{{toggleMenu}}" hint-size="100%,48px"></dc-import>
+  </div>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+    <div style="flex: 0 0 auto; position: relative; z-index: 40; background: var(--page)">
+      <dc-import name="SideNav" active="audit" open="{{menuOpen}}" hint-size="240px,100%"></dc-import>
+    </div>
+    <main style="flex: 999 1 560px; min-width: 0; padding: 24px 32px 48px">
+      <div style="max-width: 1160px; display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; flex-direction: column">
+          <h1 style="margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em">Audit log</h1>
+          <span style="color: var(--text-2)">설정, 장애 상태, API 키, 멤버 변경 기록</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+            <label style="position: relative; flex: 1 1 240px; max-width: 320px; display: flex; align-items: center">
+              <span style="position: absolute; left: 10px; display: inline-flex; color: var(--text-2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M17.5 11a6.5 6.5 0 1 1-13 0a6.5 6.5 0 1 1 13 0M16 16l4.5 4.5"></path></svg></span>
+              <input type="search" aria-label="대상 검색" placeholder="대상 검색" style="width: 100%; height: 32px; padding: 0 12px 0 32px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)">
+            </label>
+            <select aria-label="사용자" style="height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option>모든 사용자</option><option>이지훈</option><option>박서윤</option><option>최민준</option><option>ci-pipeline</option></select>
+            <select aria-label="동작 유형" style="height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1)"><option>모든 동작</option><option>설정 변경</option><option>장애 상태 변경</option><option>API 키</option><option>멤버</option><option>데이터 소스</option></select>
+            <div style="margin-left: auto"><dc-import name="TimePicker" range="지난 7일" hint-size="330px,32px"></dc-import></div>
+          </div>
+
+          <section aria-label="감사 기록" style="background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden">
+            <div style="overflow-x: auto">
+              <table>
+                <thead><tr><th>시각</th><th>사용자</th><th>동작</th><th>대상</th><th>변경</th><th>IP</th></tr></thead>
+                <tbody>
+                  <tr><td style="font-variant-numeric: tabular-nums">2026-10-27 14:32:10</td><td>이지훈</td><td>장애 상태 변경</td><td><a class="mono" href="B4-Incident.dc.html">INC-0142</a></td><td>진행 중 → 해결됨</td><td class="mono" style="color: var(--text-2)">203.0.113.24</td></tr>
+                  <tr><td style="font-variant-numeric: tabular-nums">2026-10-27 14:28:44</td><td>박서윤</td><td>Alert rules 수정</td><td><a href="C2-AlertRules.dc.html">Anomaly score ≥ 0.80</a></td><td>지속 시간 <span class="mono">1m</span> → <span class="mono">2m</span></td><td class="mono" style="color: var(--text-2)">198.51.100.14</td></tr>
+                  <tr><td style="font-variant-numeric: tabular-nums">2026-10-27 13:58:11</td><td>ci-pipeline</td><td>API 키 사용</td><td class="mono">sx_live_7Hq2</td><td class="mono">GET /api/v1/incidents</td><td class="mono" style="color: var(--text-2)">192.0.2.50</td></tr>
+                  <tr><td style="font-variant-numeric: tabular-nums">2026-10-27 11:20:05</td><td>이지훈</td><td>API 키 생성</td><td>ci-pipeline</td><td>역할 <span class="mono">viewer</span>, 만료 <span class="mono">90d</span></td><td class="mono" style="color: var(--text-2)">203.0.113.24</td></tr>
+                  <tr><td style="font-variant-numeric: tabular-nums">2026-10-27 10:02:33</td><td>이지훈</td><td>Detection threshold 변경</td><td>분석 설정</td><td><span class="mono">0.55</span> → <span class="mono">0.60</span></td><td class="mono" style="color: var(--text-2)">203.0.113.24</td></tr>
+                  <tr><td style="font-variant-numeric: tabular-nums">2026-10-26 17:40:00</td><td>이지훈</td><td>멤버 초대</td><td>reviewer@example.ac.kr</td><td>역할 <span class="mono">viewer</span></td><td class="mono" style="color: var(--text-2)">203.0.113.24</td></tr>
+                  <tr><td style="font-variant-numeric: tabular-nums">2026-10-26 09:12:44</td><td>최민준</td><td>데이터 소스 수정</td><td>Loki</td><td>timeout <span class="mono">5s</span> → <span class="mono">10s</span></td><td class="mono" style="color: var(--text-2)">198.51.100.32</td></tr>
+                  <tr><td style="font-variant-numeric: tabular-nums">2026-10-25 22:01:30</td><td>박서윤</td><td>장애 상태 변경</td><td><a class="mono" href="B3-Incidents.dc.html">INC-0137</a></td><td>확인함 → 해결됨</td><td class="mono" style="color: var(--text-2)">198.51.100.14</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <nav aria-label="페이지" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--border-weak)">
+              <span style="font-size: 13px; color: var(--text-2)">24건 중 {{range}}</span>
+              <div style="display: flex; align-items: center; gap: 4px">
+                <button type="button" onClick="{{prev}}" disabled="{{atFirst}}" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500">이전</button>
+                <sc-for list="{{pages}}" as="p" hint-placeholder-count="3"><button type="button" aria-current="{{p.current}}" onClick="{{p.pick}}" style="{{p.style}}">{{p.n}}</button></sc-for>
+                <button type="button" onClick="{{next}}" disabled="{{atLast}}" style="height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500">다음</button>
+              </div>
+            </nav>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":800}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { theme: null, menu: true, page: 1 }; }
+  renderVals() {
+    const theme = this.state.theme ?? this.props.theme ?? 'light';
+    const page = this.state.page;
+    const pages = [1, 2, 3].map((n) => ({ n: String(n), current: page === n ? 'page' : 'false',
+      pick: () => this.setState({ page: n }),
+      style: 'min-width: 28px; height: 28px; padding: 0 8px; border-radius: 6px; font-size: 13px; font-variant-numeric: tabular-nums; ' + (page === n ? 'border: 0; background: var(--secondary); color: var(--text); font-weight: 500' : 'border: 0; background: transparent; color: var(--text-2)') }));
+    return {
+      theme, menuOpen: this.state.menu,
+      setTheme: (t) => this.setState({ theme: t }), toggleMenu: () => this.setState({ menu: !this.state.menu }),
+      pages, range: ((page - 1) * 8 + 1) + '~' + page * 8 + '건',
+      atFirst: page === 1, atLast: page === 3,
+      prev: () => this.setState({ page: Math.max(1, page - 1) }),
+      next: () => this.setState({ page: Math.min(3, page + 1) })
+    };
+  }
+}
+</script>
+</body>
+</html>
