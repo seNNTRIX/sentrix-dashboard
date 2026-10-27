@@ -83,6 +83,7 @@ def walk(n, screen, parent=None):
 def render(n):
  if isinstance(n,str):return expr(n) if n.strip() else 'null'
  t,a,children=n
+ t={'scorehelp':'ScoreHelp','impactsummary':'ImpactSummary'}.get(t,t)
  if t=='select':
   for c in children:
    if isinstance(c,list) and c[0]=='option' and 'selected' in c[1]:
@@ -105,14 +106,14 @@ def render(n):
   if k=='value' and not any(x in a for x in ['onchange','oninput']):name='defaultValue'
   if k=='checked' and not any(x in a for x in ['onchange','onclick']):name='defaultChecked'
   props.append(q(name)+':'+val)
- tag=a['name'] if t=='dc-import' else (t if t in ['Dialog','PreviewAction','DataViewport','AsyncButton','ServiceName'] else q(t))
+ tag=a['name'] if t=='dc-import' else (t if t in ['Dialog','PreviewAction','DataViewport','AsyncButton','ServiceName','ScoreHelp','ImpactSummary'] else q(t))
  result = 'React.createElement('+tag+', {'+', '.join(props)+'}'+(', '+kids if kids else '')+')'
  if t=='table' or 'graph-canvas' in a.get('class',''):
   result='React.createElement(DataViewport, {label: '+q('표' if t=='table' else '서비스 맵')+'}, '+result+')'
  return result
 files=sorted(f for f in (root/'design/screens').glob('*.html') if f.stem.replace('.dc','') not in ['TopBar','SideNav','TimePicker'])
 names={f.stem.replace('.dc',''):re.sub(r'[^a-zA-Z]','',f.stem.replace('.dc','')) for f in files}
-out=["import { logRows } from './logs.js';", "import { incidentRows, incidentHref, readListState, logHref } from './incidents.js';", "import React from 'react';", "import { css, routeHref } from './styles.js';", "import { TopBar, SideNav } from './components/navigation.jsx';", "import { TimePicker } from './components/TimePicker.jsx';", "import { Dialog, DataViewport, AsyncButton, ServiceName } from './components/controls.jsx';", "import { PreviewAction } from './components/PreviewAction.jsx';"]
+out=["import { ScoreHelp, ImpactSummary } from './components/InvestigationHelp.jsx';", "import { logRows } from './logs.js';", "import { incidentRows, incidentHref, readListState, logHref } from './incidents.js';", "import React from 'react';", "import { css, routeHref } from './styles.js';", "import { TopBar, SideNav } from './components/navigation.jsx';", "import { TimePicker } from './components/TimePicker.jsx';", "import { Dialog, DataViewport, AsyncButton, ServiceName } from './components/controls.jsx';", "import { PreviewAction } from './components/PreviewAction.jsx';"]
 styles=[]
 for f in files:
  s=f.read_text(); markup=re.search(r'<x-dc>(.*?)</x-dc>',s,re.S)[1]; p=Parser();p.feed(markup)
