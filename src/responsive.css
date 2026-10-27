@@ -197,3 +197,15 @@ button:disabled { cursor: not-allowed; }
 .g button[aria-busy=true] { cursor: progress; }
 .g button[style*="background: var(--primary)"]:not(:disabled):hover, .g .ui-button--primary:not(:disabled):hover { opacity: .88; }
 .g .tabs button:focus-visible, .g .segmented-control button:focus-visible { outline-offset: -3px; }
+
+.incident-context {flex:1;min-width:0;display:flex;flex-direction:column;gap:24px;padding:24px 32px 48px;}
+.context-summary {padding:20px;display:flex;flex-direction:column;gap:12px;overflow-wrap:anywhere;}
+.context-summary p,.incident-context header p {margin:4px 0;}
+.context-summary .ui-button {align-self:flex-start;}
+.context-filter {display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.context-filter select {margin-left:8px;min-height:36px;border:1px solid var(--border);border-radius:6px;background:var(--bg1);padding:4px 8px;}
+.context-log {border-bottom:1px solid var(--border-weak);padding:12px 0;}
+.context-log summary {cursor:pointer;line-height:24px;}
+.context-log p {font-family:var(--mono);font-size:13px;line-height:22px;}
+.incident-context .panel {background:var(--bg1);border:1px solid var(--border-weak);border-radius:8px;}
+.incident-context [aria-label="장애 조사 범위"] {display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;}

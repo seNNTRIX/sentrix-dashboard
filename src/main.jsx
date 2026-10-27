@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { screens } from './screens.jsx';
+import { IncidentContext } from './components/IncidentContext.jsx';
 import './design.css';
 import './responsive.css';
 
@@ -17,17 +18,24 @@ class ErrorBoundary extends React.Component {
 }
 function App() {
  const [route, setRoute] = useState(location.hash.slice(1) || 'B1-Overview');
+ const scrollPositions = useRef({});
+ const currentRoute = useRef(route);
  useEffect(() => {
-  const update = () => {setRoute(location.hash.slice(1) || 'B1-Overview');window.scrollTo(0,0);};
+  const update = () => {scrollPositions.current[currentRoute.current] = window.scrollY; const next = location.hash.slice(1) || 'B1-Overview'; currentRoute.current = next; setRoute(next);};
   window.addEventListener('hashchange',update);
   return () => window.removeEventListener('hashchange',update);
  },[]);
  useEffect(() => {
+  window.scrollTo(0, scrollPositions.current[route] || 0);
   const heading = document.querySelector('h1');
   document.title = `${heading?.textContent || '대시보드'} · SentriX`;
  },[route]);
- const Screen = screens[route];
- return <><a href="#main-content" className="skip-link" onClick={e=>{e.preventDefault();document.getElementById('main-content')?.focus();}}>본문으로 건너뛰기</a><aside className="demo-notice">데모 환경 · 예시 데이터 · 서버에 저장되지 않습니다</aside><ErrorBoundary key={route}>{Screen ? <Screen theme={savedTheme()}/> : <main className="error-page"><h1>화면을 찾을 수 없습니다</h1><a href="#B1-Overview">개요로 돌아가기</a></main>}</ErrorBoundary></>;
+ const [page, query = ''] = route.split('?');
+ const params = new URLSearchParams(query);
+ const id = params.get('id') || 'INC-0142';
+ const contextual = page === 'B4-Incident' && id !== 'INC-0142' || page === 'B7-Logs' && params.has('incident');
+ const Screen = screens[page];
+ return <><a href="#main-content" className="skip-link" onClick={e=>{e.preventDefault();document.getElementById('main-content')?.focus();}}>본문으로 건너뛰기</a><aside className="demo-notice">데모 환경 · 예시 데이터 · 서버에 저장되지 않습니다</aside><ErrorBoundary key={route}>{contextual ? <IncidentContext id={page === 'B7-Logs' ? params.get('incident') : id} logs={page === 'B7-Logs'} theme={savedTheme()}/> : Screen ? <Screen theme={savedTheme()}/> : <main className="error-page"><h1>화면을 찾을 수 없습니다</h1><a href="#B1-Overview">개요로 돌아가기</a></main>}</ErrorBoundary></>;
 }
 
 // Keyboard navigation is shared by the existing tab and segmented-control patterns.

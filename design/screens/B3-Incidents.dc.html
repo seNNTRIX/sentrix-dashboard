@@ -72,7 +72,7 @@ body{margin:0;background:var(--canvas)}
             <option value="">전체</option><option>frontend</option><option>productcatalogservice</option><option>checkoutservice</option><option>paymentservice</option><option>recommendationservice</option><option>cartservice</option><option>redis-cart</option><option>currencyservice</option>
           </select>
         </label>
-        <div style="margin-left: auto"><dc-import name="TimePicker" range="지난 7일" hint-size="330px,32px"></dc-import></div>
+        <div style="margin-left: auto"><dc-import name="TimePicker" range="지난 7일" storage-key="incident-list-range" hint-size="330px,32px"></dc-import></div>
       </div>
 
       <div style="color: var(--text-2)">{{summary}}</div>
@@ -96,7 +96,7 @@ body{margin:0;background:var(--canvas)}
                 </button>
                 <span><span style="{{r.stateStyle}}">{{r.stateLabel}}</span></span>
                 <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px">
-                  <a href="B4-Incident.dc.html" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-weight: 500">{{r.title}}</a>
+                  <a href="{{r.href}}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-weight: 500">{{r.title}}</a>
                   <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; line-height: 20px; color: var(--text-2)">
                     <span>{{r.id}}</span><span>{{r.faultLabel}}</span><span>영향 서비스 {{r.impact}}개</span>
                   </div>
@@ -111,7 +111,7 @@ body{margin:0;background:var(--canvas)}
                   <div style="display: flex; flex-direction: column"><span style="font-size: 12px; line-height: 18px; color: var(--text-2)">장애 유형</span><span style="font-size: 13px; line-height: 20px">{{r.faultLabel}}</span></div>
                   <div style="display: flex; flex-direction: column"><span style="font-size: 12px; line-height: 18px; color: var(--text-2)">영향 서비스</span><span style="font-size: 13px; line-height: 20px">{{r.impact}}개</span></div>
                   <div style="display: flex; flex-direction: column"><span style="font-size: 12px; line-height: 18px; color: var(--text-2)">감지</span><span style="font-size: 13px; line-height: 20px; font-variant-numeric: tabular-nums">{{r.detect}}</span></div>
-                  <a href="B4-Incident.dc.html" style="margin-left: auto; height: 32px; display: inline-flex; align-items: center; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); color: var(--text); font-weight: 500; text-decoration: none">원인 분석 열기</a>
+                  <a href="{{r.href}}" style="margin-left: auto; height: 32px; display: inline-flex; align-items: center; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); color: var(--text); font-weight: 500; text-decoration: none">원인 분석 열기</a>
                 </div>
               </sc-if>
             </div>
@@ -128,19 +128,12 @@ body{margin:0;background:var(--canvas)}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1440,"height":1100}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { theme: null, menu: true, status: 'all', fault: '', svc: '', q: '', sort: 'start', dir: -1, open: { 'INC-0142': true } }; }
+  constructor(props) { super(props); this.state = { theme: null, menu: true, status: 'all', fault: '', svc: '', q: '', sort: 'start', dir: -1, open: { 'INC-0142': true }, ...readListState() }; }
+  componentDidUpdate() { const {q,status,fault,svc,sort,dir,open} = this.state; try { sessionStorage.setItem('sentrix-incident-list',JSON.stringify({q,status,fault,svc,sort,dir,open})); } catch {} }
   renderVals() {
     const theme = this.state.theme ?? this.props.theme ?? 'light';
     const FT = { cpu: ['CPU saturation', '--tag-cpu', 'cpu-saturation'], net: ['Network delay', '--tag-net', 'network-delay'], loss: ['Packet loss', '--tag-loss', 'packet-loss'], pod: ['Pod failure', '--tag-pod', 'pod-failure'], traffic: ['Traffic spike', '--tag-traffic', 'traffic-surge'] };
-    const I = [
-      ['INC-0142', 'open', 'frontend → productcatalogservice', 'net', 0.84, 2, '2026-10-27 14:21:30', 635, '14:22:00', ['frontend', 'productcatalogservice']],
-      ['INC-0141', 'resolved', 'checkoutservice', 'pod', 0.91, 3, '2026-10-27 13:12:10', 390, '13:12:40', ['checkoutservice']],
-      ['INC-0140', 'resolved', 'checkoutservice → paymentservice', 'loss', 0.77, 2, '2026-10-27 10:48:00', 720, '10:48:30', ['checkoutservice', 'paymentservice']],
-      ['INC-0139', 'resolved', 'recommendationservice', 'cpu', 0.88, 2, '2026-10-26 16:05:30', 510, '16:06:00', ['recommendationservice']],
-      ['INC-0138', 'resolved', 'frontend', 'traffic', 0.72, 5, '2026-10-26 11:20:00', 930, '11:20:30', ['frontend']],
-      ['INC-0137', 'resolved', 'cartservice → redis-cart', 'net', 0.81, 3, '2026-10-25 21:42:30', 540, '21:43:00', ['cartservice', 'redis-cart']],
-      ['INC-0136', 'resolved', 'currencyservice', 'cpu', 0.69, 4, '2026-10-25 15:10:00', 450, '15:10:30', ['currencyservice']]
-    ];
+    const I = incidentRows;
     const SL = { open: ['진행 중', '', '', 'color: var(--error-text); background: color-mix(in srgb, var(--error) 10%, var(--bg1))'], ack: ['확인함', '', '', 'color: var(--warning-text); background: color-mix(in srgb, var(--warning) 18%, var(--bg1))'], resolved: ['해결됨', '', '', 'color: var(--text-2); background: var(--secondary)'] };
     const fmt = (s) => Math.floor(s / 60) + '분 ' + String(s % 60).padStart(2, '0') + '초';
     const { status, fault, svc, sort, dir } = this.state;
@@ -152,7 +145,7 @@ class Component extends DCLogic {
     const rows = list.map((x) => {
       const open = !!this.state.open[x[0]];
       return {
-        id: x[0], title: x[2] + ' ' + FT[x[3]][0], target: x[2], score: x[4].toFixed(2), start: x[6].slice(5, 16), dur: fmt(x[7]),
+        href: incidentHref(x[0]), id: x[0], title: x[2] + ' ' + FT[x[3]][0], target: x[2], score: x[4].toFixed(2), start: x[6].slice(5, 16), dur: fmt(x[7]),
         detect: x[8], impact: String(x[5]), svcLabel: x[9][0], faultKey: FT[x[3]][2], faultLabel: FT[x[3]][0],
         tag: 'display: inline-block; padding: 0 8px; border-radius: 4px; font-size: 12px; line-height: 20px; color: var(--on-tag); background: var(' + FT[x[3]][1] + ')',
         stateLabel: SL[x[1]][0], stateIcon: SL[x[1]][2],

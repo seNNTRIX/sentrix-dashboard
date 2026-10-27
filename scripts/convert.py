@@ -112,7 +112,7 @@ def render(n):
  return result
 files=sorted(f for f in (root/'design/screens').glob('*.html') if f.stem.replace('.dc','') not in ['TopBar','SideNav','TimePicker'])
 names={f.stem.replace('.dc',''):re.sub(r'[^a-zA-Z]','',f.stem.replace('.dc','')) for f in files}
-out=["import React from 'react';", "import { css, routeHref } from './styles.js';", "import { TopBar, SideNav } from './components/navigation.jsx';", "import { TimePicker } from './components/TimePicker.jsx';", "import { Dialog, DataViewport, AsyncButton, ServiceName } from './components/controls.jsx';", "import { PreviewAction } from './components/PreviewAction.jsx';"]
+out=["import { logRows } from './logs.js';", "import { incidentRows, incidentHref, readListState, logHref } from './incidents.js';", "import React from 'react';", "import { css, routeHref } from './styles.js';", "import { TopBar, SideNav } from './components/navigation.jsx';", "import { TimePicker } from './components/TimePicker.jsx';", "import { Dialog, DataViewport, AsyncButton, ServiceName } from './components/controls.jsx';", "import { PreviewAction } from './components/PreviewAction.jsx';"]
 styles=[]
 for f in files:
  s=f.read_text(); markup=re.search(r'<x-dc>(.*?)</x-dc>',s,re.S)[1]; p=Parser();p.feed(markup)
