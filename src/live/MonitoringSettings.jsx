@@ -24,7 +24,7 @@ export function MonitoringSettings(){
    validateMonitoring(d,environment.id);if(abort.signal.aborted)return;setSaved(d);setEnabled(d.enabled);setInterval(String(d.intervalSeconds));setNotice('설정을 저장했습니다. 모델 연결 전에는 분석이 실행되지 않습니다.');
   }catch(e){if(!abort.signal.aborted)setError(e.message);}finally{if(!abort.signal.aborted)setBusy(false);}
  };
- return <div style={{maxWidth:760,display:'flex',flexDirection:'column',gap:16}}><form className="panel" onSubmit={save}>
+ return <div style={{maxWidth:760,display:'flex',flexDirection:'column',gap:16}}><form className="panel" style={{background:"var(--bg1)",border:"1px solid var(--border-weak)",borderRadius:8}} onSubmit={save}>
   <div style={{padding:'20px 24px',display:'flex',flexDirection:'column',gap:16}}>
    <div><h2 className="section-title" style={{margin:0,fontSize:14,fontWeight:500}}>이상 탐지</h2><p className="secondary-text">실행 설정을 저장합니다. 모델은 아직 연결되지 않았습니다.</p></div>
    {!environment&&<p>먼저 관측 환경을 선택하세요.</p>}
