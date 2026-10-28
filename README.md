@@ -13,7 +13,7 @@ npm run dev
 
 개요, 서비스 맵, 장애 목록·분석, 서비스 상세, Trace, 로그, 모델 평가, 알림, Alert rules, 설정, 팀과 권한, 계정, Audit log, 상태 화면, 로그인·초대·비밀번호 재설정·온보딩, 메인 디자인 화면을 제공합니다. 공통 TopBar, SideNav, TimePicker를 공유합니다.
 
-기본 개요(`B1-Overview`), 서비스 상세(`B5-Service`), 설정(`C3-Settings`), 첫 설정(`A4-Onboarding`)은 실제 API 연결 화면입니다. 나머지 화면과 `?demo=1#B1-Overview` 등의 명시적 미리보기는 **디자인 예시 데이터**를 사용하며 상단에 구분 표시합니다. 로그인 화면도 인증을 수행하지 않는 예시입니다. RCA·서비스 맵·트레이스·로그·알림·계정 관리 API는 아직 연결하지 않았습니다.
+기본 개요(`B1-Overview`), 서비스 상세(`B5-Service`), 설정(`C3-Settings`), 첫 설정(`A4-Onboarding`), 로그(`B7-Logs`), 요청 추적(`B6-Trace`)은 실제 API 연결 화면입니다. 나머지 화면과 `?demo=1#B1-Overview` 등의 명시적 미리보기는 **디자인 예시 데이터**를 사용하며 상단에 구분 표시합니다. 로그인 화면도 인증을 수행하지 않는 예시입니다. RCA·서비스 맵·알림·계정 관리 API는 아직 연결하지 않았습니다.
 
 ## 백엔드 연결
 
@@ -29,28 +29,12 @@ SENTRIX_API_TARGET=http://127.0.0.1:8080
 
 ### 사용 순서
 
-1. 처음 실행 시 등록된 환경 목록을 조회합니다. 없으면 환경 이름과 namespace를 등록합니다. 기존 환경은 상단 선택 상자로 전환하고 선택을 브라우저에 기억합니다.
-2. 설정에서 Prometheus·Tempo·Loki의 이름, base URL, 제한 시간(1~10초)을 저장합니다. 서버의 `SENTRIX_DATASOURCE_ALLOWED_URLS`에도 정확한 base URL이 등록되어 있어야 합니다. 브라우저에서 허용 목록을 수정하지는 않습니다.
-3. `저장 후 테스트` 또는 `연결 테스트`를 누르면 실제 API 결과를 표시합니다. HTTP 200이어도 응답의 `status=FAILED`면 실패로 표시합니다. URL 등 수정 중에는 기존 검사 결과임을 알립니다.
-4. 개요에서 실제 Deployment 목록을 조회하고 서비스를 고릅니다. CPU·메모리·요청량·오류율·p50/p90/p99 그래프를 조회합니다.
-5. 빠른 기간 또는 직접 지정(최대 24시간)을 사용합니다. `지표 새로고침`이나 선택적 30초 자동 갱신으로 다시 조회할 수 있습니다. 직접 지정 기간은 자동 갱신해도 고정됩니다.
+1. 상단 워크스페이스 메뉴에서 환경을 선택한다. 새 환경은 `환경 등록`으로 이동한다.
+2. 설정의 `데이터 소스` 탭에서 Prometheus·Tempo·Loki를 선택하고 주소·제한 시간을 저장/테스트한다.
+3. 개요와 서비스 상세에서 서비스를 선택한다. 원래 RED·자원 차트에 실제 지표를 표시한다. CPU는 비율이 아닌 cores이며 throttling·Pod 상세 등 API가 없는 슬롯에는 미연결을 표시한다.
+4. 로그와 Trace는 원래 Query A·결과 영역을 사용한다. 서비스·검색 조건을 입력한 뒤 `Run query`, 기간 변경/갱신은 기존 시간 선택기를 사용한다.
+5. Trace의 `Trace ID` 모드에서 32자리 ID를 직접 조회한다. 결과 표에서 요청을 선택하면 원래 waterfall과 속성 영역에 실제 span을 표시한다.
 
-서비스는 `#B5-Service?service=frontend`처럼 링크할 수 있습니다. 환경별 namespace는 백엔드가 결정하며, 환경 또는 서비스 변경 시 이전 지표 요청을 취소하고 응답도 무시합니다. 환경 목록은 50개씩 페이지를 읽으며 최대 100페이지까지 허용합니다. 연결 실패 시 예시 데이터로 대체하지 않습니다.
-
-### 화면과 API
-
-| 화면 | API |
-| --- | --- |
-| 환경 선택/등록 | `GET, POST /api/v1/environments` |
-| 데이터 소스 목록 | `GET /api/v1/environments/{id}/data-sources` |
-| 데이터 소스 저장 | `PUT /api/v1/environments/{id}/data-sources/{type}` |
-| 연결 검사 | `POST /api/v1/environments/{id}/data-sources/{type}/test` |
-| 서비스 목록 | `GET /api/v1/environments/{id}/services` |
-| 그래프 | `GET /api/v1/environments/{id}/metrics?service=...&metric=...&from=...&to=...&stepSeconds=...` |
-
-그래프에서 CPU는 cores, 메모리는 API bytes를 MiB로 변환, 오류율은 ratio를 %로 변환, 지연은 ms로 표시합니다. 제목 아래 숫자는 마지막 조회 지점의 값이며 그 지점이 null이면 `—`입니다. 실제 0은 유지합니다. 누락 구간을 선으로 연결하거나 0으로 채우지 않고, PARTIAL/NO_DATA와 서버 오류를 별도로 표시합니다. 시각은 브라우저 시간대로 표시하고 요청은 UTC·초 단위로 보냅니다. 기간에 따라 최대 1440개 지점을 넘지 않도록 간격을 조정합니다.
-
-현재 개요는 선택한 서비스의 지표입니다. 미구현인 전체 상태·이상 점수·장애 건수 등을 예시 수치로 섞지 않습니다. 서비스 목록은 Deployment 단위이며 건강 상태나 trace 계측 여부를 보장하지 않습니다. 실제 관측 저장소가 연결되지 않으면 설정 안내나 조회 오류가 나타나는 것이 정상입니다.
 
 ## 검증
 
@@ -68,12 +52,7 @@ npm run test:api-ui
 
 `design/`는 제공된 ZIP의 원본이며, 문서 안의 내용은 디자인 참고 자료입니다. `scripts/convert.py`는 디자인 마크업과 화면 로직을 일반 React 컴포넌트로 변환합니다. 런타임에 코드를 평가하지 않습니다.
 
-```sh
-python3 scripts/convert.py
-```
-
-`src/screens.jsx`, `src/design.css`는 변환 결과입니다. 디자인을 수정할 때 원본을 변경하고 재생성합니다. **실제 API 연결 코드는 `src/live/`에 두고 `src/main.jsx`에서 해당 화면을 선택**하므로 디자인 재생성으로 덮어쓰지 않습니다. 앱 진입과 화면 이동은 `src/main.jsx`, 공통 타이포그래피·여백·반응형 규칙은 `src/responsive.css`에서 관리합니다. 공통 헤더·메뉴·시간 선택·모달·버튼은 `src/components/`의 React 컴포넌트로 관리하며, 변환 시 기존 디자인의 공통 부품 대신 사용합니다. 빌드 결과는 `dist/`입니다.
-
+`src/screens.jsx`는 원래 디자인을 변환한 컴포넌트이며, 현재 이 컴포넌트 안에 API 데이터 슬롯을 연결했다. 디자인 export로 직접 덮어쓰면 연결이 사라지므로 `design:generate`에는 보호 검사가 있다. 새 디자인은 별도 파일로 변환해서 명시적으로 병합한다. `src/design.css`와 `src/responsive.css`의 기존 디자인 규격을 유지한다. 헤더·메뉴·시간 선택은 `src/components/`, 데이터 조회/변환은 `src/live/`에서 관리한다. 빌드 결과는 `dist/`이다.
 
 ## UI 검증과 데모 동작
 
@@ -92,3 +71,51 @@ python3 scripts/convert.py
 - 기존 20개 디자인 화면을 390/768/1440px에서 검사하고 인터랙션 회귀 테스트 통과.
 - 별도 Java 서버와 MySQL `sentrix_test`를 사용한 실제 브라우저 경로에서도 등록→저장→readiness→재조회→서비스 목록→지표 표시 통과. 이때 관측 저장소는 임시 HTTP 시험 서버를 사용했다. 실제 Online Boutique 연결 성공으로 해석하지 않는다.
 - 개발 서버의 실제 `/api/v1/environments` 프록시 연결도 확인했다. 개발 환경의 관측 주소는 임의로 등록하지 않았다.
+
+
+## 서비스 준비 상태 검증 — 2026-10-28
+
+준비 완료·준비 부족·실행 수 0·확인 불가, 누락 수치, 화면 유효 시간 만료, 조회 실패 후 회복을 API UI 테스트에 추가했다. 단위 테스트 6개·빌드·API UI 회귀 검증을 통과했다. 이 테스트는 응답을 가로채며 실제 환경 확인과 구분한다.
+
+실제 Java·MySQL·Prometheus 연결에서도 frontend 준비 완료(모든 수 1), loadgenerator 실행 수 0(모든 수 0)을 확인했다. API 응답 대체 없이 Chrome에서 검증했고, 390px 가로 넘침과 JavaScript 오류는 없었다. 캡처는 무시된 `artifacts/status-live/`에 저장했다.
+
+
+## 실제 로그 화면
+
+`#B7-Logs?service=frontend`는 `GET /api/v1/environments/{id}/logs`를 호출한다. 서비스·최대 24시간·원문 포함 문자열·최대 500건으로 검색한다. 로그는 UTC 나노초 시각과 Pod/컨테이너, 원문으로 표시하며 HTML로 실행하지 않는다. 상한 초과·빈 결과·연결 오류를 구분한다. `TimePicker`의 새로고침은 상대 시간 범위를 현재로 갱신하고 `Run query`는 선택한 범위를 다시 조회한다. 명시적인 JSON level/severity만 로그 행의 분류에 사용하며 원문 단어로 심각도를 추측하지 않는다. 지속 스트리밍·ML 로그 feature 집계는 포함하지 않는다.
+
+실제 Online Boutique 주문 로그를 Loki → Java → 대시보드 경로로 검색해 확인했다. 원문 포함 검색, 결과 상한 표시, 390px 화면을 검증했다. 로그 조회 기능은 ML 실시간 파이프라인 구축과 별개다.
+
+
+### 요청 추적
+
+`#B6-Trace?service=checkoutservice`는 Java의 `/environments/{id}/traces`로 목록을 읽고 선택한 요청의 `/{traceId}`로 처리 구간을 펼친다. 서비스·최대 24시간·최대 100건 검색과 32자리 추적 ID 직접 조회, 부모 span 관계, 서비스별 소요 시간, OTEL 상태, UTC 시각을 표시한다. 상세는 선택한 환경의 span만 표시한다. 시간 막대 위치는 브라우저의 밀리초 시각 기준이며 원본 UTC 시각/소요 시간은 나노초 정밀도에서 계산된 API 값을 보여준다.
+
+검색은 Tempo가 먼저 찾은 N건이다. 목록을 정렬해도 전체 데이터의 최신 N건을 보장하지 않는다. 상세의 시간폭은 보이는 span의 처음~끝이며 합계 시간이 아니다. 미수집 부모·다른 환경 제외·부분 응답을 경고한다. `UNSET`은 상태 미지정이며 정상 판정이 아니다. trace 오류·지연이 곧 장애 원인이라는 뜻은 아니다.
+
+로컬에서는 Tempo 연결 이후 신규 요청부터 보인다. 일부 서비스만 계측되어 있으며 k6의 외부 부모 span이 저장되지 않아 부모 누락 경고가 생길 수 있다. 검색/상세 에러와 빈 결과는 실제 데이터를 대신하는 예시를 보여주지 않는다. ML은 아직 연결하지 않는다.
+
+
+## UI 연결 원칙 (사용자 요청, 2026-10-28)
+
+- 기존 디자인·레이아웃을 임의로 대체하지 않는다. `src/screens.jsx`의 원래 화면과 TopBar/SideNav/TimePicker에 API 데이터와 이벤트를 연결한다.
+- 별도 실데이터 전용 UI를 만들지 않는다. 기존 live-shell과 별도 메트릭·로그·트레이스 페이지는 제거했다.
+- `LiveApp`은 환경/조회 상태, `design-values.js`는 기존 화면 데이터 형식으로 변환, `DesignBindings`는 쿼리·상태·설정 슬롯만 담당한다. 색상과 크기는 기존 design tokens를 사용한다.
+- 미구현 ML/RCA·서비스 맵·전체 로그 집계·Pod별 상세에는 미연결을 표시한다. 예시 점수·장애·Pod를 실데이터에 섞지 않는다. 로그 원문에 명시적인 JSON level/severity가 없으면 미분류로 취급한다.
+- 백엔드만 개발한 경우 Swagger로 호출/응답을 확인할 수 있도록 제공하고, 화면까지 연결한 경우 프론트·백엔드를 모두 실행해 실제 연동 화면을 검증한다. 현재는 후자로 검증한다.
+- `?demo=1`은 원래 예시 화면을 명시적으로 확인하는 용도다. `design:generate`는 연결 코드를 덮어쓰지 않도록 중단한다. 새로운 디자인 export는 별도 파일에서 검토 후 병합한다.
+
+검증: `npm test`, `npm run build`, `UI_BASE_URL=http://127.0.0.1:5175/ npm run test:api-ui`. API UI 테스트는 원래 로그 행·Trace 표/waterfall·서비스 차트·설정 저장·환경/시간 전환·오류/빈 값·재조회·모바일을 확인한다.
+
+### 원래 디자인 연동 검증 — 2026-10-28
+
+- 단위 테스트 9개, production build, 원래 화면을 대상으로 한 API UI 회귀 테스트와 디자인 공통 인터랙션 테스트 통과.
+- 실제 Java/MySQL + Loki/Tempo/Prometheus 경로에서 로그 100건, 3개 서비스의 25 span, CPU 30개 시계열 지점을 원래 로그·Trace waterfall·서비스 차트에 표시했다. 응답 가로채기 없이 확인했다.
+- 로그·Trace 390px 가로 넘침 없음, 브라우저 JS 오류 없음. 캡처: 무시된 `artifacts/design-restored/`.
+- ML/RCA, 전체 로그 볼륨 집계, 서비스 관계, Pod별 상세는 미연결 상태다. 로컬 저장소의 장시간/고부하 안정성은 이번 UI 연동 검증 범위에 포함하지 않았다.
+
+### 개요 디자인 복원 — 2026-10-28
+
+- B1은 기존 서비스별 타임라인을 유지한다. 목록은 실제 서비스 API 응답이며 수집기 등 같은 namespace의 Deployment도 포함한다. 상태 이력 API가 아직 없어 회색 구간은 **미판정**으로 명시한다. 현재 replica 준비 상태는 B5 서비스 상세에서 확인한다.
+- Requests는 실제 샘플의 회색 막대, Error rate는 선, 지연은 p99/p90/p50 선이다. 누락 샘플을 0이나 장애 색상으로 채우지 않는다. 시간축은 24시간 HH:mm으로 타임라인 6개, 차트 3개를 표시한다.
+- 단위 테스트 10개, build, API UI 회귀 검사 통과. 실제 Java/MySQL/Prometheus에서 16개 서비스 목록과 30개 요청 지표 지점, 오류율·지연 지표를 확인했고 390px 가로 넘침과 JS 오류가 없었다. 검증 중 한 차례 Prometheus 지연 조회 timeout이 있었으며 재조회에서 정상 데이터를 확인했다. 캡처는 `artifacts/design-restored/overview-fixed*.png`에 저장했다.

@@ -1,24 +1,60 @@
-import React, { useState } from 'react';
-import { EnvironmentProvider, useEnvironment, EnvironmentForm } from './EnvironmentContext.jsx';
-import { DataSources } from './DataSources.jsx';
-import { ServiceMetrics } from './ServiceMetrics.jsx';
-import { Button } from '../components/controls.jsx';
-import { SideNav } from '../components/navigation.jsx';
-import './live.css';
-
-export const connectedRoutes = new Set(['B1-Overview','B5-Service','C3-Settings','A4-Onboarding']);
-
-function Shell({ route, params, initialTheme }) {
- const [theme,setTheme] = useState(initialTheme), [menu,setMenu] = useState(()=>!matchMedia('(max-width: 1023px)').matches);
- const { items,selected,select,environment,loading,error,reload } = useEnvironment();
- return <div className="g screen-root live-shell" data-theme={theme} data-screen={route}>
-  <header className="top-bar shell-header"><Button icon="menu" variant="ghost" className="icon-button" aria-label="메뉴 열기 또는 닫기" onClick={()=>setMenu(v=>!v)} aria-expanded={menu}/><a className="brand-mark" href="#B1-Overview" aria-label="SentriX 홈">X</a><span className="live-brand">SentriX</span>
-   <div className="top-actions"><label className="environment-select">관측 환경<select aria-label="관측 환경" value={environment?selected:''} disabled={loading||!items.length} onChange={e=>select(e.target.value)}><option value="" disabled>환경 선택</option>{items.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</select></label><Button onClick={()=>setTheme(t=>t==='dark'?'light':'dark')} aria-label="테마 변경">{theme==='dark'?'라이트':'다크'}</Button></div>
-  </header><div className="shell-body"><aside className="shell-sidebar"><SideNav active={route==='C3-Settings'||route==='A4-Onboarding'?'settings':route==='B5-Service'?'services':'overview'} open={menu} onClose={()=>setMenu(false)} live environment={environment}/></aside>
-   <main id="main-content" tabIndex={-1} className="page-content live-content">
-    {loading?<><h1 className="page-title">관측 환경</h1><p role="status">환경 목록을 불러오는 중…</p></>:error?<><h1 className="page-title">백엔드 연결 확인</h1><p role="alert" className="field-error">{error}</p><Button onClick={reload}>다시 연결</Button></>:!environment||route==='A4-Onboarding'?<><h1 className="page-title">관측 환경 설정</h1><EnvironmentForm/>{environment&&<a href="#C3-Settings">현재 환경의 데이터 소스 설정</a>}</>:<div key={environment.id} className="live-content">{route==='C3-Settings'?<DataSources/>:<ServiceMetrics route={route} params={params}/>}</div>}
-   </main></div>
- </div>;
+import React,{useEffect,useState} from 'react';
+import {screens} from '../screens.jsx';
+import {EnvironmentProvider,useEnvironment} from './EnvironmentContext.jsx';
+import {DesignContext} from './DesignContext.jsx';
+import {request,environmentPath,queryRange,metricDefinitions} from './api.js';
+import {designValues} from './design-values.js';
+import './design-binding.css';
+export const connectedRoutes=new Set(['B1-Overview','B5-Service','B6-Trace','B7-Logs','C3-Settings','A4-Onboarding']);
+function Connected({route,params,initialTheme}){
+ const env=useEnvironment(),{environment}=env;
+ const [service,setService]=useState(params.get('service')||'frontend'),[search,setSearch]=useState(''),[limit,setLimit]=useState(route==='B6-Trace'?'20':'100');
+ const [range,setRange]=useState(()=>queryRange(Date.now()-900000,Date.now())),[rangeLabel,setRangeLabel]=useState('지난 15분'),[revision,setRevision]=useState(0);
+ const [result,setResult]=useState({loading:true}),[inventory,setInventory]=useState([]),[metrics,setMetrics]=useState({});
+ const [traceId,setTraceId]=useState(params.get('traceId')||''),[selected,setSelected]=useState(''),[detail,setDetail]=useState({}),[detailRevision,setDetailRevision]=useState(0);
+ const [inventoryLoading,setInventoryLoading]=useState(true),[inventoryError,setInventoryError]=useState('');
+ const [sources,setSources]=useState([]),[sourceError,setSourceError]=useState('');
+ const run=()=>{setRevision(n=>n+1);};
+ const chooseTrace=id=>{setSelected(id);setDetailRevision(n=>n+1);};
+ useEffect(()=>{setService(params.get('service')||'frontend');setSelected('');},[params.get('service'),route]);
+ useEffect(()=>{
+  if(!environment)return;const abort=new AbortController();setInventory([]);setInventoryLoading(true);setInventoryError('');setSources([]);setSourceError('');
+  request(`${environmentPath(environment.id)}/services`,{signal:abort.signal}).then(d=>{if(!abort.signal.aborted){setInventory(d.items||[]);setInventoryLoading(false);}}).catch(e=>{if(!abort.signal.aborted){setInventoryError(e.message);setInventoryLoading(false);}});
+  request(`${environmentPath(environment.id)}/data-sources`,{signal:abort.signal}).then(d=>{if(!abort.signal.aborted)setSources(d);}).catch(e=>{if(!abort.signal.aborted)setSourceError(e.message);});
+  return()=>abort.abort();
+ },[environment?.id,revision]);
+ useEffect(()=>{
+  setResult({loading:true});setMetrics({});setSelected('');setDetail({});
+  if(!environment)return;const abort=new AbortController(),base=environmentPath(environment.id);
+  const {stepSeconds,...time}=range;
+  if(route==='B7-Logs'||route==='B6-Trace'){
+   const trace=route==='B6-Trace',filters={service,...time,limit:trace?Math.min(100,+limit):limit,...(trace?{}:{search})};
+   request(`${base}/${trace?'traces':'logs'}?${new URLSearchParams(filters)}`,{signal:abort.signal}).then(data=>{
+    if(data.environmentId!==environment.id||data.service!==service||!Array.isArray(data.items))throw new Error('조회 응답 형식이 올바르지 않습니다.');
+    if(!abort.signal.aborted)setResult({data});
+   }).catch(e=>{if(!abort.signal.aborted)setResult({error:e.message});});
+  }else if(route==='B1-Overview'||route==='B5-Service'){
+   setResult({});
+   for(const [metric] of metricDefinitions)request(`${base}/metrics?${new URLSearchParams({service,metric,...range})}`,{signal:abort.signal}).then(data=>{
+    if(data.service!==service||data.metric!==metric||!Array.isArray(data.points))throw new Error('지표 응답 형식이 올바르지 않습니다.');
+    if(!abort.signal.aborted)setMetrics(old=>({...old,[metric]:{data}}));
+   }).catch(e=>{if(!abort.signal.aborted)setMetrics(old=>({...old,[metric]:{error:e.message} }));});
+  }else setResult({});
+  return()=>abort.abort();
+ // Filters are applied with Run query; time and service links apply immediately.
+ },[environment?.id,route,range,revision,params.get('service')]);
+ useEffect(()=>{
+  setDetail(selected?{loading:true}:{});if(!selected||!environment)return;
+  const abort=new AbortController();request(`${environmentPath(environment.id)}/traces/${encodeURIComponent(selected)}`,{signal:abort.signal})
+   .then(data=>{if(data.traceId!==selected||data.environmentId!==environment.id||!Array.isArray(data.spans))throw new Error('상세 응답 형식이 올바르지 않습니다.');if(!abort.signal.aborted)setDetail({data});})
+   .catch(e=>{if(!abort.signal.aborted)setDetail({error:e.message});});return()=>abort.abort();
+ },[environment?.id,selected,detailRevision]);
+ const changeRange=(from,to,label)=>{setRange(queryRange(from,to));setRangeLabel(label);};
+ const refresh=()=>{const seconds={'지난 5분':300,'지난 15분':900,'지난 30분':1800,'지난 1시간':3600,'지난 3시간':10800,'지난 6시간':21600,'지난 12시간':43200,'지난 24시간':86400}[rangeLabel];if(seconds)setRange(queryRange(Date.now()-seconds*1000,Date.now()));else run();};
+ const live={...env,route,service,setService,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,inventory,inventoryLoading,inventoryError,metrics,traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
+ live.values=view=>designValues(view,live);
+ const Screen=screens[route];
+ return <DesignContext.Provider value={live}><Screen theme={initialTheme} tab={route==='C3-Settings'?'데이터 소스':undefined} live={live}/></DesignContext.Provider>;
 }
-
-export function LiveApp(props) { return <EnvironmentProvider><Shell {...props}/></EnvironmentProvider>; }
+function EnvironmentScreen(props){const {environment}=useEnvironment();return <Connected key={`${props.route}:${props.params.toString()}:${environment?.id||'none'}`} {...props}/>;}
+export function LiveApp(props){return <EnvironmentProvider><EnvironmentScreen {...props}/></EnvironmentProvider>;}

@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { request, environmentPath } from './api.js';
-import { useEnvironment, EnvironmentForm } from './EnvironmentContext.jsx';
 import { Button } from '../components/controls.jsx';
 
 const reasons = { TIMEOUT:'응답 시간 초과', DNS_ERROR:'호스트 이름 확인 실패', CONNECTION_FAILED:'접속 실패',
@@ -8,7 +7,7 @@ const reasons = { TIMEOUT:'응답 시간 초과', DNS_ERROR:'호스트 이름 �
  TARGET_NOT_ALLOWED:'서버에서 허용하지 않은 주소', IO_ERROR:'통신 오류' };
 const labels = { NOT_TESTED:'미검사', CONNECTED:'마지막 검사 성공', FAILED:'마지막 검사 실패' };
 
-function SourceForm({ type, initial, environmentId }) {
+export function SourceForm({ type, initial, environmentId, onSaved }) {
  const [saved,setSaved] = useState(initial), [name,setName] = useState(initial?.name || type);
  const [baseUrl,setUrl] = useState(initial?.baseUrl || ''), [timeoutSeconds,setTimeoutSeconds] = useState(initial?.timeoutSeconds || 5);
  const [busy,setBusy] = useState(''), [error,setError] = useState(''), [notice,setNotice] = useState('');
@@ -23,6 +22,7 @@ function SourceForm({ type, initial, environmentId }) {
     setSaved(result); setName(result.name); setUrl(result.baseUrl); setTimeoutSeconds(result.timeoutSeconds);
    }
    if (test) { result = await request(`${path}/test`, { method:'POST' }); setSaved(result); }
+   onSaved?.();
    setNotice(test ? result.status==='CONNECTED'?'연결 테스트에 성공했습니다.':'연결 테스트 결과를 확인하세요.' : '설정을 저장했습니다.');
   } catch (e) { setError(e.message); } finally { setBusy(''); }
  };
@@ -38,21 +38,4 @@ function SourceForm({ type, initial, environmentId }) {
   {saved?.status==='FAILED' && <p role="status" className="field-error">{reasons[saved.failureCode] || '연결 확인 실패'}</p>}
   {error && <p role="alert" className="field-error">{error}</p>}{notice && <p role="status">{notice}</p>}
  </form>;
-}
-
-export function DataSources() {
- const { environment } = useEnvironment();
- const [state,setState] = useState({ loading:true }), [revision,setRevision] = useState(0);
- useEffect(() => {
-  const controller = new AbortController(); setState({loading:true});
-  request(`${environmentPath(environment.id)}/data-sources`, { signal:controller.signal })
-   .then(items=>{if(!Array.isArray(items))throw new Error('설정 목록 형식이 올바르지 않습니다.'); if(!controller.signal.aborted)setState({items});})
-   .catch(e=>{if(!controller.signal.aborted)setState({error:e.message});});
-  return ()=>controller.abort();
- }, [environment.id,revision]);
- return <><div className="live-row"><div><h1 className="page-title">데이터 소스 설정</h1><p className="secondary-text">주소는 백엔드에서 접속할 수 있어야 합니다. 검사 성공이 데이터 수집을 보장하지는 않습니다.</p></div><Button icon="refresh" onClick={()=>setRevision(n=>n+1)}>설정 새로고침</Button></div>
-  {state.loading ? <p role="status">설정을 불러오는 중…</p> : state.error ? <p role="alert" className="field-error">{state.error}</p> :
-   <div className="live-source-grid">{['prometheus','tempo','loki'].map(type=><SourceForm key={`${type}-${revision}`} type={type} environmentId={environment.id} initial={state.items.find(s=>s.type===type)}/>)}</div>}
-  <details className="live-panel"><summary>다른 관측 환경 등록</summary><EnvironmentForm/></details>
- </>;
 }

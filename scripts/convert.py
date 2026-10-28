@@ -3,6 +3,9 @@ from html.parser import HTMLParser
 from pathlib import Path
 import re,json
 root=Path(__file__).resolve().parents[1]
+# Live bindings now live in these components; a raw design export must not overwrite them.
+if (root/'src/screens.jsx').exists() and 'this.props.live' in (root/'src/screens.jsx').read_text():
+ raise SystemExit('screens.jsx contains API bindings. Export the design to a separate file and merge layout changes explicitly.')
 q=lambda v:json.dumps(v,ensure_ascii=False)
 void=set('input img br hr meta link area base col embed param source track wbr'.split())
 class Parser(HTMLParser):

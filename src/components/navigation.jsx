@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useDesign } from '../live/DesignContext.jsx';
 import { Button, Dialog, Icon } from './controls.jsx';
 
 export const destinations = [
@@ -16,27 +17,29 @@ const groups = [
 ];
 function NavLinks({active, onNavigate, live, environment}) {
  const [expanded, setExpanded] = useState({});
- const navigationGroups = live ? [groups[0],['services','서비스','B5-Service','explore'],...groups.slice(1)] : groups;
+ const navigationGroups = groups;
  return <nav aria-label="주 메뉴" className="side-nav"><div className="nav-caption">워크스페이스</div>{navigationGroups.map(([key,label,route,icon,children]) => {
   const selected = key === active || children?.some(([k]) => k === active);
   const isOpen = expanded[key] ?? selected;
   return <div className="nav-group" key={key}><div className="nav-item">
-   <a href={`#${route}`} className={`nav-link ${selected ? 'is-current' : ''}`} aria-current={key === active ? 'page' : undefined} onClick={onNavigate}><Icon name={icon}/><span>{label}</span>{live&&!['B1-Overview','B5-Service','C3-Settings'].includes(route)&&<small className="demo-tag">예시</small>}</a>
+   <a href={`#${route}`} className={`nav-link ${selected ? 'is-current' : ''}`} aria-current={key === active ? 'page' : undefined} onClick={onNavigate}><Icon name={icon}/><span>{label}</span>{live&&!['B1-Overview','B5-Service','C3-Settings','B7-Logs','B6-Trace'].includes(route)&&<small className="demo-tag">예시</small>}</a>
    {children && <button className="nav-expand" aria-label={`${label} ${isOpen ? '접기' : '펼치기'}`} aria-expanded={!!isOpen} onClick={() => setExpanded({...expanded,[key]:!isOpen})}><Icon name="chevron" className={isOpen ? 'rotate' : ''}/></button>}
   </div>{children && isOpen && <div className="nav-children">{children.map(([k,l,r]) => <a key={k} href={`#${r}`} className={`nav-link ${k === active ? 'is-current' : ''}`} aria-current={k === active ? 'page' : undefined} onClick={onNavigate}>{l}</a>)}</div>}</div>;
  })}<div className="nav-footer"><span>{live?(environment?.name || '환경 미선택'):'online-boutique'}</span><span>{live?(environment?`namespace ${environment.namespace}`:'환경을 등록하세요'):'namespace sentrix'}</span>{live&&<a href="#A4-Onboarding" onClick={onNavigate}>환경 등록</a>}</div></nav>;
 }
 export function SideNav({active, open, onClose, live = false, environment}) {
+ const design=useDesign();live=!!design||live;environment=design?.environment||environment;
  const [compact, setCompact] = useState(() => matchMedia('(max-width: 1023px)').matches);
  useEffect(() => { const m = matchMedia('(max-width: 1023px)'); const update = () => {setCompact(m.matches); onClose?.();}; m.addEventListener('change',update); return () => m.removeEventListener('change',update); },[onClose]);
  if (!open) return null;
  return compact ? <Dialog title="메뉴" drawer onClose={onClose}><NavLinks active={active} onNavigate={onClose} live={live} environment={environment}/></Dialog> : <NavLinks active={active} live={live} environment={environment}/>;
 }
 export function TopBar({crumbs = '홈', hrefs = '', theme = 'light', onTheme, onMenu, menuOpen}) {
+ const design=useDesign();
  const [panel, setPanel] = useState(null), [query,setQuery] = useState(''), [read,setRead] = useState(false);
  const user = useRef(null), bell = useRef(null), env = useRef(null);
  useEffect(() => { const shortcut = e => { if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){e.preventDefault();setPanel('search');} };window.addEventListener('keydown',shortcut);return () => window.removeEventListener('keydown',shortcut); },[]);
- const labels = crumbs.split('|'), links = hrefs.split('|');
+ const labels = (design?.route==='B5-Service'?`홈|서비스|${design.service}`:crumbs).split('|'), links = hrefs.split('|');
  const results = destinations.filter(row => row.join(' ').toLowerCase().includes(query.trim().toLowerCase()));
  const close = () => setPanel(null);
  return <header className="top-bar">
@@ -45,13 +48,13 @@ export function TopBar({crumbs = '홈', hrefs = '', theme = 'light', onTheme, on
   <nav className="breadcrumbs" aria-label="현재 위치">{labels.map((label,i) => <React.Fragment key={i}>{i > 0 && <span className="crumb-divider">/</span>}{links[i] && i < labels.length-1 ? <a href={'#'+links[i].replace('.dc.html','')}>{label}</a> : <span aria-current={i === labels.length-1 ? 'page' : undefined}>{label}</span>}</React.Fragment>)}</nav>
   <div className="top-actions">
    <button className="search-trigger" onClick={()=>setPanel('search')} aria-label="화면 검색" aria-haspopup="dialog"><Icon name="search"/><span>화면 검색</span><kbd>⌘ K</kbd></button>
-   <button ref={env} className="environment-trigger" onClick={()=>setPanel('env')} aria-expanded={panel==='env'} aria-haspopup="dialog"><span>online-boutique</span><Icon name="chevron" size={14}/></button>
-   <Button variant="ghost" className="icon-button notification-trigger" aria-label={`알림, 읽지 않음 ${read ? 0 : 2}개`} aria-haspopup="dialog" icon="bell" onClick={e=>{bell.current=e.currentTarget;setPanel('bell');}}>{!read && <span className="notification-dot"/>}</Button>
-   <button ref={user} className="avatar-button" aria-label="프로필 메뉴" aria-haspopup="dialog" aria-expanded={panel==='user'} onClick={()=>setPanel('user')}>이</button>
+   <button ref={env} className="environment-trigger" onClick={()=>setPanel('env')} aria-expanded={panel==='env'} aria-haspopup="dialog"><span>{design?(design.environment?.name||'환경 선택'):'online-boutique'}</span><Icon name="chevron" size={14}/></button>
+   <Button variant="ghost" className="icon-button notification-trigger" disabled={!!design} title={design?"알림 API 미연결":undefined} aria-label={`알림, 읽지 않음 ${design||read ? 0 : 2}개`} aria-haspopup="dialog" icon="bell" onClick={e=>{bell.current=e.currentTarget;setPanel('bell');}}>{!design&&!read && <span className="notification-dot"/>}</Button>
+   <button ref={user} className="avatar-button" aria-label="프로필 메뉴" aria-haspopup="dialog" aria-expanded={panel==='user'} onClick={()=>setPanel('user')}>{design?'—':'이'}</button>
   </div>
   {panel==='search' && <Dialog title="화면 검색" onClose={close} className="search-dialog"><form onSubmit={e=>{e.preventDefault();if(results.length){location.hash=results[0][0];close();}}}><label className="search-field"><Icon name="search"/><input autoFocus type="search" aria-label="화면 또는 서비스 검색" placeholder="화면, 서비스, 장애 ID 검색" value={query} onChange={e=>setQuery(e.target.value)}/></label></form><div className="search-results">{results.length ? results.map(([route,label,description])=><a href={`#${route}`} key={route} onClick={close}><strong>{label}</strong><span>{description}</span></a>) : <div className="empty-message"><strong>검색 결과가 없습니다</strong><span>다른 화면 이름이나 서비스 이름을 입력하세요.</span></div>}</div></Dialog>}
-  {panel==='env' && <Dialog title="워크스페이스" anchor={env} onClose={close}><div className="workspace-option"><strong>online-boutique</strong><span>namespace sentrix · 현재 선택됨</span></div><p className="secondary-text">데모에서는 이 워크스페이스를 사용합니다.</p></Dialog>}
+  {panel==='env' && <Dialog title="워크스페이스" anchor={env} onClose={close}>{design?<>{design.items.map(item=><button className="workspace-option" key={item.id} onClick={()=>{design.select(String(item.id));close();}}><strong>{item.name}</strong><span>namespace {item.namespace}{item.id===design.environment?.id?' · 현재 선택됨':''}</span></button>)}<a href="#A4-Onboarding" onClick={close}>환경 등록</a></>:<><div className="workspace-option"><strong>online-boutique</strong><span>namespace sentrix · 현재 선택됨</span></div><p className="secondary-text">데모에서는 이 워크스페이스를 사용합니다.</p></>}</Dialog>}
   {panel==='bell' && <Dialog title="알림" anchor={bell} onClose={close} className="notifications-dialog"><Button variant="ghost" disabled={read} onClick={()=>setRead(true)}>모두 읽음</Button><div className="notification-list">{[['INC-0142 발생','frontend → productcatalogservice Network delay','10분 전','B4-Incident'],['Loki 수집 중단 후 복구','14:05:12부터 42초 동안','26분 전','C3-Settings'],['INC-0141 해결됨','checkoutservice Pod failure','1시간 전','B3-Incidents']].map(([title,body,time,route],i)=><a href={`#${route}`} key={title} onClick={close}><strong className={!read && i<2 ? 'unread' : ''}>{title}</strong><span>{body}</span><small>{time}</small></a>)}</div><a className="text-link" href="#C1-Notifications" onClick={close}>알림 기록 모두 보기</a></Dialog>}
-  {panel==='user' && <Dialog title="프로필" anchor={user} onClose={close} className="profile-dialog"><div className="user-summary"><strong>이지훈</strong><span>jihoon.lee@example.ac.kr</span></div><div className="profile-menu" role="menu" aria-label="프로필 작업">{[['프로필','C5-Account'],['알림 기록','C1-Notifications'],['설정','C3-Settings']].map(([text,route])=><a role="menuitem" href={`#${route}`} key={route} onClick={close}>{text}</a>)}<button role="menuitem" onClick={()=>onTheme?.(theme==='dark'?'light':'dark')}><span>테마</span><span>{theme==='dark'?'다크':'라이트'}</span></button><a role="menuitem" href="#A1-Login" onClick={close}>로그아웃</a></div></Dialog>}
+  {panel==='user' && <Dialog title="프로필" anchor={user} onClose={close} className="profile-dialog"><div className="user-summary"><strong>{design?"사용자 인증 미연결":"이지훈"}</strong><span>{design?"테마는 이 브라우저에 저장됩니다.":"jihoon.lee@example.ac.kr"}</span></div><div className="profile-menu" role="menu" aria-label="프로필 작업">{[['프로필','C5-Account'],['알림 기록','C1-Notifications'],['설정','C3-Settings']].map(([text,route])=><a role="menuitem" href={`#${route}`} key={route} onClick={close}>{text}</a>)}<button role="menuitem" onClick={()=>onTheme?.(theme==='dark'?'light':'dark')}><span>테마</span><span>{theme==='dark'?'다크':'라이트'}</span></button><a role="menuitem" href="#A1-Login" onClick={close}>로그아웃</a></div></Dialog>}
  </header>;
 }

@@ -1,4 +1,19 @@
 const messages = {
+ TEMPO_NOT_CONFIGURED:'Tempo 연결 설정을 먼저 저장하세요.',
+ TEMPO_TIMEOUT:'Tempo 응답 시간이 초과됐습니다.',
+ TEMPO_HTTP_ERROR:'Tempo가 조회를 거부했습니다. 연결 설정과 서버 상태를 확인하세요.',
+ TEMPO_UNAVAILABLE:'Tempo에 연결할 수 없습니다.',
+ INVALID_TEMPO_RESPONSE:'Tempo 응답 형식이 올바르지 않습니다.',
+ TRACE_NOT_FOUND:'이 환경에서 해당 트레이스를 찾지 못했습니다. 보관 기간이나 수집 상태를 확인하세요.',
+ TRACE_TOO_LARGE:'트레이스가 표시 가능한 5,000개 구간을 초과했습니다.',
+
+ LOKI_NOT_CONFIGURED:'Loki 연결 설정을 먼저 저장하세요.',
+ LOKI_TIMEOUT:'Loki 응답 시간이 초과됐습니다.',
+ LOKI_HTTP_ERROR:'Loki가 조회를 거부했습니다. 연결 설정과 서버 상태를 확인하세요.',
+ LOKI_UNAVAILABLE:'Loki에 연결할 수 없습니다.',
+ LOKI_QUERY_FAILED:'Loki가 로그를 검색하지 못했습니다. 수집 설정을 확인하세요.',
+ INVALID_LOKI_RESPONSE:'Loki 응답 형식이 올바르지 않습니다.',
+
  PROMETHEUS_NOT_CONFIGURED: 'Prometheus 연결 설정을 먼저 저장하세요.',
  TARGET_NOT_ALLOWED: '서버에서 허용하지 않은 주소입니다. 연결 설정을 확인하세요.',
  PROMETHEUS_TIMEOUT: 'Prometheus 응답 시간이 초과됐습니다.',
