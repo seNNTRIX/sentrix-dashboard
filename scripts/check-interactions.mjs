@@ -7,7 +7,7 @@ const context=await browser.newContext({viewport:{width:1440,height:960},permiss
 const page=await context.newPage(); page.setDefaultTimeout(10000); const errors=[];
 page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'&&!m.text().includes('net::ERR'))errors.push(m.text())});
 try {
-const go=async route=>{await page.goto(baseURL+'#'+route,{waitUntil:'domcontentloaded'});await page.locator('h1').first().waitFor();};
+const go=async route=>{await page.goto(baseURL+'?demo=1#'+route,{waitUntil:'domcontentloaded'});await page.locator('h1').first().waitFor();};
 await go('A1-Login');
 await page.getByLabel('이메일',{exact:true}).fill('invalid');
 await page.getByRole('button',{name:'로그인',exact:true}).click();

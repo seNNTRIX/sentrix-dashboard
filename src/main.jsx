@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { screens } from './screens.jsx';
+import { LiveApp, connectedRoutes } from './live/LiveApp.jsx';
 import './design.css';
 import './responsive.css';
 
@@ -16,18 +17,22 @@ class ErrorBoundary extends React.Component {
  }
 }
 function App() {
- const [route, setRoute] = useState(location.hash.slice(1) || 'B1-Overview');
+ const [hash, setHash] = useState(location.hash.slice(1) || 'B1-Overview');
+ const [route, query = ''] = hash.split('?');
+ const params = new URLSearchParams(query);
+ const live = !new URLSearchParams(location.search).has('demo') && connectedRoutes.has(route);
  useEffect(() => {
-  const update = () => {setRoute(location.hash.slice(1) || 'B1-Overview');window.scrollTo(0,0);};
+  const update = () => {setHash(location.hash.slice(1) || 'B1-Overview');window.scrollTo(0,0);};
   window.addEventListener('hashchange',update);
   return () => window.removeEventListener('hashchange',update);
  },[]);
  useEffect(() => {
   const heading = document.querySelector('h1');
-  document.title = `${heading?.textContent || '대시보드'} · SentriX`;
- },[route]);
+  const titles = { 'B1-Overview':'서비스별 개요', 'B5-Service':'서비스 상세', 'C3-Settings':'데이터 소스 설정', 'A4-Onboarding':'관측 환경 설정' };
+  document.title = `${live ? titles[route] : heading?.textContent || '대시보드'} · SentriX`;
+ },[route,live]);
  const Screen = screens[route];
- return <><a href="#main-content" className="skip-link" onClick={e=>{e.preventDefault();document.getElementById('main-content')?.focus();}}>본문으로 건너뛰기</a><aside className="demo-notice">데모 환경 · 예시 데이터 · 서버에 저장되지 않습니다</aside><ErrorBoundary key={route}>{Screen ? <Screen theme={savedTheme()}/> : <main className="error-page"><h1>화면을 찾을 수 없습니다</h1><a href="#B1-Overview">개요로 돌아가기</a></main>}</ErrorBoundary></>;
+ return <><a href="#main-content" className="skip-link" onClick={e=>{e.preventDefault();document.getElementById('main-content')?.focus();}}>본문으로 건너뛰기</a><aside className="demo-notice">{live?'백엔드 연결 화면 · 환경별 관측 데이터':<>디자인 미리보기 · 예시 데이터 · 서버에 저장되지 않습니다 · <a href={`${location.pathname}#B1-Overview`}>실제 조회 화면으로</a></>}</aside><ErrorBoundary key={route}>{live ? <LiveApp route={route} params={params} initialTheme={savedTheme()}/> : Screen ? <Screen theme={savedTheme()}/> : <main className="error-page"><h1>화면을 찾을 수 없습니다</h1><a href="#B1-Overview">개요로 돌아가기</a></main>}</ErrorBoundary></>;
 }
 
 // Keyboard navigation is shared by the existing tab and segmented-control patterns.
