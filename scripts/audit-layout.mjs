@@ -12,7 +12,7 @@ for(const width of [390,768,1440]){
  await page.setViewportSize({width,height:960});
  for(const file of fs.readdirSync('design/screens').filter(f=>/^(A|B|C|Main).*\.html$/.test(f))){
   const route=file.replace('.dc.html','');
-  await page.goto(baseURL+'?audit='+width+'#'+route,{waitUntil:'domcontentloaded'});
+  await page.goto(baseURL+'?demo=1&audit='+width+'#'+route,{waitUntil:'domcontentloaded'});
   await page.locator('h1').first().waitFor();
   const result=await page.evaluate(()=>{
    const main=document.querySelector('main'), b=main?.getBoundingClientRect();

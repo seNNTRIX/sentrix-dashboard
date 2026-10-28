@@ -14,22 +14,23 @@ const groups = [
  ['explore','Explore','B6-Trace','explore', [['trace','Trace','B6-Trace'],['logs','로그','B7-Logs']]],
  ['model','모델 평가','B8-Model','model'], ['admin','관리','C3-Settings','settings', [['settings','설정','C3-Settings'],['team','팀과 권한','C4-Team'],['audit','Audit log','C6-Audit'],['states','상태 화면','C7-States']]]
 ];
-function NavLinks({active, onNavigate}) {
+function NavLinks({active, onNavigate, live, environment}) {
  const [expanded, setExpanded] = useState({});
- return <nav aria-label="주 메뉴" className="side-nav"><div className="nav-caption">워크스페이스</div>{groups.map(([key,label,route,icon,children]) => {
+ const navigationGroups = live ? [groups[0],['services','서비스','B5-Service','explore'],...groups.slice(1)] : groups;
+ return <nav aria-label="주 메뉴" className="side-nav"><div className="nav-caption">워크스페이스</div>{navigationGroups.map(([key,label,route,icon,children]) => {
   const selected = key === active || children?.some(([k]) => k === active);
   const isOpen = expanded[key] ?? selected;
   return <div className="nav-group" key={key}><div className="nav-item">
-   <a href={`#${route}`} className={`nav-link ${selected ? 'is-current' : ''}`} aria-current={key === active ? 'page' : undefined} onClick={onNavigate}><Icon name={icon}/><span>{label}</span></a>
+   <a href={`#${route}`} className={`nav-link ${selected ? 'is-current' : ''}`} aria-current={key === active ? 'page' : undefined} onClick={onNavigate}><Icon name={icon}/><span>{label}</span>{live&&!['B1-Overview','B5-Service','C3-Settings'].includes(route)&&<small className="demo-tag">예시</small>}</a>
    {children && <button className="nav-expand" aria-label={`${label} ${isOpen ? '접기' : '펼치기'}`} aria-expanded={!!isOpen} onClick={() => setExpanded({...expanded,[key]:!isOpen})}><Icon name="chevron" className={isOpen ? 'rotate' : ''}/></button>}
   </div>{children && isOpen && <div className="nav-children">{children.map(([k,l,r]) => <a key={k} href={`#${r}`} className={`nav-link ${k === active ? 'is-current' : ''}`} aria-current={k === active ? 'page' : undefined} onClick={onNavigate}>{l}</a>)}</div>}</div>;
- })}<div className="nav-footer"><span>online-boutique</span><span>namespace sentrix</span></div></nav>;
+ })}<div className="nav-footer"><span>{live?(environment?.name || '환경 미선택'):'online-boutique'}</span><span>{live?(environment?`namespace ${environment.namespace}`:'환경을 등록하세요'):'namespace sentrix'}</span>{live&&<a href="#A4-Onboarding" onClick={onNavigate}>환경 등록</a>}</div></nav>;
 }
-export function SideNav({active, open, onClose}) {
+export function SideNav({active, open, onClose, live = false, environment}) {
  const [compact, setCompact] = useState(() => matchMedia('(max-width: 1023px)').matches);
  useEffect(() => { const m = matchMedia('(max-width: 1023px)'); const update = () => {setCompact(m.matches); onClose?.();}; m.addEventListener('change',update); return () => m.removeEventListener('change',update); },[onClose]);
  if (!open) return null;
- return compact ? <Dialog title="메뉴" drawer onClose={onClose}><NavLinks active={active} onNavigate={onClose}/></Dialog> : <NavLinks active={active}/>;
+ return compact ? <Dialog title="메뉴" drawer onClose={onClose}><NavLinks active={active} onNavigate={onClose} live={live} environment={environment}/></Dialog> : <NavLinks active={active} live={live} environment={environment}/>;
 }
 export function TopBar({crumbs = '홈', hrefs = '', theme = 'light', onTheme, onMenu, menuOpen}) {
  const [panel, setPanel] = useState(null), [query,setQuery] = useState(''), [read,setRead] = useState(false);
