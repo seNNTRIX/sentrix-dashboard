@@ -15,5 +15,6 @@ test('volume query bounds support 24 hours and omit only an incomplete final buc
  assert.deepEqual(volumeRange({from,to}),range);
  assert.equal(volumeRange({from,to:'2026-10-30T09:00:00Z'}).bucketSeconds,120);
  assert.equal(volumeRange({from,to:'2026-10-29T09:02:59Z'}).to,to);
+ assert.deepEqual(volumeRange({from:'2026-10-29T09:00:15Z',to:'2026-10-29T09:02:15Z'}),{from:'2026-10-29T09:01:00Z',to,bucketSeconds:60});
  assert.throws(()=>volumeRange({from,to:'2026-10-29T09:00:59Z'}));
 });

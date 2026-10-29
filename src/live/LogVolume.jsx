@@ -19,7 +19,7 @@ export function LogVolume(){
     </svg>
    </div>
    <div className="chart-ticks" style={{display:'flex',justifyContent:'space-between',marginLeft:48,fontSize:12,color:'var(--text-2)'}}><span>{time(data.from)}</span><span>{time(data.to)}</span></div>
-   <p className="secondary-text" style={{fontSize:12,margin:0}}>서비스·포함 문자열 기준 전체 집계입니다. 아래 목록의 Limit·중복 제거·심각도 표시 필터와 독립적입니다. 수집 누락 여부는 알 수 없습니다.{missing?' 점선은 로그 없음 또는 미수집으로 집계값을 확인할 수 없는 구간입니다.':''}{data.to!==d.range.to?' 마지막 완성 구간까지만 집계합니다.':''}{data.warnings.includes('UPSTREAM_WARNING')?' 저장소 조회 경고가 있습니다.':''}</p>
+   <p className="secondary-text" style={{fontSize:12,margin:0}}>서비스·포함 문자열 기준 전체 집계입니다. 아래 목록의 Limit·중복 제거·심각도 표시 필터와 독립적입니다. 수집 누락 여부는 알 수 없습니다.{missing?' 점선은 로그 없음 또는 미수집으로 집계값을 확인할 수 없는 구간입니다.':''}{data.to!==d.range.to||data.from!==d.range.from?' 선택 기간 안의 완성된 분 구간만 집계합니다.':''}{data.warnings.includes('UPSTREAM_WARNING')?' 저장소 조회 경고가 있습니다.':''}</p>
   </>}
  </section>;
 }

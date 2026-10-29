@@ -2,7 +2,10 @@ export function volumeRange(range) {
  const start=Date.parse(range.from),end=Date.parse(range.to),seconds=(end-start)/1000;
  if(!Number.isInteger(seconds)||seconds<60||seconds>86400) throw new Error('로그 집계는 1분~24시간 범위에서 조회할 수 있습니다.');
  const bucketSeconds=seconds>43200?120:60;
- return {from:range.from,to:new Date(start+Math.floor(seconds/bucketSeconds)*bucketSeconds*1000).toISOString().replace('.000Z','Z'),bucketSeconds};
+ const unit=bucketSeconds*1000,alignedStart=Math.ceil(start/unit)*unit,alignedEnd=Math.floor(end/unit)*unit;
+ if(alignedStart>=alignedEnd) throw new Error('완성된 1분 구간이 없습니다. 조회 기간을 넓혀 주세요.');
+ const iso=t=>new Date(t).toISOString().replace('.000Z','Z');
+ return {from:iso(alignedStart),to:iso(alignedEnd),bucketSeconds};
 }
 export function validateVolume(data,environmentId,service,search,range) {
  const count=(Date.parse(range.to)-Date.parse(range.from))/1000/range.bucketSeconds;
