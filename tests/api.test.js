@@ -28,3 +28,10 @@ test('API client handles HTTP errors, network errors and caller cancellation',as
  globalThis.fetch=async(_url,{signal})=>{assert.equal(signal.aborted,true);throw new DOMException('aborted','AbortError');};
  await assert.rejects(request('/environments',{signal:controller.signal}),e=>e.name==='AbortError');
 });
+
+test('health uses its own path and collection can override the bounded timeout',async t=>{
+ t.mock.method(globalThis,'fetch',async url=>{assert.equal(url,'/actuator/health');return new Response('{"status":"UP"}');});
+ assert.equal((await request('/actuator/health')).status,'UP');
+ globalThis.fetch=(_url,{signal})=>new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(new DOMException('aborted','AbortError')),{once:true}));
+ await assert.rejects(request('/environments/1/collection-status',{timeoutMs:5}),e=>e.message.includes('초과'));
+});
