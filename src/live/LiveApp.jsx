@@ -6,7 +6,7 @@ import {request,environmentPath,queryRange,metricDefinitions} from './api.js';
 import {volumeRange,validateVolume} from './log-volume.js';
 import {designValues} from './design-values.js';
 import './design-binding.css';
-export const connectedRoutes=new Set(['B1-Overview','B5-Service','B6-Trace','B7-Logs','C3-Settings','A4-Onboarding']);
+export const connectedRoutes=new Set(['B2-ServiceMap','B1-Overview','B5-Service','B6-Trace','B7-Logs','C3-Settings','A4-Onboarding']);
 function Connected({route,params,initialTheme}){
  const env=useEnvironment(),{environment}=env;
  const [service,setService]=useState(params.get('service')||'frontend'),[search,setSearch]=useState(''),[limit,setLimit]=useState(route==='B6-Trace'?'20':'100');
@@ -26,7 +26,7 @@ function Connected({route,params,initialTheme}){
   return()=>abort.abort();
  },[environment?.id,revision]);
  useEffect(()=>{
-  setResult({loading:true});setVolume({});setMetrics({});setSelected('');setDetail({});
+  setResult({loading:true});setVolume({});setMetrics({});setSelected(route==='B6-Trace'?(params.get('traceId')||''):'');setDetail({});
   if(!environment)return;const abort=new AbortController(),base=environmentPath(environment.id);
   const {stepSeconds,...time}=range;
   if(route==='B7-Logs'||route==='B6-Trace'){

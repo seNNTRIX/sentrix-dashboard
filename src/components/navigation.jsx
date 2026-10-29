@@ -22,7 +22,7 @@ function NavLinks({active, onNavigate, live, environment}) {
   const selected = key === active || children?.some(([k]) => k === active);
   const isOpen = expanded[key] ?? selected;
   return <div className="nav-group" key={key}><div className="nav-item">
-   <a href={`#${route}`} className={`nav-link ${selected ? 'is-current' : ''}`} aria-current={key === active ? 'page' : undefined} onClick={onNavigate}><Icon name={icon}/><span>{label}</span>{live&&!['B1-Overview','B5-Service','C3-Settings','B7-Logs','B6-Trace'].includes(route)&&<small className="demo-tag">예시</small>}</a>
+   <a href={`#${route}`} className={`nav-link ${selected ? 'is-current' : ''}`} aria-current={key === active ? 'page' : undefined} onClick={onNavigate}><Icon name={icon}/><span>{label}</span>{live&&!['B2-ServiceMap','B1-Overview','B5-Service','C3-Settings','B7-Logs','B6-Trace'].includes(route)&&<small className="demo-tag">예시</small>}</a>
    {children && <button className="nav-expand" aria-label={`${label} ${isOpen ? '접기' : '펼치기'}`} aria-expanded={!!isOpen} onClick={() => setExpanded({...expanded,[key]:!isOpen})}><Icon name="chevron" className={isOpen ? 'rotate' : ''}/></button>}
   </div>{children && isOpen && <div className="nav-children">{children.map(([k,l,r]) => <a key={k} href={`#${r}`} className={`nav-link ${k === active ? 'is-current' : ''}`} aria-current={k === active ? 'page' : undefined} onClick={onNavigate}>{l}</a>)}</div>}</div>;
  })}<div className="nav-footer"><span>{live?(environment?.name || '환경 미선택'):'online-boutique'}</span><span>{live?(environment?`namespace ${environment.namespace}`:'환경을 등록하세요'):'namespace sentrix'}</span>{live&&<a href="#A4-Onboarding" onClick={onNavigate}>환경 등록</a>}</div></nav>;

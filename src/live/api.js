@@ -32,14 +32,14 @@ export class ApiError extends Error {
  constructor(message, status, code) { super(message); this.status = status; this.code = code; }
 }
 
-export async function request(path, { method = 'GET', body, signal } = {}) {
+export async function request(path, { method = 'GET', body, signal, timeoutMs = 20000 } = {}) {
  const controller = new AbortController();
  const cancel = () => controller.abort();
  signal?.addEventListener('abort', cancel, { once: true });
  if (signal?.aborted) cancel();
- const timer = setTimeout(cancel, 20000);
+ const timer = setTimeout(cancel, timeoutMs);
  try {
-  const response = await fetch(`/api/v1${path}`, { method, signal: controller.signal,
+  const response = await fetch(path === "/actuator/health" ? path : `/api/v1${path}`, { method, signal: controller.signal,
    headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
    body: body === undefined ? undefined : JSON.stringify(body) });
   const json = await response.json().catch(() => null);

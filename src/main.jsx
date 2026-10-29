@@ -28,7 +28,7 @@ function App() {
  },[]);
  useEffect(() => {
   const heading = document.querySelector('h1');
-  const titles = { 'B6-Trace':'Trace', 'B7-Logs':'로그', 'B1-Overview':'개요', 'B5-Service':'서비스 상세', 'C3-Settings':'설정', 'A4-Onboarding':'관측 환경 설정' };
+  const titles = { 'B2-ServiceMap':'Service map', 'B6-Trace':'Trace', 'B7-Logs':'로그', 'B1-Overview':'개요', 'B5-Service':'서비스 상세', 'C3-Settings':'설정', 'A4-Onboarding':'관측 환경 설정' };
   document.title = `${live ? titles[route] : heading?.textContent || '대시보드'} · SentriX`;
  },[route,live]);
  const Screen = screens[route];
