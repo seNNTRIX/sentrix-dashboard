@@ -1,6 +1,6 @@
 # 구현 API ↔ 대시보드 연결 현황
 
-기준: 2026-10-29. 현재 구현된 **20개 operation 모두 호출 경로를 화면에 연결**했다. 제품의 모든 설계 기능이 완성됐다는 의미가 아니다. ML/RCA·장애·인증 등 미구현 API는 이 표에 포함하지 않는다.
+기준: 2026-11-02. 현재 구현된 **28개 operation 모두 호출 경로를 화면에 연결**했다. 제품의 모든 설계 기능이 완성됐다는 의미가 아니다. ML 추론·자동 장애 탐지·인증 등 미구현 API는 이 표에 포함하지 않는다.
 
 `E = /api/v1/environments/{id}`. 체크는 구현된 계약 범위의 UI 연결을 뜻한다.
 
@@ -43,3 +43,21 @@
 - 저장된 실제 상품 조회 trace에서 3개 서비스·2개 연결 확인. Trace 상세 6개 span과 호출 관계 화면 왕복 이동 확인.
 - 설정 일반에서 실제 Online Boutique 환경 상세와 health UP 표시 확인. 검증 탭 오류 로그 없음.
 - 기존 기능의 검증 기록은 README 및 sentrix-core/docs/BACKEND-TRACKER.md 참조. 이번 작업에서 모든 저장 API를 재실행하거나 사용자 설정을 변경하지 않았다.
+
+
+## 수동 장애 기록·작업 상태 (2026-11-02)
+
+| 상태 | API | 사용 화면 |
+|---|---|---|
+| [x] | POST E/incidents | 장애 기록 등록 폼 |
+| [x] | GET E/incidents | 장애 목록, 상태·서비스 필터 및 페이지 |
+| [x] | GET E/incidents/{incidentId} | 장애 기록 상세 |
+| [x] | PATCH E/incidents/{incidentId} | 수동 종료·다시 열기 |
+| [x] | POST E/incidents/{incidentId}/rca-jobs | 분석 요청 기록 |
+| [x] | GET E/incidents/{incidentId}/rca-jobs | 분석 요청 이력·페이지 |
+| [x] | GET E/incidents/{incidentId}/rca-jobs/{jobId} | 작업 ID 클릭 상세 |
+| [x] | POST E/incidents/{incidentId}/rca-jobs/{jobId}/cancel | 대기 요청 취소 |
+
+기존 B3/B4의 상단/사이드바와 패널·표 스타일을 유지하고 실제 기록을 표시한다. 수동 기록을 자동 탐지로 표시하지 않는다. 기간 필터는 API에서 지원하며 목록 UI에는 상태·서비스 필터를 제공한다. 모델 미연결 요청은 자동 실행되지 않는다.
+
+검증: 프론트 20개 테스트, production build 통과. 실제 Java/MySQL에서 화면 등록·상세·작업 요청·취소·재요청·장애 종료 시 작업 취소·작업 사유 조회 및 새로고침 유지 확인. 테스트 기록은 '[기능 검증]' 제목으로 수동 종료했다. 모바일·부하·ML 실행은 미검증, 기존 번들 크기 경고 유지.
