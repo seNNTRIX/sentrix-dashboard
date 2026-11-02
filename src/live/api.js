@@ -1,4 +1,9 @@
 const messages = {
+ INCIDENT_NOT_FOUND:"이 환경에서 장애 기록을 찾지 못했습니다.",
+ ANALYSIS_JOB_NOT_FOUND:"이 기록의 분석 작업을 찾지 못했습니다.",
+ IDEMPOTENCY_CONFLICT:"같은 요청 키로 다른 내용이 전송됐습니다.",
+ ACTIVE_ANALYSIS_JOB_EXISTS:"이미 모델 연결을 기다리는 작업이 있습니다. 기존 작업을 확인하거나 취소하세요.",
+ INCIDENT_RESOLVED:"종료된 기록은 다시 연 뒤 분석을 요청하세요.",
  TEMPO_NOT_CONFIGURED:'Tempo 연결 설정을 먼저 저장하세요.',
  TEMPO_TIMEOUT:'Tempo 응답 시간이 초과됐습니다.',
  TEMPO_HTTP_ERROR:'Tempo가 조회를 거부했습니다. 연결 설정과 서버 상태를 확인하세요.',

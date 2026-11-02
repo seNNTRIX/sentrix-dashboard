@@ -1,0 +1,1 @@
+export function validateIncident(x,env){if(x?.environmentId!==env||x.source!=='MANUAL'||!['OPEN','RESOLVED'].includes(x.status)||typeof x.id!=='string'||typeof x.title!=='string'||typeof x.service!=='string'||!Number.isFinite(Date.parse(x.occurredAt)))throw new Error('장애 기록 응답이 올바르지 않습니다.');return x;}
