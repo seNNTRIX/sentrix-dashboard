@@ -95,7 +95,7 @@ function AnalysisResult({value}){
  return <div style={{overflowWrap:'anywhere'}}>
   <p><strong>판정 · {decisionLabel(value.decision)}</strong>{value.score!=null&&<> · 점수 {value.score}</>}</p>
   <p className="secondary-text">점수는 모델이 반환한 값이며 확률을 뜻하지 않습니다.</p>
-  {value.abstainReason&&<p>보류 사유 · {value.abstainReason}</p>}
+  {value.abstainReason&&<p>보류 사유 · {({FEATURE_INPUT_UNAVAILABLE:'분석할 구간의 특징 데이터가 아직 준비되지 않았습니다.',CALIBRATION_AND_CONSECUTIVE_WINDOWS_REQUIRED:'정상 기준값과 연속 구간 확인이 필요합니다.'}[value.abstainReason]||value.abstainReason)}</p>}
   <p>모델 {value.modelVersion} · 특징 {value.featureSchemaVersion} · 계약 {value.contractVersion}</p>
   {value.candidates.length?<div className="scroll-region" style={{overflowX:'auto'}} tabIndex="0"><table className="data-table"><thead><tr><th>순위</th><th>원인 후보</th><th>장애 유형</th><th>점수</th><th>근거</th></tr></thead><tbody>{[...value.candidates].sort((a,b)=>a.rank-b.rank).map(c=><tr key={c.rank}><td>{c.rank}</td><td>{c.kind==='NODE'?<>서비스 · {c.service}</>:<>호출 경로 · {c.source} → {c.target}</>}</td><td>{c.faultType}</td><td>{c.score}</td><td>{c.evidence.length?<ul>{c.evidence.map((e,i)=><li key={i}>{e}</li>)}</ul>:'제공된 근거 없음'}</td></tr>)}</tbody></table></div>:<p>반환된 원인 후보가 없습니다.</p>}
  </div>;
