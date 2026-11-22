@@ -78,3 +78,12 @@
 검증: 프론트 단위 테스트 23개 및 production build 통과. `scripts/check-analysis.mjs`의 브라우저 API fixture로 6개 상태·취소·저장 결과/보류·다른 환경 응답 거부·늦은 결과 차단·근거 escaping을 확인했다. 실제 모델 추론 검증과 구분한다. 기존 번들 크기 경고 유지.
 
 - 2026-11-22 실제 Java/MySQL 연동: 대시보드5176에서 검증용 수동 기록의 분석 요청→미연결·고정30초 구간 표시→취소→수동 종료를 확인했다. 서버 API에서도 CANCELLED/USER_CANCELLED 및 결과409 확인. 모델 성공 결과는 fixture로만 검증했고 실제 모델 추론은 미검증이다.
+
+
+### 실제 frozen 모델 서버 연결 — 2026-11-22 후속
+
+Python 모델 서버가 실제 RF/LightGBM을 로드한 상태에서 Java 작업 접수·응답·MySQL저장을 확인했다.
+화면에서 완료 작업의 ABSTAIN/FEATURE_INPUT_UNAVAILABLE, 모델re2ob-v2-freeze 및 특징re2ob-v0-rel18-all58 확인.
+보류 사유는 한국어로 표시한다. 실시간 특징 생성·정상기준·연속 탐지 준비 전이므로 실제 RCA 결과로 표시하지 않는다.
+monitoring.modelStatus CONFIGURED와 BLOCKED_AUTOMATIC_ANALYSIS_UNAVAILABLE를 지원하며 자동분석 미구현을 명시한다.
+프론트24개 테스트·build 통과. 모델 원인 순위 정확도는 검증하지 않았다.
