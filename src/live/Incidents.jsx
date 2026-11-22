@@ -26,7 +26,7 @@ export function IncidentDetail(){const d=useDesign();return <><DataNotice/>{d.en
 function Detail({d}){
  const [record,setRecord]=useState(null),[jobs,setJobs]=useState(null),[page,setPage]=useState(0),[rev,setRev]=useState(0),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [selectedId,setSelectedId]=useState(''),[selected,setSelected]=useState(null),[result,setResult]=useState(null),[detailError,setDetailError]=useState('');
- const active=useRef(null),jobKey=useRef(crypto.randomUUID());
+ const active=useRef(null),jobKey=useRef(crypto.randomUUID()),latestKey=useRef(crypto.randomUUID());
  const base=`${environmentPath(d.environment.id)}/incidents/${encodeURIComponent(d.incidentId||'')}`;
  useEffect(()=>{
   const c=new AbortController();active.current=c;setRecord(null);setJobs(null);setError('');
@@ -35,7 +35,7 @@ function Detail({d}){
    validateIncident(x,d.environment.id);
    if(!Array.isArray(j.items)||!Number.isInteger(j.totalPages))throw new Error('분석 작업 응답 오류');
    j.items.forEach(item=>validateJob(item,d.environment.id,x.id));
-   if(!c.signal.aborted){setRecord(x);setJobs(j);}
+   if(!c.signal.aborted){setRecord(x);setJobs(j);if(j.items.length)setSelectedId(id=>id||j.items[0].id);}
   }).catch(e=>{if(!c.signal.aborted)setError(e.message);});
   return()=>c.abort();
  },[base,page,rev]);
@@ -43,21 +43,36 @@ function Detail({d}){
   const c=new AbortController();setSelected(null);setResult(null);setDetailError('');
   if(!selectedId)return()=>c.abort();
   const path=base+'/rca-jobs/'+encodeURIComponent(selectedId);
-  request(path,{signal:c.signal}).then(async x=>{
+  let timer;
+  const readJob=()=>request(path,{signal:c.signal}).then(async x=>{
    validateJob(x,d.environment.id,d.incidentId,selectedId);
    if(c.signal.aborted)return;
    setSelected(x);
+   if(['QUEUED','RUNNING'].includes(x.status)) timer=setTimeout(readJob,3000);
+   setJobs(j=>j&&({...j,items:j.items.map(item=>item.id===x.id?x:item)}));
    if(x.status==='SUCCEEDED'){
     const value=await request(path+'/result',{signal:c.signal});
     validateAnalysisResult(value,x,d.environment.namespace);
     if(!c.signal.aborted)setResult(value);
    }
   }).catch(e=>{if(!c.signal.aborted)setDetailError(e.message);});
-  return()=>c.abort();
+  readJob();
+  return()=>{c.abort();clearTimeout(timer);};
  },[base,selectedId,rev]);
  const mutate=async(path,method,body)=>{
   if(busy)return;setBusy(true);setError('');const c=active.current;
-  try{await request(path,{method,body,signal:c.signal});if(!c.signal.aborted){jobKey.current=crypto.randomUUID();setRev(n=>n+1);}}
+  try {
+   const response=await request(path,{method,body,signal:c.signal});
+   if(c.signal.aborted)return;
+   if(body?.requestKey){
+    validateJob(response,d.environment.id,d.incidentId);
+    const key=body.latest?latestKey:jobKey;
+    key.current=crypto.randomUUID();
+    setSelectedId(response.id);
+    setPage(0);
+   }
+   setRev(n=>n+1);
+  }
   catch(e){if(!c.signal.aborted)setError(e.message);}
   finally{if(!c.signal.aborted)setBusy(false);}
  };
@@ -72,7 +87,7 @@ function Detail({d}){
   <button className="ui-button" disabled={busy} onClick={()=>mutate(base,'PATCH',{status:record.status==='OPEN'?'RESOLVED':'OPEN'})}>{record.status==='OPEN'?'수동 종료':'기록 다시 열기'}</button>
   <p className="secondary-text">수동 종료는 서비스 자동 회복 판정이 아닙니다.</p>
  </section><section style={panel} aria-label="분석 작업 이력">
-  <div style={{display:'flex',gap:12,justifyContent:'space-between',flexWrap:'wrap'}}><h2 style={{fontSize:16}}>분석 작업 이력</h2><button className="ui-button" disabled={busy||record.status!=='OPEN'} onClick={()=>mutate(base+'/rca-jobs','POST',{requestKey:jobKey.current})}>분석 요청 기록</button></div>
+  <div style={{display:'flex',gap:12,justifyContent:'space-between',flexWrap:'wrap'}}><h2 style={{fontSize:16}}>분석 작업 이력</h2><button className="ui-button" disabled={busy||record.status!=='OPEN'} onClick={()=>mutate(base+'/rca-jobs','POST',{requestKey:jobKey.current})}>발생 시점 분석</button><button className="ui-button" disabled={busy||record.status!=='OPEN'} onClick={()=>mutate(base+'/rca-jobs','POST',{requestKey:latestKey.current,latest:true})}>최근 30초 분석</button></div>
   <p className="secondary-text">모델 미연결로 대기한 요청은 연결 후에도 자동 실행되지 않습니다. 새 분석을 요청해야 합니다.</p>
   <div className="scroll-region" style={{overflowX:'auto'}} tabIndex="0"><table className="data-table"><thead><tr><th>작업 ID</th><th>상태</th><th>요청 시각</th><th>작업</th></tr></thead><tbody>{jobs.items.map(j=><tr key={j.id}><td><button className="ui-button" aria-pressed={selectedId===j.id} onClick={()=>setSelectedId(j.id)}>{j.id.slice(0,8)}</button></td><td>{jobLabel(j.status)}</td><td>{at(j.createdAt)}</td><td><button className="ui-button" disabled={busy||!canCancelJob(j.status)} onClick={()=>mutate(base+'/rca-jobs/'+j.id+'/cancel','POST')}>요청 취소</button></td></tr>)}</tbody></table></div>
   {!jobs.items.length&&<p>분석 요청 이력이 없습니다.</p>}

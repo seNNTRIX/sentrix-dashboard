@@ -53,9 +53,9 @@
 | [x] | GET E/incidents | 장애 목록, 상태·서비스 필터 및 페이지 |
 | [x] | GET E/incidents/{incidentId} | 장애 기록 상세 |
 | [x] | PATCH E/incidents/{incidentId} | 수동 종료·다시 열기 |
-| [x] | POST E/incidents/{incidentId}/rca-jobs | 분석 요청 기록 |
+| [x] | POST E/incidents/{incidentId}/rca-jobs | 장애 상세 → 발생 시점 분석 또는 최근 30초 분석. Java에서 구간 고정 |
 | [x] | GET E/incidents/{incidentId}/rca-jobs | 분석 요청 이력·페이지 |
-| [x] | GET E/incidents/{incidentId}/rca-jobs/{jobId} | 작업 ID 클릭 상세 |
+| [x] | GET E/incidents/{incidentId}/rca-jobs/{jobId} | 작업 ID 클릭 상세. 대기·실행 중 3초마다 상태 갱신 |
 | [x] | POST E/incidents/{incidentId}/rca-jobs/{jobId}/cancel | 대기 요청 취소 |
 
 기존 B3/B4의 상단/사이드바와 패널·표 스타일을 유지하고 실제 기록을 표시한다. 수동 기록을 자동 탐지로 표시하지 않는다. 기간 필터는 API에서 지원하며 목록 UI에는 상태·서비스 필터를 제공한다. 모델 미연결 요청은 자동 실행되지 않는다.
