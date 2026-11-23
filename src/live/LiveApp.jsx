@@ -12,7 +12,7 @@ import './design-binding.css';
 export const connectedRoutes=new Set(['A1-Login','A2-Signup','A3-Reset','B3-Incidents','B4-Incident','B2-ServiceMap','B1-Overview','B5-Service','B6-Trace','B7-Logs','C3-Settings','A4-Onboarding','B8-Model','C1-Notifications','C2-AlertRules','C4-Team','C5-Account','C6-Audit','C7-States']);
 function Connected({route,params,initialTheme}){
  const env=useEnvironment(),{environment}=env;
- const [service,setService]=useState(params.get('service')||'frontend'),[search,setSearch]=useState(''),[limit,setLimit]=useState(route==='B6-Trace'?'20':'100');
+ const [serviceChoice,setService]=useState(params.get('service')||'frontend'),[search,setSearch]=useState(''),[limit,setLimit]=useState(route==='B6-Trace'?'20':'100');
  const [range,setRange]=useState(()=>{const end=Date.parse(params.get('at'));return Number.isFinite(end)?queryRange(end-900000,end):queryRange(Date.now()-(route==='B3-Incidents'?86400000:900000),Date.now());}),[rangeLabel,setRangeLabel]=useState(params.has('at')?'장애 발생 구간':route==='B3-Incidents'?'지난 24시간':'지난 15분'),[revision,setRevision]=useState(0);
  const [volume,setVolume]=useState({});
  const [result,setResult]=useState({loading:true}),[inventory,setInventory]=useState([]),[metrics,setMetrics]=useState({});
@@ -22,6 +22,12 @@ function Connected({route,params,initialTheme}){
  const [policy,setPolicy]=useState(null);
  const applicationServices=policy?.applicationServices;
  const serviceNames=inventory.map(item=>item.name).filter(name=>!applicationServices||applicationServices.includes(name));
+ const explore=route==='B6-Trace'||route==='B7-Logs';
+ const linkedService=params.get('service');
+ // Historical trace links can refer to a deployment no longer in the inventory.
+ if(explore&&linkedService&&!serviceNames.includes(linkedService))serviceNames.push(linkedService);
+ const exploreService=explore?(serviceNames.includes(serviceChoice)?serviceChoice:serviceNames[0]||''):null;
+ const service=exploreService??serviceChoice;
  const [homeChoice,setHomeChoice]=useState(params.get('service')||'frontend');
  const homeService=route==='B1-Overview'?(serviceNames.includes(homeChoice)?homeChoice:serviceNames[0]||''):null;
  const metricService=homeService??service;
@@ -31,7 +37,7 @@ function Connected({route,params,initialTheme}){
  const chooseTrace=id=>{setSelected(id);setDetailRevision(n=>n+1);};
  useEffect(()=>{setService(params.get('service')||'frontend');setSelected('');},[params.get('service'),route]);
  useEffect(()=>{
-  if(!environment)return;const abort=new AbortController();setInventory([]);setInventoryLoading(true);setInventoryError('');setSources([]);setSourceError('');
+  if(!environment)return;const abort=new AbortController();setInventoryLoading(true);setInventoryError('');setSources([]);setSourceError('');
   request(`${environmentPath(environment.id)}/services`,{signal:abort.signal}).then(d=>{if(!abort.signal.aborted){setInventory(d.items||[]);setInventoryLoading(false);}}).catch(e=>{if(!abort.signal.aborted){setInventoryError(e.message);setInventoryLoading(false);}});
   if(!publicView)request(`${environmentPath(environment.id)}/data-sources`,{signal:abort.signal}).then(d=>{if(!abort.signal.aborted)setSources(d);}).catch(e=>{if(!abort.signal.aborted)setSourceError(e.message);});
   return()=>abort.abort();
@@ -40,7 +46,8 @@ function Connected({route,params,initialTheme}){
   setResult({loading:true});setVolume({});setSelected(route==='B6-Trace'?(params.get('traceId')||''):'');setDetail({});
   if(!environment)return;const abort=new AbortController(),base=environmentPath(environment.id);
   const {stepSeconds,...time}=range;
-  if(route==='B7-Logs'||route==='B6-Trace'){
+  if(explore){
+   if(!service){setResult({});return ()=>abort.abort();}
    if(route==='B7-Logs') {
     setVolume({loading:true});
     try {
@@ -81,7 +88,7 @@ function Connected({route,params,initialTheme}){
   }else setResult({});
   return()=>abort.abort();
  // Filters are applied with Run query; time and service links apply immediately.
- },[environment?.id,route,range,revision,params.get('service'),homeService]);
+ },[environment?.id,route,range,revision,params.get('service'),homeService,exploreService]);
  useEffect(()=>{
   setDetail(selected?{loading:true}:{});if(!selected||!environment)return;
   const abort=new AbortController();request(`${environmentPath(environment.id)}/traces/${encodeURIComponent(selected)}`,{signal:abort.signal})
@@ -90,7 +97,7 @@ function Connected({route,params,initialTheme}){
  },[environment?.id,selected,detailRevision]);
  const [overview,setOverview]=useState(null);
  useEffect(()=>{
-  if(location.pathname!=='/display'||environment?.id!==1||!['B1-Overview','B2-ServiceMap','B8-Model','C2-AlertRules','C3-Settings','C7-States'].includes(route))return;
+  if(location.pathname!=='/display'||environment?.id!==1||!['B1-Overview','B2-ServiceMap','B6-Trace','B7-Logs','B8-Model','C2-AlertRules','C3-Settings','C7-States'].includes(route))return;
   const abort=new AbortController();
   fetch('/display-policy',{signal:abort.signal}).then(r=>r.ok?r.json():null).then(x=>{
    if(!abort.signal.aborted)setPolicy(x);

@@ -73,6 +73,9 @@ try {
  await expect(logs).toContainText('<script>window.logInjected=true</script>');
  expect(await page.evaluate(()=>window.logInjected)).toBeUndefined();
  await expect(page.locator('.bound-notice')).toContainText('최신 100건만 표시');
+ const serviceFilter=page.getByRole('combobox',{name:'조회 서비스'});
+ await serviceFilter.selectOption('checkoutservice');
+ await expect.poll(()=>calls.filter(c=>c.path.endsWith('/logs')).at(-1)?.query).toContain('service=checkoutservice');
  await page.getByLabel('포함 문자열').fill('missing');
  await page.getByRole('button',{name:'Run query',exact:true}).click();
  await expect(logs).toContainText('조건에 맞는 로그가 없습니다');
@@ -91,6 +94,8 @@ try {
  await page.getByRole('button',{name:'Boutique Lab',exact:false}).click();
  await page.goto(base+'#B6-Trace?service=frontend');
  await expect(page.getByRole('heading',{name:'Trace',exact:true})).toBeVisible();
+ await serviceFilter.selectOption('checkoutservice');
+ await expect.poll(()=>calls.filter(c=>c.path.endsWith('/traces')).at(-1)?.query).toContain('service=checkoutservice');
  await page.getByRole('button',{name:'11111111111111111111111111111111',exact:true}).click();
  const trace=page.locator('[aria-labelledby="tv-h"]');
  await expect(trace).toContainText('Total spans 1');

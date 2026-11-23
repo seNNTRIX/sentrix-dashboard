@@ -9,7 +9,10 @@ export function QueryEditor({mode=0}){
  const query=trace?`{ resource.service.namespace = ${JSON.stringify(d.environment?.namespace||'')} && resource.service.name = ${JSON.stringify(d.service)} }`:`{k8s_namespace_name=${JSON.stringify(d.environment?.namespace||'')}, k8s_deployment_name=${JSON.stringify(d.service)}}${d.search?' |= '+JSON.stringify(d.search):''}`;
  return <form className="bound-query" onSubmit={e=>{e.preventDefault();mode===1?d.chooseTrace(d.traceId):d.run();}}>
   {mode===1?<label>Trace ID<input aria-label="Trace ID" required pattern="[0-9a-f]{32}" maxLength={32} value={d.traceId} onChange={e=>d.setTraceId(e.target.value.trim().toLowerCase())} placeholder="32자리 추적 ID"/></label>:<>
-   <div className="bound-filters"><label>서비스<input aria-label="조회 서비스" required maxLength={253} pattern="[a-z0-9]([a-z0-9.-]*[a-z0-9])?" value={d.service} onChange={e=>d.setService(e.target.value)}/></label>
+   <div className="bound-filters"><label>서비스<select aria-label="조회 서비스" required value={d.service} disabled={!d.serviceNames.length} onChange={e=>d.setService(e.target.value)}>
+    {!d.serviceNames.length&&<option value="">{d.inventoryLoading?'조회 중…':d.inventoryError?'서비스 조회 실패':'서비스 없음'}</option>}
+    {d.serviceNames.map(name=><option key={name} value={name}>{name}</option>)}
+   </select></label>
    {!trace&&!d.publicView&&<label>포함 문자열<input aria-label="포함 문자열" maxLength={200} value={d.search} onChange={e=>d.setSearch(e.target.value)} placeholder="원문 검색"/></label>}
    {(!d.publicView||trace)&&<label>Limit<select aria-label="조회 최대 개수" value={d.limit} onChange={e=>d.setLimit(e.target.value)}>{(trace?[20,50,100]:[20,50,100,500]).map(n=><option key={n}>{n}</option>)}</select></label>}</div>
    <div className="mono bound-query-code">{query}</div>
