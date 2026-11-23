@@ -9,7 +9,7 @@
 .sm-inspector {flex:0 0 min(320px,31%);overflow-wrap:anywhere}
 .sm-guide {padding:9px 12px;color:var(--text-2);background:var(--page);border-bottom:1px solid var(--border-weak);font-size:12px}
 .sm-scroll {max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
-.sm-canvas {position:relative;min-width:610px;width:100%;isolation:isolate}
+.sm-canvas {height:var(--sm-canvas-height);position:relative;min-width:610px;width:100%;isolation:isolate}
 .sm-canvas svg {position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .sm-edge {fill:none;vector-effect:non-scaling-stroke}
 .sm-line-base {stroke:var(--border-strong)} .sm-fill-base {fill:var(--border-strong)}
@@ -56,3 +56,7 @@
 .obs-mini a.obs-node{text-decoration:none;color:var(--text)}
 .sm-canvas.sm-focused{min-width:0}
 .sm-focused .sm-node{max-width:27%}
+
+@media (max-width: 600px) {
+ .sm-canvas:not(.sm-focused) {height:calc(var(--sm-canvas-height) * 0.72)}
+}

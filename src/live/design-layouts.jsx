@@ -288,15 +288,10 @@ function LayoutA4({atFirst, closeMenu, environmentName, next, nextLocked, prev, 
    </div>
   </header>
   <div style={css("display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start")}>
-   <ol aria-label={"설정 단계"} style={css("flex: 0 0 200px; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px")}>
+   <ol aria-label={"설정 단계"} className="setup-steps">
     {(steps || []).map((s, i) => <React.Fragment key={i}>
-     <li>
-      <button type={"button"} disabled={true} aria-current={s.current} style={css(s.style)}>
-       <span style={css(s.badge)}>
-        {s.mark}
-       </span>
-       {s.label}
-      </button>
+     <li aria-current={s.current?'step':undefined}>
+      <span aria-hidden="true">{s.mark}</span><span>{s.label}</span>
      </li>
     </React.Fragment>)}
    </ol>
@@ -314,12 +309,9 @@ function LayoutA4({atFirst, closeMenu, environmentName, next, nextLocked, prev, 
      {s3 && <>
       {slots.s3}
      </>}
-     {s4 && <>
-      {slots.s4}
-     </>}
+     {s4 && slots.s4}
     </div>
-    <div style={css("display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas)")}>
-     {showFooter && <>
+    {showFooter && <div style={css("display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas)")}>
       <button type={"button"} onClick={prev} disabled={atFirst} style={css("height: 32px; padding: 0 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-weight: 500")}>
        {"이전"}
       </button>
@@ -328,11 +320,7 @@ function LayoutA4({atFirst, closeMenu, environmentName, next, nextLocked, prev, 
         {"다음"}
        </button>
       </div>
-     </>}
-     {s4 && <>
-      {slots.s4}
-     </>}
-    </div>
+    </div>}
    </section>
   </div>
  </div>
@@ -483,7 +471,7 @@ function LayoutB8({alerts, closeMenu, gauges, menuOpen, onThr, setTheme, slots, 
  );
 }
 
-function LayoutC1({closeMenu, empty, filters, hasItems, items, markAll, menuOpen, noUnread, setTheme, showAll, slots, theme, toggleMenu}) {
+function LayoutC1({closeMenu, empty, filters, hasItems, items, markAll, menuOpen, noUnread, notice, setTheme, showAll, slots, theme, toggleMenu}) {
  return (
 <div className={"g screen-root"} data-theme={theme} style={css("min-height: 100vh; display: flex; flex-direction: column")} data-screen={"C1-Notifications"}>
  <div style={css("position: relative; z-index: 50")} className={"shell-header"}>
@@ -515,6 +503,7 @@ function LayoutC1({closeMenu, empty, filters, hasItems, items, markAll, menuOpen
     </button>
    </div>
    <section style={css("background: var(--bg1); border: 1px solid var(--border-weak); border-radius: 8px; overflow: hidden")} className={"panel"}>
+    {notice}
     {hasItems && <>
      <ul style={css("list-style: none; margin: 0; padding: 0")}>
       {(items || []).map((n, i) => <React.Fragment key={i}>
@@ -552,11 +541,9 @@ function LayoutC1({closeMenu, empty, filters, hasItems, items, markAll, menuOpen
     </>}
    </section>
    <div style={css("color: var(--text-2)")}>
-    {"알림 받을 곳과 조건은 "}
     <a href={routeHref("C2-AlertRules.dc.html")}>
-     {"Alert rules"}
+     {"탐지 규칙 보기"}
     </a>
-    {"에서 바꿉니다."}
    </div>
   </main>
  </div>
@@ -564,7 +551,7 @@ function LayoutC1({closeMenu, empty, filters, hasItems, items, markAll, menuOpen
  );
 }
 
-function LayoutC2({q,onQ,closeMenu, crumbs, cycle, hrefs, isList, menuOpen, rules, setTheme, slots, theme, toggleMenu}) {
+function LayoutC2({q,onQ,closeMenu, crumbs, cycle, hrefs, isList, menuOpen, notice, rules, setTheme, slots, theme, toggleMenu}) {
  return (
 <div className={"g screen-root"} data-theme={theme} style={css("min-height: 100vh; display: flex; flex-direction: column")} data-screen={"C2-AlertRules"}>
  <div style={css("position: relative; z-index: 50")} className={"shell-header"}>
@@ -607,8 +594,8 @@ function LayoutC2({q,onQ,closeMenu, crumbs, cycle, hrefs, isList, menuOpen, rule
         {cycle}
        </span>
       </div>
-      <div role={"table"} aria-label={"Alert rules"} style={css("min-width: 640px")}>
-       <div role={"row"} style={css("display: grid; grid-template-columns: 96px minmax(0, 1fr) 64px 72px; gap: 16px; align-items: center; height: 36px; padding: 0 20px; border-bottom: 1px solid var(--border-weak); font-size: 13px; font-weight: 500; color: var(--text-2)")}>
+      <div role={"table"} aria-label={"Alert rules"} className="workspace-rules">
+       <div role={"row"}>
         <span role={"columnheader"}>
          {"상태"}
         </span>
@@ -623,9 +610,9 @@ function LayoutC2({q,onQ,closeMenu, crumbs, cycle, hrefs, isList, menuOpen, rule
         </span>
        </div>
        {(rules || []).map((r, i) => <React.Fragment key={i}>
-        <div role={"row"} style={css(r.row)}>
+        <div role={"row"}>
          <span role={"cell"}>
-          <span style={css(r.stateStyle)}>
+          <span className="live-badge">
            {r.stateLabel}
           </span>
          </span>
@@ -638,9 +625,7 @@ function LayoutC2({q,onQ,closeMenu, crumbs, cycle, hrefs, isList, menuOpen, rule
           </span>
          </span>
          <span role={"cell"}>
-          <button type={"button"} role={"switch"} aria-checked={r.on} aria-label={r.switchLabel} style={css(r.track)} disabled={true}>
-           <span style={css(r.knob)} />
-          </button>
+          <button type="button" role="switch" aria-checked={r.on} aria-label={r.name + ' 사용'} disabled />
          </span>
          <span role={"cell"} style={css("text-align: right")}>
           <button type={"button"} style={css("height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500")} disabled={true}>
@@ -650,6 +635,7 @@ function LayoutC2({q,onQ,closeMenu, crumbs, cycle, hrefs, isList, menuOpen, rule
         </div>
        </React.Fragment>)}
       </div>
+      {notice}
      </section>
     </>}
    </div>
@@ -1094,7 +1080,7 @@ function LayoutC5({closeMenu, menuOpen, onPw, onPw2, pw2Style, rules, setTheme, 
      </div>
      <div style={css("display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 24px; border-top: 1px solid var(--border-weak); background: var(--canvas)")}>
       <span style={css("font-size: 13px; color: var(--text-2)")}>
-       {"사용자 이름은 영문, 숫자, 점만 쓸 수 있습니다."}
+       {"영문, 숫자, 점(.)만 사용할 수 있습니다."}
       </span>
       <button type={"button"} style={css("height: 32px; padding: 0 14px; border: 0; border-radius: 6px; background: var(--primary); color: var(--on-primary); font-weight: 500")} disabled={true}>
        {"저장"}
@@ -1370,17 +1356,14 @@ function LayoutC6({atFirst, atLast, closeMenu, menuOpen, next, pages, prev, setT
         </thead>
         <tbody>
          <tr>
-          <td colSpan={"8"} style={css("color:var(--text-2)")}>
-           {"감사 기록 조회 미연결"}
+          <td colSpan={6} style={css("color:var(--text-2)")}>
+           {"감사 기록 저장소가 연결되지 않았습니다."}
           </td>
          </tr>
         </tbody>
        </table>
       </div>
-      <nav aria-label={"페이지"} style={css("display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--border-weak)")}>
-       <span style={css("font-size: 13px; color: var(--text-2)")}>
-        {"감사 저장소 미연결"}
-       </span>
+      <nav aria-label={"페이지"} style={css("display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--border-weak)")}>
        <div style={css("display: flex; align-items: center; gap: 4px")}>
         <button type={"button"} onClick={prev} disabled={atFirst} style={css("height: 28px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg1); font-size: 13px; font-weight: 500")}>
          {"이전"}

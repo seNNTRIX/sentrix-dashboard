@@ -10,6 +10,7 @@ import {CollectionStatus,StatusCards} from './CollectionStatus.jsx';
 import {publicView} from './public-view.js';
 import evaluation from './evaluation-sydney.json';
 import benchmark from './evaluation-re2ob.json';
+import './workspace-page.css';
 
 const tabStyle='height:40px;padding:0 12px;border:0;background:none;white-space:nowrap;';
 const chipStyle='min-height:28px;padding:0 12px;border:0;border-radius:6px;';
@@ -24,7 +25,7 @@ function trials(){
 function model(d){
  const threshold=Number.isFinite(d.threshold)?d.threshold:null;
  const name=d.modelVersion||'—';
- const metrics=[['Top-1',percent(benchmark.top1),'원인 서비스 제외 검증'],['Top-3',percent(benchmark.top3),'원인 서비스 제외 검증'],['탐지 AUROC',benchmark.auc.toFixed(3),'반복 회차 3-fold'],['Detection threshold',threshold?.toFixed(4)||'—','현재 관측 환경']];
+ const metrics=[['Top-1',percent(benchmark.top1),'원인 서비스 제외 검증'],['Top-3',percent(benchmark.top3),'원인 서비스 제외 검증'],['탐지 AUROC',benchmark.auc.toFixed(3),'반복 3-fold 교차검증'],['Detection threshold',threshold?.toFixed(4)||'—','현재 관측 환경']];
  return {thr:threshold??'',thrText:threshold?.toFixed(5)||'—',stats:metrics.map(([title,value,sub],i)=>({title,value,sub,cell:'display:flex;flex-direction:column;gap:4px;padding:16px 20px;'+(i?'border-left:1px solid var(--border-weak)':'')})),
   gauges:Object.entries(benchmark.faults).map(([label,value])=>({label,value:value.toFixed(3),bar:'height:100%;background:var(--primary);width:'+percent(value)})),
   slots:{modelRows:rows([['모델',name],['탐지','LightGBM'],['서비스 순위','Random Forest'],['분석 구간','30초'],['환경',d.environment?.name||'—']]),
@@ -37,9 +38,9 @@ function useRemote(id,route){
  useEffect(()=>{if(!id||!['C1-Notifications','C2-AlertRules','C3-Settings','C7-States'].includes(route))return;
   const ctrl=new AbortController();let timer;const events=route==='C1-Notifications';
   async function load(){try{const data=await request(environmentPath(id)+(events?'/incidents?size=50':'/monitoring'),{signal:ctrl.signal});
-   if(!ctrl.signal.aborted)setState({data});
-  }catch(e){if(!ctrl.signal.aborted)setState({error:e.message});}finally{if(!ctrl.signal.aborted)timer=setTimeout(load,30000);}}
-  load();return()=>{ctrl.abort();clearTimeout(timer);};},[route,id]);return state;
+   if(!ctrl.signal.aborted)setState({data,route,id});
+  }catch(e){if(!ctrl.signal.aborted)setState({error:e.message,route,id});}finally{if(!ctrl.signal.aborted)timer=setTimeout(load,30000);}}
+  load();return()=>{ctrl.abort();clearTimeout(timer);};},[route,id]);return state.route===route&&state.id===id?state:{};
 }
 function settings(d,remote){
  const status=remote.data;
@@ -54,6 +55,7 @@ export function WorkspacePage({theme:initialTheme}){
  const key='sentrix-event-read:'+d.environment?.id;
  const [read,setRead]=useState(()=>{try{return JSON.parse(localStorage.getItem(key))||[];}catch{return [];}});
  const remote=useRemote(d.environment?.id,route);
+ const pendingText=d.error||remote.error||(!d.environment&&!d.loading?'관측 환경이 없습니다.':route==='C1-Notifications'?'알림 기록을 불러오는 중…':'탐지 규칙을 불러오는 중…');
  function mark(ids){setRead(old=>{const values=[...new Set([...old,...ids])].slice(-250);try{localStorage.setItem(key,JSON.stringify(values));}catch{}return values;});}
  function options(labels,index,choose,tabs=false){return labels.map((label,i)=>({label,pick:()=>choose(i),sel:String(i===index),checked:String(i===index),style:(tabs?tabStyle:chipStyle)+(tabs?(i===index?'box-shadow:inset 0 -2px var(--text);':'color:var(--text-2);'):(i===index?'background:var(--bg1);box-shadow:var(--shadow-z1);':'background:none;'))}));}
  const names=route==='C4-Team'?['멤버','초대 대기','역할']:['일반','데이터 소스','분석','알림 채널','API 키','Retention'];
@@ -63,18 +65,20 @@ export function WorkspacePage({theme:initialTheme}){
  slots:settings(d,remote),atFirst:true,atLast:true,retention:['메트릭','Trace','로그'].map(name=>({name,days:'—',used:'—',cap:'—',pct:'—',row:'padding:12px 0'}))};
  if(route==='B8-Model')Object.assign(binding,model(d));
  if(route==='C1-Notifications'){
+  binding.notice=remote.data?null:<p className="workspace-result-state" role={remote.error||d.error?'alert':'status'}>{pendingText}</p>;
   const events=(remote.data?.items||[]).filter(i=>i.source==='AUTOMATIC').flatMap(i=>[[i.occurredAt,'이상 감지'],...(i.resolvedAt?[[i.resolvedAt,'회복']]:[])].map(([time,title])=>({id:i.id+title,href:'#B4-Incident?incidentId='+i.id,title,body:i.title||i.service,time}))).sort((a,b)=>Date.parse(b.time)-Date.parse(a.time));
   const visible=events.filter(e=>tab===1?!read.includes(e.id):tab!==3);
   Object.assign(binding,{items:visible.map(e=>({...e,isRead:read.includes(e.id),read:()=>mark([e.id]),readLabel:'읽음으로 표시',time:new Date(e.time).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}),timeIso:e.time,timeFull:new Date(e.time).toLocaleString('ko-KR'),row:'display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border-weak)',titleStyle:'font-weight:500'})),hasItems:!!visible.length,empty:!visible.length&&!!remote.data,filters:options(['전체','읽지 않음','장애','데이터 소스'],tab,setTab),noUnread:!events.some(e=>!read.includes(e.id)),markAll:()=>mark(events.map(e=>e.id)),showAll:()=>setTab(0)});
  }
  if(route==='C2-AlertRules'){
   const s=remote.data;Object.assign(binding,{isList:true,crumbs:'홈|장애|Alert rules',hrefs:'B1-Overview.dc.html|B3-Incidents.dc.html|',cycle:s?'평가 주기 '+s.intervalSeconds+'초':'—',
-   rules:s&&'자동 이상 탐지 anomaly score'.includes(query.toLowerCase())?[{name:'자동 이상 탐지',on:s.enabled,stateLabel:s.enabled?'활성':'비활성',labelText:Number.isFinite(d.threshold)?'Anomaly score · '+d.threshold.toFixed(4):'Anomaly score',row:'display:grid;grid-template-columns:96px minmax(200px,1fr) 80px 80px;align-items:center;padding:12px 20px;border-top:1px solid var(--border-weak)'}]:[]});
+   rules:s&&'자동 이상 탐지 anomaly score'.includes(query.trim().toLowerCase())?[{name:'자동 이상 탐지',on:s.enabled,stateLabel:s.enabled?'활성':'비활성',labelText:Number.isFinite(d.threshold)?'Anomaly score · '+d.threshold.toFixed(4):'Anomaly score'}]:[]});
+  if(!binding.rules.length)binding.notice=<p className="workspace-result-state" role={remote.error||d.error?'alert':'status'}>{s?'검색 결과가 없습니다.':pendingText}</p>;
  }
  if(route.startsWith('A')){
   const steps=['클러스터 연결','데이터 소스','서비스 발견','알림 채널','완료'];
   Object.assign(binding,{stop:e=>e.preventDefault(),pwLabel:'비밀번호',pwType:'password',stepTitle:'비밀번호 재설정',stepNum:'1',stepDesc:'계정 인증 미연결',s1:true,notDone:true});
-  if(route==='A4-Onboarding')Object.assign(binding,{steps:steps.map((label,i)=>({label,mark:i+1,pick:()=>setTab(i)})),...Object.fromEntries(steps.map((_,i)=>['s'+i,i===tab])),showFooter:tab<4,next:()=>setTab(i=>Math.min(4,i+1)),prev:()=>setTab(i=>Math.max(0,i-1)),atFirst:tab===0,nextLocked:!d.environment,slots:{s0:<EnvironmentForm/>,s1:binding.slots.tDs,s2:<section><h2>서비스 발견</h2>{d.inventory.length?<table>{rows(d.inventory.map(i=>[i.name]))}</table>:muted('조회된 서비스가 없습니다.')}</section>,s3:muted('알림 채널 미연결'),s4:<a href="#B1-Overview">대시보드 열기</a>}});
+  if(route==='A4-Onboarding')Object.assign(binding,{steps:steps.map((label,i)=>({label,mark:i+1,current:i===tab})),...Object.fromEntries(steps.map((_,i)=>['s'+i,i===tab])),showFooter:tab<4,next:()=>setTab(i=>Math.min(4,i+1)),prev:()=>setTab(i=>Math.max(0,i-1)),atFirst:tab===0,nextLocked:!d.environment,slots:{s0:<EnvironmentForm/>,s1:binding.slots.tDs,s2:<section><h2>서비스 발견</h2>{d.inventory.length?<table>{rows(d.inventory.map(i=>[i.name]))}</table>:muted('조회된 서비스가 없습니다.')}</section>,s3:muted('알림 채널 미연결'),s4:<a href="#B1-Overview">대시보드 열기</a>}});
  }
- return <>{d.error&&<DataNotice/>}<Layout {...binding}/>{remote.error&&['C1-Notifications','C2-AlertRules'].includes(route)&&<p className="bound-notice" role="alert">{remote.error}</p>}</>;
+ return <>{d.error&&!['C1-Notifications','C2-AlertRules'].includes(route)&&<DataNotice/>}<Layout {...binding}/></>;
 }

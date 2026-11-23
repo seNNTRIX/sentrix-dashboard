@@ -105,7 +105,7 @@ export function ServiceMapView({d,nodes:graphNodes,edges,range=d.range,candidate
  {overflow&&<div className="sm-guide">가로로 스크롤하여 전체 서비스 맵 보기</div>}
  {focus&&<div className="sm-focus-head"><span>호출하는 서비스</span><strong>{focus}</strong><span>호출받는 서비스</span></div>}
  <div className="sm-scroll" ref={scroll} tabIndex={0} aria-label="서비스 맵 가로 탐색">
- {nodes.length>0?<div className={focus?"sm-canvas sm-focused":"sm-canvas"} style={{height:canvasHeight}}>
+ {nodes.length>0?<div className={focus?"sm-canvas sm-focused":"sm-canvas"} style={{'--sm-canvas-height':canvasHeight+'px'}}>
  <svg viewBox={'0 0 1000 '+canvasHeight} preserveAspectRatio="none" aria-hidden="true"><defs>{['base','slow','rank','bad'].map(k=><marker key={k} id={uid+k} viewBox="0 0 8 8" markerWidth="7" markerHeight="7" refX="4" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path className={'sm-fill-'+k} d="M0 0L8 4L0 8Z"/></marker>)}</defs>
  {links.map(e=>{const [x,y]=pos(e.source),[a,b]=pos(e.target),key=JSON.stringify([e.source,e.target]),rank=edgeRanks.get(key),delay=e.p90Ms??(Number.isFinite(e.p90)?e.p90*1000:e.maxServerDurationMs),k=rank?'rank':mode==='오류'&&e.explicitErrorCount?'bad':delay>=200?'slow':'base';
  const reverse=observed.has(JSON.stringify([e.target,e.source]))&&e.source!==e.target;
@@ -113,7 +113,7 @@ export function ServiceMapView({d,nodes:graphNodes,edges,range=d.range,candidate
  const path=e.source===e.target?`M${x} ${y} Q${x-100} ${y-85} ${x} ${y-50} Q${x+90} ${y-75} ${x} ${y}`:`M${x} ${y} L${midX} ${midY} L${a} ${b}`;
  return <path key={key} className={'sm-edge sm-line-'+k} d={path} strokeWidth={rank?2.7:1+1.7*(e.observedCalls||e.calls||0)/maxCalls} strokeDasharray={e.candidateOnly?'5 4':undefined} markerMid={'url(#'+uid+k+')'}><title>{e.source+' → '+e.target}{rank?' · 원인 후보 '+rank+'순위':''}{e.candidateOnly?' · 표본에서 미관측':''}</title></path>;})}</svg>
  {visible.map(n=>{const [x,y]=pos(n),[rate,delay]=readings[n]||[],status=state(n);
- return <button type="button" className="sm-node" key={n} data-name={n} data-state={status} aria-label={n+' 선택'} aria-pressed={selected===n} title={n+' · '+status} style={{left:x/10+'%',top:y}} onClick={()=>choose(n)}><span>{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</span><small>{format(delay)} ms, {format(rate)}/s {nodeRanks.has(n)&&<b>{nodeRanks.get(n)}순위</b>}</small></button>;})}</div>:<div className="sm-empty">{loading?'호출 관계 조회 중…':error||'관측된 서비스 없음'}</div>}</div>
+ return <button type="button" className="sm-node" key={n} data-name={n} data-state={status} aria-label={n+' 선택'} aria-pressed={selected===n} title={n+' · '+status} style={{left:x/10+'%',top:(y/canvasHeight)*100+'%'}} onClick={()=>choose(n)}><span>{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</span><small>{format(delay)} ms, {format(rate)}/s {nodeRanks.has(n)&&<b>{nodeRanks.get(n)}순위</b>}</small></button>;})}</div>:<div className="sm-empty">{loading?'호출 관계 조회 중…':error||'관측된 서비스 없음'}</div>}</div>
  {focus&&!loading&&!error&&!links.some(e=>!e.candidateOnly)&&<small className="sm-scope">조회 구간에서 확인된 직접 호출 없음</small>}
  <footer className="sm-legend"><span><i/>정상</span><span><i/>경고</span><span><i/>이상</span><span><i/>원인 후보 연결</span><span>{traceId?'선 두께는 관측 호출 수, 진한 선은 최대 지연 200 ms 이상':'선 두께는 관측 호출 수, 진한 선은 p90 200 ms 이상'}</span></footer>
  {scope&&<small className="sm-scope">{scope}</small>}{error&&nodes.length>0&&<small role="status">{error}</small>}</section>

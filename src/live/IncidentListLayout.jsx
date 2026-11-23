@@ -10,7 +10,7 @@ export function IncidentListLayout({empty, fault, faults, hDur, hScore, hStart, 
   {"Alert rules\n        "}
  </a>
 </div>
-<div style={css("display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: flex-end")}>
+<div className="incident-filters" style={css("display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: flex-end")}>
  <label style={css("display: flex; flex-direction: column; gap: 4px; flex: 1 1 240px; max-width: 360px")}>
   <span style={css("font-size: 13px; font-weight: 500")}>
    {"검색"}

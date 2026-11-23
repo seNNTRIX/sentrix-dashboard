@@ -1,0 +1,108 @@
+.setup-steps {
+  flex: 0 0 200px;
+  display: grid;
+  gap: 4px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.setup-steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+  padding: 4px 8px;
+  color: var(--text-2);
+  border-radius: 6px;
+}
+.setup-steps li > span:first-child {
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.setup-steps li[aria-current="step"] {
+  background: var(--selected);
+  color: var(--text);
+  font-weight: 600;
+}
+.setup-steps li[aria-current="step"] > span:first-child {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--on-primary);
+}
+[data-screen="A4-Onboarding"] .live-form {
+  padding: 0;
+}
+[data-screen="B8-Model"] [aria-labelledby="f-h"] :is(td, th):last-child,
+[data-screen="B8-Model"] .sx-incidents :is(td, th):nth-child(n+3) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.workspace-rules [role="row"] {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) 64px 72px;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 20px;
+}
+.workspace-rules [role="row"]:first-child {
+  padding-block: 8px;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--border-weak);
+  font-size: 13px;
+  font-weight: 500;
+}
+.workspace-rules button[role="switch"] {
+  display: inline-flex;
+  width: 32px;
+  height: 18px;
+  align-items: center;
+  padding: 2px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--border);
+}
+.workspace-rules [role="switch"][aria-checked="true"] {
+  justify-content: flex-end;
+  background: var(--primary);
+}
+.workspace-rules [role="switch"]::after {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg1);
+}
+.workspace-result-state {
+  margin: 0;
+  padding: 24px 20px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+.workspace-result-state[role="alert"] {
+  color: var(--error-text);
+}
+@media (max-width: 720px) {
+  .setup-steps {
+    flex-basis: 100%;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .setup-steps li {
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 2px;
+    text-align: center;
+    font-size: 12px;
+    word-break: keep-all;
+  }
+  .workspace-rules [role="row"] {
+    grid-template-columns: 46px minmax(0, 1fr) 36px 48px;
+    gap: 8px;
+    padding-inline: 12px;
+  }
+}
