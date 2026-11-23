@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateJob,validateAnalysisResult,canCancelJob,jobLabel,candidateScoreLabel,hasReplicaOutage} from '../src/live/analysis-values.js';
+import {validateJob,validateAnalysisResult,canCancelJob,jobLabel,candidateScoreLabel,hasReplicaOutage,knownRankingMethod} from '../src/live/analysis-values.js';
 
 const job={id:'job-1',incidentId:'incident-1',environmentId:1,namespace:'sentrix',status:'SUCCEEDED',createdAt:'2026-11-22T00:00:00Z',updatedAt:'2026-11-22T00:01:00Z',windowStart:'2026-11-21T23:59:30Z',windowEnd:'2026-11-22T00:00:00Z',contractVersion:'v1',featureSchemaVersion:'test-v1',modelVersion:'test-model'};
 const result={jobId:job.id,environmentId:1,namespace:'sentrix',windowStart:job.windowStart,windowEnd:job.windowEnd,contractVersion:'v1',featureSchemaVersion:'test-v1',modelVersion:'test-model',decision:'ANOMALY',score:0.8,candidates:[{rank:1,kind:'EDGE',source:'frontend',target:'catalog',faultType:'NETWORK_DELAY',score:2.5,evidence:['span duration increased']},{rank:2,kind:'NODE',service:'catalog',faultType:'CPU',score:0.4,evidence:[]}]};
@@ -19,6 +19,14 @@ test('candidate scores retain their source and require explicit availability evi
  assert.equal(hasReplicaOutage({...node,kind:'EDGE'}),false);
  assert.equal(candidateScoreLabel({...node,kind:'EDGE'}),'경로 통계 점수');
  assert.equal(candidateScoreLabel(undefined),'후보 점수');
+});
+
+test('model-specific explanations require a compatible saved analysis',()=>{
+ const live={contractVersion:'sentrix-analysis-v1-draft',featureSchemaVersion:'re2ob-v0-rel18-all58',modelVersion:'linuxv1-b-fold2'};
+ assert.equal(knownRankingMethod(live),true);
+ assert.equal(knownRankingMethod({...live,modelVersion:'re2ob-v2-freeze'}),true);
+ for(const key of Object.keys(live)) assert.equal(knownRankingMethod({...live,[key]:'unknown'}),false);
+ assert.equal(knownRankingMethod({}),false);
 });
 
 test('analysis jobs keep legacy null metadata and limit cancellation to active states',()=>{

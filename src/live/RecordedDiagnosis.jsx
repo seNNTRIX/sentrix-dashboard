@@ -1,5 +1,6 @@
 import {CandidateTypeTag} from './CandidateTypeTag.jsx';
-import {candidateScoreLabel,hasReplicaOutage} from './analysis-values.js';
+import {candidateScoreLabel,hasReplicaOutage,knownRankingMethod,usesReplicaLossScore} from './analysis-values.js';
+import {candidateScoreText,rankedCandidates,kindRankLabel} from './candidate-ranks.js';
 import React,{useState,useEffect} from 'react';
 import {environmentPath,request,queryRange} from './api.js';
 import {MetricPlot} from './OverviewPlots.jsx';
@@ -46,20 +47,42 @@ function EvidenceTrend({candidate,record,end,environment}){
 }
 
 export function RecordedDiagnosis({result,record}){
- const d=useDesign(),[rank,setRank]=useState(1);
- const candidate=result.candidates.find(c=>c.rank===rank)||result.candidates[0];
+ const d=useDesign(),[selected,setSelected]=useState(null);
+ const candidates=rankedCandidates(result.candidates);
+ const candidate=candidates.find(c=>selected?.jobId===result.jobId&&c.rank===selected.rank)||candidates[0];
+ const known=knownRankingMethod(result);
+ const groups=[
+  {kind:'NODE',title:'서비스 내부 원인 후보',method:'Random Forest · RF 점수 0–1'},
+  {kind:'EDGE',title:'호출 경로 원인 후보',method:'규칙 기반 · 백분위 점수 0–100'}
+ ];
  const name=candidateName(candidate);
  const period=new URLSearchParams({service:candidate.source||candidate.service,at:result.windowEnd});
+ const scoreLabel=c=>known?(c.kind==='EDGE'?'경로 백분위 점수':candidateScoreLabel(c)):'후보 점수';
  return <div className="obs-candidates rca-summary">
-  <section aria-labelledby="cand-h"><h2 id="cand-h">원인 후보</h2><div className="panel obs-list">{result.candidates.map(c=><button type="button" key={c.rank} aria-pressed={c.rank===candidate.rank} onClick={()=>setRank(c.rank)}>
-   <span aria-label={c.rank+'순위'}>{c.rank}</span><span><span className="rca-name" title={candidateName(c)}>{candidateName(c)}</span><small title={c.faultType}>{hasReplicaOutage(c)?'가용 복제본 0개':c.faultType}</small></span><span className="rca-list-score" title={candidateScoreLabel(c)}>{c.score.toFixed(2)}</span>
-  </button>)}</div><p className="rca-rank-note">서비스와 호출 경로의 점수는 계산 방식이 다릅니다. 원인 순위에는 가용성과 호출 지연도 반영됩니다.</p></section>
-  <section className="panel obs-panel rca-detail" aria-labelledby="sel-h"><header><div><small>{candidate.rank}순위 후보</small><h2 id="sel-h">{name}</h2><CandidateTypeTag kind={candidate.kind} label={candidate.faultType}/></div><div className="rca-score"><strong>{candidate.score.toFixed(2)}</strong><small>{candidateScoreLabel(candidate)}</small></div></header>
-  {hasReplicaOutage(candidate)&&<div className="rca-availability"><strong>가용 복제본 0개</strong><span>최근 30초 동안 목표 복제본이 1개 이상이었습니다. 이 조건이 한 서비스에서만 관측되면 해당 서비스가 1순위입니다.</span></div>}
+  <div className="rca-groups">{groups.map(group=>{
+   const members=candidates.filter(c=>c.kind===group.kind);
+   return <section key={group.kind} className={'panel rca-candidate-group '+group.kind.toLowerCase()} aria-labelledby={'candidates-'+group.kind}>
+    <div className="rca-group-heading"><h2 id={'candidates-'+group.kind}>{group.title}</h2>{known&&<small>{group.method}</small>}</div>
+    {members.length?<div className="obs-list">{members.map(c=><button type="button" key={c.rank} aria-pressed={c.rank===candidate.rank} onClick={()=>setSelected({jobId:result.jobId,rank:c.rank})}>
+     <span className="rca-kind-place" aria-label={kindRankLabel(c)}>{c.kindRank}위</span>
+     <span>{c.kind==='EDGE'?<span className="rca-hop" title={candidateName(c)}><span>{c.source}</span><span>→ {c.target}</span></span>:<span className="rca-name" title={candidateName(c)}>{c.service}</span>}
+      {hasReplicaOutage(c)&&<small>가용 복제본 0개</small>}</span>
+     <span className="rca-list-score" title={scoreLabel(c)}>{candidateScoreText(c,known)}</span>
+    </button>)}</div>:<p className="rca-empty-group">이 분석에 저장된 후보가 없습니다.</p>}
+   </section>;
+  })}</div>
+  <section className="panel obs-panel rca-detail" aria-labelledby="sel-h"><header><div><small>{kindRankLabel(candidate)} 후보</small><h2 id="sel-h">{name}</h2><CandidateTypeTag kind={candidate.kind} label={candidate.faultType}/></div><div className="rca-score"><strong>{candidateScoreText(candidate,known)}</strong><small>{scoreLabel(candidate)}</small></div></header>
+  <div className="rca-score-basis">
+   {hasReplicaOutage(candidate)&&<p className="rca-availability"><strong>가용 복제본 0개</strong><span>최근 30초간 목표 복제본은 1개 이상이었습니다.{known&&' 이 조건이 한 서비스에서만 관측되면 서비스 후보 1위에 둡니다.'}</span></p>}
+   {!known?<p>저장된 분석 결과에 점수 산정 방식이 명시되지 않았습니다.</p>
+    :usesReplicaLossScore(candidate)?<p>모델 입력이 부족해 이 후보의 점수에는 목표 대비 가용 복제본 손실률을 표시합니다.</p>
+    :candidate.kind==='NODE'?<p>두 분석 구간(각 30초)에서 Random Forest가 이 서비스의 지표로 계산한 점수를 평균했습니다.</p>
+    :<p>각 30초 구간에서 기준 p90 대비 변화 폭과 오류율 차이를 다른 경로와 비교합니다. 두 백분위 중 큰 값을 택해 두 구간을 평균합니다. 수신 서비스의 p90 변화가 작고 호출 p99와 수신 처리 외 p99가 함께 급증하면 해당 경로를 우선합니다.</p>}
+  </div>
   <EvidenceTrend candidate={candidate} end={result.windowEnd} record={record} environment={d.environment}/>
   <section><h3>Evidence</h3><ul className="obs-evidence">{candidate.evidence.map((item,i)=>{
    const match=item.match(/^(.*?)\s+([-+]?\d[\d.,]*\s*(?:ms|%|s)?)\s*→\s*([-+]?\d[\d.,]*\s*(?:ms|%|s)?)$/);
-   return <li key={i}><small>모델 근거</small><span>{match?match[1]:item}</span>{match&&<span className="rca-values">{match[2]} → <b>{match[3]}</b></span>}</li>;
+   return <li key={i}><small>{candidate.kind==='EDGE'?'경로 관측':'서비스 관측'}</small><span>{match?match[1]:item}</span>{match&&<span className="rca-values">{match[2]} → {match[2]===match[3]?match[3]:<b>{match[3]}</b>}</span>}</li>;
   })}</ul></section>
   <nav aria-label="관련 관측 화면">{[['B5-Service','서비스 Dashboard'],['B6-Trace','관련 trace'],['B7-Logs','관련 로그']].map(([route,title])=><a key={route} href={'#'+route+'?'+period}>{title}</a>)}<a href={'#B2-ServiceMap?incidentId='+encodeURIComponent(d.incidentId)+'&jobId='+encodeURIComponent(result.jobId)}>Service map</a></nav>
  </section></div>;

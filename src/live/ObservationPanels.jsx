@@ -5,6 +5,7 @@ import {ServiceMapView} from './ServiceMapView.jsx';
 import {sampleIds,sampleTopology} from './map-sample.js';
 import {TimePicker} from '../components/TimePicker.jsx';
 import {validateMap} from './observation-values.js';
+import {leadingCandidates,rankedCandidates,kindRankLabel} from './candidate-ranks.js';
 
 // Stable slots keep the mini map readable while observed traces change.
 const previewOrder=['adservice','recommendationservice','productcatalogservice','frontend','checkoutservice','currencyservice','cartservice','paymentservice','shippingservice','redis-cart','emailservice'];
@@ -77,7 +78,8 @@ function useMapSample(env,service,inventory,range) {
 }
 
 function MapPreview({nodes,edges,candidates=[],selected}){
- const top=candidates.find(c=>c.rank===1);
+ const leaders=leadingCandidates(candidates);
+ const service=leaders.find(c=>c.kind==='NODE')?.service,edge=leaders.find(c=>c.kind==='EDGE');
  const visible=[...previewOrder.filter(n=>nodes.includes(n)),...nodes.filter(n=>!previewOrder.includes(n))];
  const columns=[
   visible.filter(n=>n==='frontend'),
@@ -92,10 +94,10 @@ function MapPreview({nodes,edges,candidates=[],selected}){
  return <div className="obs-graph obs-mini" style={{height}}>
  <svg viewBox={'0 0 600 '+height} aria-hidden="true" preserveAspectRatio="none">{edges.filter(e=>visible.includes(e.source)&&visible.includes(e.target)).map(e=>{
   const [x,y]=pos(e.source),[a,b]=pos(e.target);
-  const ranked=top?.kind==='EDGE'&&top.source===e.source&&top.target===e.target;
-  return <g key={e.source+'>'+e.target}><line x1={x} y1={y} x2={a} y2={b} stroke={ranked?'var(--cause)':'var(--border-strong)'} strokeWidth={ranked?2:1} vectorEffect="non-scaling-stroke"/>{ranked&&<text x={(x+a)/2} y={(y+b)/2-4} textAnchor="middle" className="map-rank">①</text>}</g>;
+  const ranked=edge?.source===e.source&&edge.target===e.target;
+  return <g key={e.source+'>'+e.target}><line x1={x} y1={y} x2={a} y2={b} stroke={ranked?'var(--cause)':'var(--border-strong)'} strokeWidth={ranked?2:1} vectorEffect="non-scaling-stroke"/>{ranked&&<text x={(x+a)/2} y={(y+b)/2-4} textAnchor="middle" className="map-rank">경로 1위</text>}</g>;
  })}</svg>
- {visible.map(n=>{const [x,y]=pos(n);return <a key={n} href={'#B2-ServiceMap?service='+encodeURIComponent(n)} className="obs-node" data-cause={top?.kind==='NODE'&&top.service===n?'first':undefined} data-selected={n===selected} style={{left:x/6+'%',top:y/height*100+'%'}}>{top?.kind==='NODE'&&top.service===n?'① ':''}{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</a>;})}</div>;
+ {visible.map(n=>{const [x,y]=pos(n);return <a key={n} href={'#B2-ServiceMap?service='+encodeURIComponent(n)} className="obs-node" data-cause={service===n?'first':undefined} data-selected={n===selected} style={{left:x/6+'%',top:y/height*100+'%'}}>{service===n?'서비스 1위 · ':''}{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</a>;})}</div>;
 }
 
 export function ObservationMap({mini=false,embedded=false,result=null}) {
@@ -145,9 +147,9 @@ export function ServiceConnections(){
 export function ServiceIncidents(){
  const d=useDesign(),items=new Map();
  for(const w of d.overview?.recentWindows||[]){
-  const loc=w.locations?.find(c=>[c.source,c.target,c.service].includes(d.service));
-  if(w.incidentId&&loc&&!items.has(w.incidentId))items.set(w.incidentId,{w,loc});
+  const locations=rankedCandidates(w.locations||[]).filter(c=>[c.source,c.target,c.service].includes(d.service));
+  if(w.incidentId&&locations.length&&!items.has(w.incidentId))items.set(w.incidentId,{w,locations});
  }
- return <section className="panel obs-panel"><header><h2>원인 후보에 오른 장애</h2><a href="#B3-Incidents">장애 목록</a></header><div className="sx-table-scroll"><table className="data-table"><thead><tr><th>장애</th><th>순위</th><th>원인 후보</th><th>분석 시각</th></tr></thead><tbody>{[...items].map(([id,{w,loc}])=><tr key={id}><td><a href={'#B4-Incident?incidentId='+id+'&jobId='+w.jobId}>{id.slice(0,8)}</a></td><td>{loc.rank}</td><td>{loc.service||loc.source+' → '+loc.target}</td><td>{new Date(w.windowEnd).toLocaleString('ko-KR')}</td></tr>)}</tbody></table></div>
- <small>{d.overview?.error||(!d.overview?'조회 중…':items.size?'최근 분석 구간의 상위 3개 후보 기준':'최근 분석 구간에서 이 서비스가 상위 3개 후보에 오른 기록이 없습니다.')}</small></section>;
+ return <section className="panel obs-panel"><header><h2>원인 후보에 오른 장애</h2><a href="#B3-Incidents">장애 목록</a></header><div className="sx-table-scroll"><table className="data-table"><thead><tr><th>장애</th><th>유형별 순위</th><th>원인 후보</th><th>분석 시각</th></tr></thead><tbody>{[...items].flatMap(([id,{w,locations}])=>locations.map(loc=><tr key={id+':'+loc.rank}><td><a href={'#B4-Incident?incidentId='+id+'&jobId='+w.jobId}>{id.slice(0,8)}</a></td><td>{kindRankLabel(loc)}</td><td>{loc.service||loc.source+' → '+loc.target}</td><td>{new Date(w.windowEnd).toLocaleString('ko-KR')}</td></tr>))}</tbody></table></div>
+ <small>{d.overview?.error||(!d.overview?'조회 중…':items.size?'최근 분석 요약에 포함된 후보입니다. 장애 상세에서 유형별 후보 전체를 볼 수 있습니다.':'최근 분석 요약에 이 서비스와 관련된 후보가 없습니다.')}</small></section>;
 }

@@ -14,10 +14,15 @@ export function hasReplicaOutage(candidate) {
  return candidate?.kind === 'NODE' && candidate.evidence?.includes(noAvailableReplicas) === true;
 }
 
+export const usesReplicaLossScore=c=>hasReplicaOutage(c)&&c.evidence.includes(replicaLossScore);
+export const knownRankingMethod=result=>result.contractVersion==='sentrix-analysis-v1-draft'
+ && result.featureSchemaVersion==='re2ob-v0-rel18-all58'
+ && ['linuxv1-b-fold2','re2ob-v2-freeze'].includes(result.modelVersion);
+
 export function candidateScoreLabel(candidate) {
  if (candidate?.kind === 'EDGE') return '경로 통계 점수';
  if (candidate?.kind !== 'NODE') return '후보 점수';
- if (hasReplicaOutage(candidate) && candidate.evidence.includes(replicaLossScore)) return '복제본 손실률';
+ if (usesReplicaLossScore(candidate)) return '복제본 손실률';
  if (!candidate.evidence?.length) return '서비스 후보 점수';
  return '서비스 모델 점수';
 }

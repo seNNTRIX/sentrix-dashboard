@@ -2,7 +2,7 @@ import React from 'react';
 import {css,routeHref} from '../styles.js';
 import {TimePicker} from '../components/TimePicker.jsx';
 import {CandidateTypeTag} from './CandidateTypeTag.jsx';
-export function IncidentListLayout({empty, fault, faults, hDur, hScore, hStart, iDur, iScore, iStart, onFault, onQ, onSvc, q, rows, services, sortDur, sortScore, sortStart, statusOpts, summary, svc}){return <>
+export function IncidentListLayout({empty, fault, faults, hDur, hScore, hStart, iDur, iScore, iStart, onFault, onQ, onSvc, q, rows, scoreHint, services, sortDur, sortScore, sortStart, statusOpts, summary, svc}){return <>
 <div style={css("display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between")}>
  <h1 style={css("margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em")} className={"page-title"}>
   {"장애"}
@@ -84,11 +84,11 @@ export function IncidentListLayout({empty, fault, faults, hDur, hScore, hStart, 
    <span>
     {"Incident"}
    </span>
-   <button type={"button"} onClick={sortScore} aria-label={"1순위 후보 점수로 정렬"} style={css(hScore)}>
+   <button type={"button"} onClick={sortScore} disabled={!!scoreHint} title={scoreHint||"대표 후보 점수로 정렬"} aria-label={'대표 후보 점수로 정렬'+(scoreHint?' · '+scoreHint:'')} style={css(hScore)}>
     <svg width={"12"} height={"12"} viewBox={"0 0 24 24"} fill={"none"} stroke={"currentColor"} strokeWidth={"2.2"} strokeLinecap={"round"} strokeLinejoin={"round"} aria-hidden={"true"}>
      <path d={iScore} />
     </svg>
-    {"후보 점수"}
+    {"대표 점수"}
    </button>
    <button type={"button"} onClick={sortStart} aria-label={"시작 시각으로 정렬"} style={css(hStart)}>
     <svg width={"12"} height={"12"} viewBox={"0 0 24 24"} fill={"none"} stroke={"currentColor"} strokeWidth={"2.2"} strokeLinecap={"round"} strokeLinejoin={"round"} aria-hidden={"true"}>
@@ -126,7 +126,7 @@ export function IncidentListLayout({empty, fault, faults, hDur, hScore, hStart, 
        </span>
        <CandidateTypeTag kind={r.candidateKind} label={r.faultLabel}/>
        <span>
-        {r.candidateKind?'1순위 '+r.target:'관측 서비스 '+r.service}
+        {r.candidateKind?r.rankLabel+' · '+r.target:'관측 서비스 '+r.service}
        </span>
       </div>
      </div>
@@ -145,11 +145,9 @@ export function IncidentListLayout({empty, fault, faults, hDur, hScore, hStart, 
      <div style={css("margin: 0 8px 12px 158px; padding: 12px 16px; border-radius: 8px; background: var(--bg2); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px")}>
       <div style={css("display: flex; flex-direction: column; min-width: 0")}>
        <span style={css("font-size: 12px; line-height: 18px; color: var(--text-2)")}>
-        {"1순위 원인 후보"}
+        {"확인된 유형별 후보"}
        </span>
-       <span style={css("font-size: 13px; line-height: 20px; font-weight: 500")}>
-        {r.target}
-       </span>
+       {r.leaders.length?r.leaders.map(c=><span key={c.label} style={css("font-size: 13px; line-height: 20px; font-weight: 500")}>{c.label} · {c.name} <small>{c.scoreLabel} {c.score}</small></span>):'—'}
       </div>
       <div style={css("display: flex; flex-direction: column")}>
        <span style={css("font-size: 12px; line-height: 18px; color: var(--text-2)")}>

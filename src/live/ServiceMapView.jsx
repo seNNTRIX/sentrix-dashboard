@@ -1,5 +1,6 @@
 import React,{useEffect,useId,useRef,useState} from 'react';
 import {environmentPath,queryRange,request} from './api.js';
+import {rankedCandidates} from './candidate-ranks.js';
 import {focusedTopology} from './map-sample.js';
 import {formatErrorPercent} from './design-values.js';
 import {MetricPlot} from './OverviewPlots.jsx';
@@ -55,7 +56,7 @@ function Inspector({env,name,range,decision,rank,incidentId,jobId,traceId,window
  if(jobId)incidentQuery.set('jobId',jobId);
  return <aside className="sm-inspector panel" aria-label="선택 서비스 관계">
   <header><h2>{name}</h2><button type="button" onClick={onClose} aria-label="서비스 패널 닫기">×</button></header>
-  <div className="sm-badges"><span>{decision}</span>{rank&&<b>원인 후보 {rank}순위</b>}</div>
+  <div className="sm-badges"><span>{decision}</span>{rank&&<b>서비스 {rank}위</b>}</div>
   <dl>{definitions.map(([m,label,unit])=>{
    const value=m==='error_ratio'?readings[m]?.at(-1)?.value:last(readings[m]);
    const display=!Number.isFinite(value)?'—':m==='error_ratio'?formatErrorPercent(value*100):format(value)+unit;
@@ -82,9 +83,9 @@ export function ServiceMapView({d,nodes:graphNodes,edges,range=d.range,candidate
  const extra=nodes.filter(n=>!Object.hasOwn(positions,n)),height=nodes.some(n=>Object.hasOwn(positions,n))?650:0;
  function pos(n){if(neighborhood)return neighborhood.positions.get(n);const i=extra.indexOf(n);return i<0?positions[n]:[125+(i%4)*245,height+55+Math.floor(i/4)*105];}
 
- const shown=causes?candidates:[];
- const nodeRanks=new Map(shown.filter(c=>c.kind==='NODE').map(c=>[c.service,c.rank]));
- const edgeRanks=new Map(shown.filter(c=>c.kind==='EDGE').map(c=>[JSON.stringify([c.source,c.target]),c.rank]));
+ const ranked=rankedCandidates(candidates),shown=causes?ranked:[];
+ const nodeRanks=new Map(shown.filter(c=>c.kind==='NODE').map(c=>[c.service,c.kindRank]));
+ const edgeRanks=new Map(shown.filter(c=>c.kind==='EDGE').map(c=>[JSON.stringify([c.source,c.target]),c.kindRank]));
  const allLinks=edges.filter(e=>nodes.includes(e.source)&&nodes.includes(e.target));
  const observed=new Set(allLinks.map(e=>JSON.stringify([e.source,e.target])));
  for(const c of shown)if(c.kind==='EDGE'&&nodes.includes(c.source)&&nodes.includes(c.target)&&!observed.has(JSON.stringify([c.source,c.target])))allLinks.push({...c,candidateOnly:true});
@@ -102,7 +103,7 @@ export function ServiceMapView({d,nodes:graphNodes,edges,range=d.range,candidate
   if(mode==='지연')return Number.isFinite(v)?(v>=400?'이상':v>=200?'경고':'정상'):'미관측';
   if(mode==='오류')return links.some(e=>e.target===n&&e.explicitErrorCount>0)?'오류 관측':'미판정';
   if(decision==='NORMAL')return '환경 정상';
-  if(decision==='ANOMALY'&&candidates.some(c=>c.kind==='NODE'&&c.service===n&&c.rank===1))return '이상 후보';
+  if(decision==='ANOMALY'&&ranked.some(c=>c.kind==='NODE'&&c.service===n&&c.kindRank===1))return '이상 후보';
   return '미판정';
  }
  return <><div className="sm-toolbar"><label>기준 서비스 <select className="ui-input" aria-label="기준 서비스" value={focus} onChange={e=>choose(e.target.value)}><option value="">전체 서비스</option>{nodes.map(n=><option key={n} value={n}>{n}</option>)}</select></label>
@@ -118,9 +119,9 @@ export function ServiceMapView({d,nodes:graphNodes,edges,range=d.range,candidate
  const reverse=observed.has(JSON.stringify([e.target,e.source]))&&e.source!==e.target;
  const length=Math.hypot(a-x,b-y)||1, midX=(x+a)/2-(reverse?(b-y)*15/length:0),midY=(y+b)/2+(reverse?(a-x)*15/length:0);
  const path=e.source===e.target?`M${x} ${y} Q${x-100} ${y-85} ${x} ${y-50} Q${x+90} ${y-75} ${x} ${y}`:`M${x} ${y} L${midX} ${midY} L${a} ${b}`;
- return <path key={key} className={'sm-edge sm-line-'+k} d={path} strokeWidth={rank?2.7:1+1.7*(e.observedCalls||e.calls||0)/maxCalls} strokeDasharray={e.candidateOnly?'5 4':undefined} markerMid={'url(#'+uid+k+')'}><title>{e.source+' → '+e.target}{rank?' · 원인 후보 '+rank+'순위':''}{e.candidateOnly?' · 표본에서 미관측':''}</title></path>;})}</svg>
+ return <path key={key} className={'sm-edge sm-line-'+k} d={path} strokeWidth={rank?2.7:1+1.7*(e.observedCalls||e.calls||0)/maxCalls} strokeDasharray={e.candidateOnly?'5 4':undefined} markerMid={'url(#'+uid+k+')'}><title>{e.source+' → '+e.target}{rank?' · 호출 경로 '+rank+'위':''}{e.candidateOnly?' · 표본에서 미관측':''}</title></path>;})}</svg>
  {visible.map(n=>{const [x,y]=pos(n),[rate,delay]=readings[n]||[],status=state(n);
- return <button type="button" className="sm-node" key={n} data-name={n} data-state={status} aria-label={n+' 선택'} aria-pressed={selected===n} title={n+' · '+status} style={{left:x/10+'%',top:(y/canvasHeight)*100+'%'}} onClick={()=>choose(n)}><span>{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</span><small>{format(delay)} ms, {format(rate)}/s {nodeRanks.has(n)&&<b>{nodeRanks.get(n)}순위</b>}</small></button>;})}</div>:<div className="sm-empty">{loading?'호출 관계 조회 중…':error||'관측된 서비스 없음'}</div>}</div>
+ return <button type="button" className="sm-node" key={n} data-name={n} data-state={status} aria-label={n+' 선택'} aria-pressed={selected===n} title={[n,status,nodeRanks.has(n)&&'서비스 '+nodeRanks.get(n)+'위'].filter(Boolean).join(' · ')} style={{left:x/10+'%',top:(y/canvasHeight)*100+'%'}} onClick={()=>choose(n)}><span>{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</span><small>{format(delay)} ms, {format(rate)}/s {nodeRanks.has(n)&&<b>서비스 {nodeRanks.get(n)}위</b>}</small></button>;})}</div>:<div className="sm-empty">{loading?'호출 관계 조회 중…':error||'관측된 서비스 없음'}</div>}</div>
  {focus&&!loading&&!error&&!links.some(e=>!e.candidateOnly)&&<small className="sm-scope">조회 구간에서 확인된 직접 호출 없음</small>}
  <footer className="sm-legend"><span><i/>정상</span><span><i/>경고</span><span><i/>이상</span><span><i/>원인 후보 연결</span><span>{traceId?'선 두께는 관측 호출 수, 진한 선은 최대 지연 200 ms 이상':'선 두께는 관측 호출 수, 진한 선은 p90 200 ms 이상'}</span></footer>
  {scope&&<small className="sm-scope">{scope}</small>}{error&&nodes.length>0&&<small role="status">{error}</small>}</section>
