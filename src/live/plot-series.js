@@ -24,6 +24,11 @@ export function splitSeries(points, stepMs) {
   return {runs, bridges};
 }
 
+// The overview trend connects observed scores in time order, without inventing missing samples.
+export function scoreSamples(points) {
+  return points.filter(point=>Number.isFinite(point.t) && Number.isFinite(point.value));
+}
+
 // Place tick labels, readings and the threshold on the same padded plot area.
 export function scoreY(value, maximum) {
   return 148 - 134 * value / maximum;

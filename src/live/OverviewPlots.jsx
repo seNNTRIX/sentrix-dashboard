@@ -3,7 +3,7 @@ import {useServiceDeviation} from './useServiceDeviation.js';
 import {historyStates} from './service-health.js';
 import {decisionLabel,jobLabel,analysisReason} from './analysis-values.js';
 import {serviceCutoff} from './service-deviation.js';
-import {scoreY,splitSeries} from './plot-series.js';
+import {scoreSamples,scoreY,splitSeries} from './plot-series.js';
 
 const time = value => new Date(value).toLocaleTimeString('ko-KR',{hour12:false,hour:'2-digit',minute:'2-digit'});
 const windowTime = value => new Date(value).toLocaleTimeString('en-GB',{hour12:false});
@@ -35,50 +35,35 @@ export function ScorePanel({rows,error,threshold,range,service,environment}){
  const local=mode==='service';
  const state=useServiceDeviation(environment?.id,service,range,local&&!environment?.recorded);
  const from=Date.parse(range.from),to=Date.parse(range.to),bands=intervals(rows,from,to);
- const points=[],gaps=[];let lastEnd;
- const observed=bands.filter(({row})=>Date.parse(row.windowEnd)<=to);
- if(!local)for(const {row,start,end} of observed){
-  if(lastEnd && start>lastEnd)gaps.push({start:lastEnd,end:start,label:'분석 기록 없음'});
-  if(!Number.isFinite(row.score))gaps.push({start,end,label:[row.decision?decisionLabel(row.decision):jobLabel(row.status),analysisReason(row.reason)].filter(Boolean).join(' · ')});
-  if(lastEnd && Date.parse(row.windowStart)>lastEnd)points.push({t:(lastEnd+start)/2,value:null});
-  lastEnd=Date.parse(row.windowEnd);
-  if(lastEnd<=to)points.push({t:lastEnd,value:row.score});
- }
- const series=local?(state.points||[]):points;
+ const observed=bands.map(({row})=>row).filter(row=>Date.parse(row.windowEnd)<=to)
+  .sort((a,b)=>Date.parse(a.windowEnd)-Date.parse(b.windowEnd));
+ const series=local?(state.points||[]):observed.map(row=>({t:Date.parse(row.windowEnd),value:row.score}));
+ const samples=scoreSamples(series);
  const limit=local?serviceCutoff:threshold, maximum=local?100:1;
  const x=t=>600*(t-from)/(to-from),y=v=>scoreY(v,maximum);
- const plot=splitSeries(series,local?60000:30000);
- const finite=series.some(p=>Number.isFinite(p.value)),format=v=>Number.isFinite(v)?v.toFixed(local?1:4):'—';
- const newest=observed.at(-1)?.row;
- const lastRow=observed.findLast(({row})=>row.decision)?.row;
- const latestValue=local?series.at(-1)?.value:lastRow?.score;
- const newerJob=newest && newest.jobId!==lastRow?.jobId;
- const decision=lastRow?decisionLabel(lastRow.decision):'판정 대기';
+ const format=value=>Number.isFinite(value)?value.toFixed(local?1:4):'—';
+ const newest=observed.at(-1), lastDecision=observed.findLast(row=>row.decision);
+ const value=local?series.at(-1)?.value:lastDecision?.score;
+ const asOf=local?series.at(-1)?.t:lastDecision?.windowEnd;
+ const current=Number.isFinite(value)?format(value):!local&&lastDecision?decisionLabel(lastDecision.decision):'—';
+ const detail=local?service:[lastDecision&&decisionLabel(lastDecision.decision),analysisReason(lastDecision?.reason),
+  newest&&newest!==lastDecision&&jobLabel(newest.status)].filter(Boolean).join(' · ');
+ const statusTitle=[asOf&&windowTime(asOf),detail,(local?state.error:error)].filter(Boolean).join(' · ');
+ const path=samples.map((p,i)=>(i?'L':'M')+x(p.t)+' '+y(p.value)).join(' ');
  return <section className="panel obs-panel obs-score" aria-labelledby="score-h">
-  <header><h2 id="score-h">{local?'서비스 지표 이탈':'Anomaly score'} <small>{local?service:'환경 전체'}</small></h2>
-   <div className="sx-map-modes" role="group" aria-label="점수 범위">
-    {!environment?.recorded&&<button type="button" aria-pressed={local} onClick={()=>setMode('service')}>서비스 지표</button>}
-    <button type="button" aria-pressed={!local} onClick={()=>setMode('environment')}>환경 모델</button>
-   </div></header>
-  <div className="score-summary"><strong>{local?'서비스 이탈 점수':'모델 점수'} {format(latestValue)}</strong>
-   {Number.isFinite(limit)&&<span className="score-key"><i/>{local?'참고선':'현재 점수 기준'} {format(limit)}</span>}
-   {!local&&Number.isFinite(limit)&&latestValue>limit&&<span>점수 기준 초과</span>}
-   <span>{local?(Number.isFinite(latestValue)?series.at(-1).signal+' · 지표 '+series.at(-1).coverage+'/3개':''):<>최종 판정 <b>{decision}</b> {lastRow&&<time dateTime={lastRow.windowEnd}>{windowTime(lastRow.windowEnd)}</time>}</>}</span>
-   {local&&state.error&&finite&&<span>갱신 실패 · 직전 관측값</span>}
-   {!local&&newerJob&&<span>{windowTime(newest.windowEnd)} · {jobLabel(newest.status)}</span>}
-  </div>
-  {(finite||gaps.length>0)?<div className="score-plot"><div className="score-axis" aria-label="Y축">{[1,.75,.5,.25,0].map(n=><span key={n} style={{top:y(n*maximum)}}>{local?n*100:n.toFixed(2)}</span>)}</div>
+  <header><h2 id="score-h">{environment?.recorded?'Anomaly score':<select aria-label="점수 범위" title={local?service:'환경 전체 모델 점수'} value={mode} onChange={e=>setMode(e.target.value)}>
+   <option value="environment">Anomaly score</option><option value="service">서비스 지표 이탈</option>
+  </select>}</h2>
+   <span className="mono score-current" title={statusTitle}>현재 {current}{Number.isFinite(limit)&&<>, {local?'참고선':'임계값'} {format(limit)}</>}{local&&state.error&&samples.length>0?' · 갱신 실패':''}</span></header>
+  {samples.length>0?<div className="score-plot"><div className="score-axis" aria-label="Y축">{[1,.75,.5,.25,0].map(n=><span key={n} style={{top:y(n*maximum)}}>{local?n*100:n.toFixed(2)}</span>)}</div>
    <svg viewBox="0 0 600 160" preserveAspectRatio="none" role="img" aria-label={(local?service+' 서비스 지표 이탈 점수':'환경 모델 이상 점수')+' · 세로축 0~'+maximum}>
+    <desc>검은 선은 점수가 있는 시각만 이어 그립니다. 분홍 음영은 실제 환경 이상 판정 구간입니다.</desc>
     <Shading bands={bands} x={x} height={160}/>
-    {gaps.map(g=><g className="sx-missing-window" key={g.start+'-'+g.end}><title>{windowTime(g.start)}–{windowTime(g.end)} · {g.label}</title>
-     <rect x={x(g.start)} width={x(g.end)-x(g.start)} height="160" fill="transparent"/>
-     <rect x={x(g.start)} width={x(g.end)-x(g.start)} y="156" height="4" fill="var(--border-strong)"/></g>)}
-    {Number.isFinite(limit)&&<line x2="600" y1={y(limit)} y2={y(limit)} stroke="var(--text-2)" strokeDasharray="4 4" vectorEffect="non-scaling-stroke"/>}
-    <Series plot={plot} x={x} y={y} color="var(--text)"/>
+    {Number.isFinite(limit)&&<line x2="600" y1={y(limit)} y2={y(limit)} stroke="var(--border-strong)" strokeDasharray="3 4" vectorEffect="non-scaling-stroke"/>}
+    <path className="sx-observed-line" d={path} fill="none" stroke="var(--text)" strokeWidth="1.5" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>
+    {samples.length===1&&<circle cx={x(samples[0].t)} cy={y(samples[0].value)} r="2" fill="var(--text)"/>}
    </svg><footer>{ticks(from,to,6).map((t,i)=><span key={i}>{t}</span>)}</footer></div>
-   :<div className="obs-empty">{local?(state.error||(state.points?'비교할 서비스 지표가 부족합니다.':'서비스 지표 조회 중…')):(error||'이 기간에 관측된 점수가 없습니다.')}</div>}
-  <div className="score-legend"><span><i className="alarm-key"/>이상 판정 구간</span>{gaps.length>0&&<span><i className="missing-key"/>점수 없음</span>}{plot.bridges.length>0&&<span><i className="gap-key"/>짧은 결측 연결</span>}</div>
-  <p className="sx-score-context">{local?'직전 1시간과 비교한 요청량·오류율·p99 지연 중 가장 큰 이탈입니다. 분홍 음영은 환경 모델의 이상 판정 구간입니다.':environment?.id===1&&location.pathname==='/display'?'10초 간격의 두 분석 구간이 모두 점수 기준을 넘고, 지연·오류 등 관측 증상이 있어야 이상으로 판정합니다.':'가로 점선은 현재 모델의 임계값입니다.'}</p>
+   :<div className="obs-empty">{local?(state.error||(state.points?'비교할 서비스 지표가 부족합니다.':'서비스 지표 조회 중…')):(error||analysisReason(lastDecision?.reason)||'이 기간에 관측된 점수가 없습니다.')}</div>}
  </section>;
 }
 

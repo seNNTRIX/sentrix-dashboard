@@ -1,5 +1,10 @@
 import {decisionLabel,jobLabel} from './analysis-values.js';
 const fmt=n=>Number.isFinite(n)?new Intl.NumberFormat('ko-KR',{maximumFractionDigits:3}).format(n):'—';
+export function formatErrorPercent(percent){
+ if(!Number.isFinite(percent))return '—';
+ const value=percent>0&&percent<.001?Number(percent.toPrecision(2)).toString():fmt(percent);
+ return value+'%';
+}
 const fieldRows=rows=>rows.map(([k,v])=>({k,v,kStyle:'padding: 0 12px; color: var(--text-2); border-bottom: 1px solid var(--border-weak)',vStyle:'padding: 0 12px; overflow-wrap: anywhere; border-bottom: 1px solid var(--border-weak)'}));
 const segment=(sel,i)=>'height: 28px; padding: 0 12px; border: 0; border-radius: 6px; white-space: nowrap; font-size: 13px; '+(sel===i?'background: var(--bg1); box-shadow: var(--shadow-z1); font-weight: 500; color: var(--text)':'background: none; color: var(--text-2)');
 export function logLevel(text){try{const x=JSON.parse(text);const l=String(x.level??x.severity??x.severityText??'').toLowerCase();return ['warn','warning'].includes(l)?'warn':['error','fatal'].includes(l)?'error':['info','debug','trace'].includes(l)?l:'unknown';}catch{return 'unknown';}}
@@ -49,14 +54,19 @@ export function designValues(view,d){
    tv:{title:data?'요청 처리 구간':d.detail.loading?'조회 중…':d.detail.error||'요청을 선택하세요',id:data?.traceId||'—',start:data?.startedAt||'—',dur:data?fmt(total)+' ms':'—',services:data?new Set(all.map(x=>x.service)).size:'—',depth:all.length?Math.max(...all.map(depth))+1:'—',count:data?all.length:'—',spans,ruler:[0,.25,.5,.75,1].map(p=>({label:fmt(total*p)+' ms',pos:`position:absolute;top:9px;${p===1?'right:24px':`left:calc(${p*100}% + 6px)`}`}))}};
  }
  const chart=(ids,title,factor=1,unit='')=>{
-  const series=ids.map(id=>d.metrics[id]?.data?.points?.map(p=>({...p,value:Number.isFinite(p.value)?p.value*factor:null}))||[]),peak=Math.max(1,...series.flat().map(p=>p.value||0)),scale=10**Math.floor(Math.log10(peak)),max=Math.ceil(peak/scale)*scale;
+  const series=ids.map(id=>d.metrics[id]?.data?.points?.map(p=>({...p,value:Number.isFinite(p.value)?p.value*factor:null}))||[]);
+  const observedMax=Math.max(0,...series.flat().map(p=>p.value??0));
+  const peak=unit==='%'&&observedMax>0?observedMax:Math.max(1,observedMax);
+  const scale=10**Math.floor(Math.log10(peak)),max=Math.ceil(peak/scale)*scale;
   const last=series[0].at(-1)?.value,error=ids.map(id=>d.metrics[id]?.error).find(Boolean);
-  return {title,series,max,error,column:['request_rate','rate'].includes(ids[0]),now:(error?'조회 실패':null)||(!d.metrics[ids[0]]?'조회 중…':Number.isFinite(last)?fmt(last)+(unit==='%'?'':' ')+unit:'데이터 없음'),ymax:(max>=1000?fmt(max/1000)+'k':fmt(max))+(unit==='%'?'':' ')+(unit==='req/s'?'/s':unit),aria:title+' 실제 관측값',bars:['request_rate','rate'].includes(ids[0])?chartBars(series[0],max):'',barsStyle:'fill:var(--border)',b1:'',b2:'',b1style:'',b2style:'',p1:chartPath(series[0],max),p2:chartPath(series[1]||[],max),p3:chartPath(series[2]||[],max),p1style:'stroke:var(--text)',p2style:'stroke:var(--text-2)',p3style:'stroke:var(--border-strong)',legend:ids.map((id,i)=>({label:id.replace('latency_','').replace('_ms',''),sw:`width:12px;height:2px;background:var(${i===0?'--text':i===1?'--text-2':'--border-strong'})`}))};
+  const display=unit==='%'?formatErrorPercent(last):fmt(last)+' '+unit;
+  const ymax=unit==='%'?formatErrorPercent(max):(max>=1000?fmt(max/1000)+'k':fmt(max))+' '+(unit==='req/s'?'/s':unit);
+  return {title,series,max,error,column:['request_rate','rate'].includes(ids[0]),now:(error?'조회 실패':null)||(!d.metrics[ids[0]]?'조회 중…':Number.isFinite(last)?display:'데이터 없음'),ymax,aria:title+' 실제 관측값',bars:['request_rate','rate'].includes(ids[0])?chartBars(series[0],max):'',barsStyle:'fill:var(--border)',b1:'',b2:'',b1style:'',b2style:'',p1:chartPath(series[0],max),p2:chartPath(series[1]||[],max),p3:chartPath(series[2]||[],max),p1style:'stroke:var(--text)',p2style:'stroke:var(--text-2)',p3style:'stroke:var(--border-strong)',legend:ids.map((id,i)=>({label:id.replace('latency_','').replace('_ms',''),sw:`width:12px;height:2px;background:var(${i===0?'--text':i===1?'--text-2':'--border-strong'})`}))};
  };
  const scope=d.metricService??d.service;
  const redCharts=d.environment?.recorded?[chart(['rate'],'발신 호출량',1,'req/s'),chart(['error'],'발신 호출 오류율',100,'%'),chart(['p90'],'발신 경로 중 최대 p90',1,'ms')]:[chart(['request_rate'],'Requests',1,'req/s'),chart(['error_ratio'],'Error rate',100,'%'),chart(['latency_p99_ms','latency_p90_ms','latency_p50_ms'],d.route==='B1-Overview'?'지연':'서버 처리 시간',1,'ms')];
  redCharts[0].legend=[{label:`${scope} req/s`,sw:'width:12px;height:2px;background:var(--border)'}];
- redCharts[1].legend=[{label:`${scope} Error rate`,sw:'width:12px;height:2px;background:var(--text)'}];
+ redCharts[1].legend=[{label:`${scope} ${d.environment?.recorded?'발신 호출 오류율':'서버 span 오류율 · 직전 1분'}`,sw:'width:12px;height:2px;background:var(--text)'}];
  if(Number.isFinite(d.metrics.latency_p99_ms?.data?.points?.at(-1)?.value))redCharts[2].now='p99 '+redCharts[2].now;
  const noServerSpans=d.route==='B1-Overview'&&!d.environment?.recorded&&['request_rate','error_ratio','latency_p50_ms','latency_p90_ms','latency_p99_ms'].every(id=>d.metrics[id]?.data?.dataStatus==='NO_DATA');
  const homeCharts=noServerSpans?[

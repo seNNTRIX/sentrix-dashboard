@@ -41,3 +41,23 @@ test('home shows observed resources when server request telemetry is absent',()=
  metrics.request_rate={data:{dataStatus:'AVAILABLE',points:[{value:0}]}};
  assert.equal(designValues(view,live).red[0].now,'0 req/s');
 });
+
+test('error rate keeps true zero, small positives and an unobserved latest window distinct',()=>{
+ const d={route:'B1-Overview',service:'frontend',range:{from:'2026-11-24T00:00:00Z',to:'2026-11-24T00:15:00Z'},metrics:{}};
+ const view={state:{},props:{}};
+ for(const [values,current] of [
+  [[0],'0%'],[[0,.0000012],'0.00012%'],[[.00042],'0.042%'],
+  [[.42],'42%'],[[.0042,null],'데이터 없음'],[[],'데이터 없음']
+ ]){
+  d.metrics.error_ratio={data:{points:values.map(value=>({value}))}};
+  const actual=designValues(view,d),chart=actual.red[1];
+  assert.equal(actual.kpis[1].value,current);
+  assert.equal(chart.now,current);
+  assert.match(chart.legend[0].label,/frontend.+직전 1분/);
+  if(current==='0.00012%'){
+   assert.equal(chart.series[0][1].value,values[1]*100);
+   assert.equal(chart.ymax,'0.0002%');
+   assert.ok(chart.max>=chart.series[0][1].value);
+  }
+ }
+});

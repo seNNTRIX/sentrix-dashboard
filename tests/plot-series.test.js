@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {scoreY,splitSeries} from '../src/live/plot-series.js';
+import {scoreSamples,scoreY,splitSeries} from '../src/live/plot-series.js';
 
 const points = values => values.map((value,i)=>({t:i*30000,value}));
 
@@ -24,4 +24,10 @@ test('zero and maximum scores are inside the plot and share a linear scale with 
   assert.equal(scoreY(1,1),14);
   assert.equal(scoreY(100,100),scoreY(1,1));
   assert.equal(scoreY(.5,1),(scoreY(0,1)+scoreY(1,1))/2);
+});
+
+test('overview draws one trend from the real scores, skipping missing windows of any length', () => {
+  const samples=points([null,.9,null,null,null,null,0,null,1,null]);
+  assert.deepEqual(scoreSamples(samples),[samples[1],samples[6],samples[8]]);
+  assert.deepEqual(scoreSamples(points([null,null])),[]);
 });

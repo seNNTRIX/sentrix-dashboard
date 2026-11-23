@@ -1,6 +1,7 @@
 import React,{useEffect,useId,useRef,useState} from 'react';
 import {environmentPath,queryRange,request} from './api.js';
 import {focusedTopology} from './map-sample.js';
+import {formatErrorPercent} from './design-values.js';
 import {MetricPlot} from './OverviewPlots.jsx';
 import './service-map.css';
 
@@ -55,7 +56,11 @@ function Inspector({env,name,range,decision,rank,incidentId,jobId,traceId,window
  return <aside className="sm-inspector panel" aria-label="선택 서비스 관계">
   <header><h2>{name}</h2><button type="button" onClick={onClose} aria-label="서비스 패널 닫기">×</button></header>
   <div className="sm-badges"><span>{decision}</span>{rank&&<b>원인 후보 {rank}순위</b>}</div>
-  <dl>{definitions.map(([m,label,unit])=>{const v=last(readings[m]);return <div key={m}><dt>{label}</dt><dd>{Number.isFinite(v)?format(m==='error_ratio'?v*100:v)+unit:'—'}</dd></div>;})}</dl>
+  <dl>{definitions.map(([m,label,unit])=>{
+   const value=m==='error_ratio'?readings[m]?.at(-1)?.value:last(readings[m]);
+   const display=!Number.isFinite(value)?'—':m==='error_ratio'?formatErrorPercent(value*100):format(value)+unit;
+   return <div key={m}><dt>{label}</dt><dd>{display}</dd></div>;
+  })}</dl>
   <div className="sm-trend" aria-busy={refreshing}><span>p99 latency{snapshot&&refreshing?' · 갱신 중':''}</span>{series.some(p=>Number.isFinite(p.value))?<MetricPlot chart={{series:[series],max:peak*1.08,aria:name+' p99 지연'}} range={plottedRange} rows={windows}/>:<div className="sm-no-series">{!snapshot&&!env?.recorded?'지표 조회 중…':readings.latency_p99_ms===null?'지표 조회 실패':'관측값 없음'}</div>}
   <footer><time>{clock(plottedRange.from)}</time><time>{clock(plottedRange.to)}</time></footer></div>
   <nav><a href={'#B5-Service?'+serviceQuery}>서비스 Dashboard</a>
