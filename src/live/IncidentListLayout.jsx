@@ -1,6 +1,7 @@
 import React from 'react';
 import {css,routeHref} from '../styles.js';
 import {TimePicker} from '../components/TimePicker.jsx';
+import {CandidateTypeTag} from './CandidateTypeTag.jsx';
 export function IncidentListLayout({empty, fault, faults, hDur, hScore, hStart, iDur, iScore, iStart, onFault, onQ, onSvc, q, rows, services, sortDur, sortScore, sortStart, statusOpts, summary, svc}){return <>
 <div style={css("display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between")}>
  <h1 style={css("margin: 0; font-size: 22px; line-height: 30px; font-weight: 600; letter-spacing: -0.01em")} className={"page-title"}>
@@ -119,13 +120,11 @@ export function IncidentListLayout({empty, fault, faults, hDur, hScore, hStart, 
       <a href={routeHref(r.href)} style={css("overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-weight: 500")}>
        {r.title}
       </a>
-      <div style={css("display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; line-height: 20px; color: var(--text-2)")}>
+      <div style={css("display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 13px; line-height: 20px; color: var(--text-2)")}>
        <span>
         {r.id}
        </span>
-       <span>
-        {r.faultLabel}
-       </span>
+       <CandidateTypeTag kind={r.candidateKind} label={r.faultLabel}/>
        <span>
         {r.service}
        </span>
@@ -155,9 +154,7 @@ export function IncidentListLayout({empty, fault, faults, hDur, hScore, hStart, 
        <span style={css("font-size: 12px; line-height: 18px; color: var(--text-2)")}>
         {"장애 유형"}
        </span>
-       <span style={css("font-size: 13px; line-height: 20px")}>
-        {r.faultLabel}
-       </span>
+       <CandidateTypeTag kind={r.candidateKind} label={r.faultLabel}/>
       </div>
       <div style={css("display: flex; flex-direction: column")}>
        <span style={css("font-size: 12px; line-height: 18px; color: var(--text-2)")}>

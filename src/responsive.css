@@ -242,7 +242,7 @@ button:disabled { cursor: not-allowed; }
 .rca-name,.rca-summary .obs-list small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .g .rca-detail{gap:20px}.g .rca-detail header{align-items:flex-start;flex-wrap:nowrap}
 .g .rca-detail header h2{margin:4px 0;font-size:16px;line-height:24px;font-weight:600;overflow-wrap:anywhere}
-.g .rca-detail .rca-tag{display:inline-block;border-radius:4px;padding:1px 8px;font-size:12px;color:var(--on-tag)}
+.g .rca-tag{display:inline-block;width:fit-content;max-width:100%;box-sizing:border-box;border-radius:4px;padding:1px 8px;font-size:12px;line-height:20px;color:var(--on-tag);word-break:keep-all;overflow-wrap:anywhere}
 .rca-tag.edge{background:var(--tag-net)}.rca-tag.node{background:var(--tag-cpu)}
 .rca-score{text-align:right}.rca-score strong{font-size:28px;line-height:32px;font-weight:500;font-variant-numeric:tabular-nums}.rca-score small{display:block}
 .rca-trend{margin:0;display:grid;gap:8px}.rca-trend figcaption,.rca-keys{display:flex;justify-content:space-between;gap:8px;color:var(--text-2);font-size:13px}

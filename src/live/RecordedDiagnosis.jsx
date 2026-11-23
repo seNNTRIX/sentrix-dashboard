@@ -1,3 +1,4 @@
+import {CandidateTypeTag} from './CandidateTypeTag.jsx';
 import React,{useState,useEffect} from 'react';
 import {environmentPath,request,queryRange} from './api.js';
 import {MetricPlot} from './OverviewPlots.jsx';
@@ -47,7 +48,7 @@ export function RecordedDiagnosis({result,record}){
   <section aria-labelledby="cand-h"><h2 id="cand-h">원인 후보</h2><div className="panel obs-list">{result.candidates.map(c=><button type="button" key={c.rank} aria-pressed={c.rank===candidate.rank} onClick={()=>setRank(c.rank)}>
    <span>{c.rank}</span><span><span className="rca-name" title={candidateName(c)}>{candidateName(c)}</span><small title={c.faultType}>{c.faultType}</small></span><span>{c.score.toFixed(2)}</span>
   </button>)}</div></section>
-  <section className="panel obs-panel rca-detail" aria-labelledby="sel-h"><header><div><small>{candidate.rank}순위 후보</small><h2 id="sel-h">{name}</h2><span className={'rca-tag '+(candidate.kind==='EDGE'?'edge':'node')}>{candidate.faultType}</span></div><div className="rca-score"><strong>{candidate.score.toFixed(2)}</strong><small>점수</small></div></header>
+  <section className="panel obs-panel rca-detail" aria-labelledby="sel-h"><header><div><small>{candidate.rank}순위 후보</small><h2 id="sel-h">{name}</h2><CandidateTypeTag kind={candidate.kind} label={candidate.faultType}/></div><div className="rca-score"><strong>{candidate.score.toFixed(2)}</strong><small>점수</small></div></header>
   <EvidenceTrend candidate={candidate} end={result.windowEnd} record={record} environment={d.environment}/>
   <section><h3>Evidence</h3><ul className="obs-evidence">{candidate.evidence.map((item,i)=>{
    const match=item.match(/^(.*?)\s+([-+]?\d[\d.,]*\s*(?:ms|%|s)?)\s*→\s*([-+]?\d[\d.,]*\s*(?:ms|%|s)?)$/);
