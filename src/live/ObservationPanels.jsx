@@ -90,9 +90,10 @@ function MapPreview({nodes,edges,candidates=[],selected}){
  {visible.map(n=>{const [x,y]=pos(n);return <a key={n} href={'#B2-ServiceMap?service='+encodeURIComponent(n)} className="obs-node" data-cause={top?.source===n?'source':(top?.target===n||top?.service===n)?'first':undefined} data-selected={n===selected} style={{left:x/6+'%',top:y}}>{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</a>;})}</div>;
 }
 
-export function ObservationMap({mini=false,embedded=false}) {
+export function ObservationMap({mini=false,embedded=false,result=null}) {
  const d=useDesign();
- const [diagnosis,setDiagnosis]=useState(null);
+ const [loadedDiagnosis,setDiagnosis]=useState(null);
+ const diagnosis=result||loadedDiagnosis;
  const [focus,setFocus]=useState(()=>mini?'':new URLSearchParams(location.hash.split('?')[1]).get('service')||'');
  const latest=d.overview?.recentWindows?.find(w=>w.decision);
  const alarm=latest?.decision==='ANOMALY'?latest:null;

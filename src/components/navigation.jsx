@@ -38,7 +38,7 @@ export function TopBar({crumbs = '홈', hrefs = '', theme = 'light', onTheme, on
  const [panel, setPanel] = useState(null), [query,setQuery] = useState(''), [read,setRead] = useState(false);
  const user = useRef(null), bell = useRef(null), env = useRef(null);
  useEffect(() => { const shortcut = e => { if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){e.preventDefault();setPanel('search');} };window.addEventListener('keydown',shortcut);return () => window.removeEventListener('keydown',shortcut); },[]);
- const labels = (design?.route==='B5-Service'?`홈|서비스|${design.service}`:crumbs).split('|'), links = hrefs.split('|');
+ const labels = (design?.route==='B5-Service'?`홈|서비스|${design.service}`:design?.route==='B4-Incident'&&design.incidentId?'홈|장애|'+design.incidentId.slice(0,8):crumbs).split('|'), links = hrefs.split('|');
  const results = destinations.filter(row => (!publicView||publicRoutes.has(row[0])) && row.join(' ').toLowerCase().includes(query.trim().toLowerCase()));
  const close = () => setPanel(null);
  return <header className="top-bar">

@@ -12,3 +12,24 @@ function Panel({d}){
  {state.loading?<p role="status">저장소별 확인 중…</p>:state.error?<p role="alert">{state.error}</p>:<><div className="scroll-region" style={{overflowX:'auto'}} tabIndex="0"><table className="data-table"><thead><tr>{['데이터','최신성','마지막 관측 시각','조회 결과'].map(x=><th key={x}>{x}</th>)}</tr></thead><tbody>{state.data.signals.map(s=><tr key={s.signal}><td>{names[s.signal]}</td><td>{labels[s.freshness]}</td><td>{s.observedAt?new Date(s.observedAt).toLocaleString():'—'}</td><td>{s.queryStatus==='ERROR'?`조회 실패 (${s.failureCode||'QUERY_FAILED'})`:s.queryStatus==='NOT_CONFIGURED'?'소스 미설정':s.queryStatus==='PARTIAL'?'일부 응답':'조회 완료'}{s.warnings.includes('FUTURE_TIMESTAMP')?' · 미래 시각 감지':''}{s.warnings.includes('TRACE_START_OUTSIDE_WINDOW')?' · 시작 시각이 조회 구간 밖':''}</td></tr>)}</tbody></table></div><p className="secondary-text">확인 {new Date(state.data.checkedAt).toLocaleString()} · 최근 {state.data.lookbackSeconds/60}분 조회 · {state.data.freshnessThresholdSeconds}초 이내 기준</p></>}
  <p className="secondary-text" style={{fontSize:12}}>지표 샘플·로그 이벤트·트레이스 시작 시각 기준입니다. 수신 시각이나 요청 발생 여부가 아니며, 미관측만으로 수집 장애 또는 서비스 장애를 판정하지 않습니다.</p></section>;
 }
+
+export function StatusCards(){
+ const d=useDesign(),[state,setState]=useState({}),[revision,refresh]=useState(0);
+ useEffect(()=>{
+  if(!d.environment)return;
+  const c=new AbortController(),id=d.environment.id;
+  setState({});
+  request(environmentPath(id)+'/collection-status?'+new URLSearchParams({service:d.service}),{signal:c.signal})
+   .then(data=>{validateCollection(data,id,d.service);if(!c.signal.aborted)setState({data});})
+   .catch(e=>{if(!c.signal.aborted)setState({error:e.message});});
+  return ()=>c.abort();
+ },[d.environment?.id,d.service,revision]);
+ return <div className="sx-state-columns">{[['request_metrics','Requests','B5-Service'],['logs','로그','B7-Logs'],['traces','Trace','B6-Trace']].map(([key,title,route])=>{
+  const s=state.data?.signals.find(x=>x.signal===key);
+  return <section key={key} className="panel obs-panel"><header><h2>{d.service} {title}</h2></header>
+   <p role="status">{state.error||(!s?'수집 상태 조회 중…':s.queryStatus==='ERROR'?'조회 실패':labels[s.freshness])}</p>
+   {s?.observedAt&&<small>마지막 관측 {new Date(s.observedAt).toLocaleTimeString('ko-KR')}</small>}
+   {state.error?<button className="ui-button" onClick={()=>refresh(i=>i+1)}>다시 조회</button>:<a href={'#'+route+'?service='+encodeURIComponent(d.service)}>관측 화면 열기</a>}
+  </section>;
+ })}</div>;
+}

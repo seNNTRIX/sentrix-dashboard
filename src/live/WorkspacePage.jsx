@@ -6,7 +6,7 @@ import {EnvironmentDetails} from './EnvironmentDetails.jsx';
 import {EnvironmentForm} from './EnvironmentContext.jsx';
 import {MonitoringSettings} from './MonitoringSettings.jsx';
 import {BoundSettings,DataNotice} from './DesignBindings.jsx';
-import {CollectionStatus} from './CollectionStatus.jsx';
+import {CollectionStatus,StatusCards} from './CollectionStatus.jsx';
 import {publicView} from './public-view.js';
 import evaluation from './evaluation-sydney.json';
 import benchmark from './evaluation-re2ob.json';
@@ -44,8 +44,8 @@ function useRemote(id,route){
 function settings(d,remote){
  const status=remote.data;
  const info=<section className="panel obs-panel"><h2>관측 환경</h2><table>{rows([['환경',d.environment?.name||'—'],['Namespace',d.environment?.namespace||'—'],['자동 분석',status?(status.enabled?'활성':'비활성'):'—'],['분석 주기',status?status.intervalSeconds+'초':'—'],['최근 성공',status?.lastSuccessfulAt?new Date(status.lastSuccessfulAt).toLocaleString('ko-KR'):'—']])}</table>{remote.error&&<p role="alert">{remote.error}</p>}</section>;
- const sources=publicView?<section className="panel obs-panel"><h2>데이터 소스</h2>{muted('연결 주소와 설정은 운영자 화면에서 확인할 수 있습니다.')}<CollectionStatus/></section>:<BoundSettings/>;
- return {generalStatus:publicView?info:<EnvironmentDetails/>,tDs:sources,tAnalysis:publicView?info:<MonitoringSettings/>,status:<>{info}<CollectionStatus/></>,channelEmpty:muted('알림 채널 미연결')};
+ const sources=<BoundSettings/>;
+ return {generalStatus:publicView?info:<EnvironmentDetails/>,tDs:sources,tAnalysis:publicView?info:<MonitoringSettings/>,status:<div className="workspace-state"><StatusCards/>{info}</div>,channelEmpty:muted('알림 채널 미연결')};
 }
 export function WorkspacePage({theme:initialTheme}){
  const d=useDesign(),route=d.route,Layout=layouts[route];

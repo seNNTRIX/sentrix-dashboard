@@ -32,7 +32,7 @@ function App() {
   const titles = { "B3-Incidents":"장애 기록", "B4-Incident":"장애 기록 상세", 'B2-ServiceMap':'Service map', 'B6-Trace':'Trace', 'B7-Logs':'로그', 'B1-Overview':'개요', 'B5-Service':'서비스 상세', 'C3-Settings':'설정', 'A4-Onboarding':'관측 환경 설정' };
   document.title = `${live ? (titles[route]||heading?.textContent||'대시보드') : heading?.textContent || '대시보드'} · SentriX`;
  },[route,live]);
- return <><a href="#main-content" className="skip-link" onClick={e=>{e.preventDefault();document.getElementById('main-content')?.focus();}}>본문으로 건너뛰기</a><ErrorBoundary key={route}>{live ? <LiveApp route={route} params={params} initialTheme={savedTheme()}/> : <main className="error-page"><h1>사용할 수 없는 화면입니다</h1><a href="#B1-Overview">개요로 돌아가기</a></main>}</ErrorBoundary></>;
+ return <><a href="#main-content" className="skip-link" onClick={e=>{e.preventDefault();document.getElementById('main-content')?.focus();}}>본문으로 건너뛰기</a>{location.pathname==='/display'&&<aside className="exhibit-notice">SentriX 대시보드 · {publicView?'공개 관측 화면':'운영자 관측 화면'}</aside>}<ErrorBoundary key={route}>{live ? <LiveApp route={route} params={params} initialTheme={savedTheme()}/> : <main className="error-page"><h1>사용할 수 없는 화면입니다</h1><a href="#B1-Overview">개요로 돌아가기</a></main>}</ErrorBoundary></>;
 }
 
 // Keyboard navigation is shared by the existing tab and segmented-control patterns.

@@ -1,7 +1,8 @@
+import {IncidentObservations} from './IncidentObservations.jsx';
 import {ExhibitionIncidents} from './ExhibitionIncidents.jsx';
 import {ObservationMap} from './ObservationPanels.jsx';
 import {publicView} from './public-view.js';
-import {RecordedDiagnosis} from './RecordedDiagnosis.jsx';
+import {RecordedDiagnosis,candidateName} from './RecordedDiagnosis.jsx';
 import {validateIncident} from './incident-values.js';
 import {validateJob,validateAnalysisResult,jobLabel,canCancelJob,decisionLabel,analysisReason} from './analysis-values.js';
 import React,{useEffect,useRef,useState} from 'react';
@@ -179,13 +180,19 @@ function Detail({d}){
   const candidate=result?.candidates?.[0],service=candidate?.source||candidate?.service||record?.service;
   const period=new URLSearchParams({service:service||d.service,at:result?.windowEnd||record?.occurredAt||d.range.to});
   const tabs=['요약','타임라인','전파 경로','Trace와 로그','메모'];
-  return <><a href="#B3-Incidents">← 장애 목록</a><header><h1 className="page-title">{record?.title||'장애 상세'}</h1>{record&&<span className="secondary-text">{record.status==='OPEN'?'진행 중':'해결됨'} · {at(record.occurredAt)}{record.resolvedAt?' – '+at(record.resolvedAt):''}</span>}</header>
+  const open=record?.status==='OPEN';
+  const shortId=record?.id.slice(0,8);
+  const seconds=Math.max(0,Math.floor(((Date.parse(record?.resolvedAt)||Date.now())-Date.parse(record?.occurredAt))/1000));
+  return <><header className="rca-heading"><div><h1 className="page-title">{candidate?candidateName(candidate)+' 이상':record?.title||'장애 상세'}</h1>
+   {record&&<div className="rca-meta"><strong className={open?'active':''}>{open?'진행 중':'해결됨'}</strong><span>{at(record.occurredAt)} 시작 · {Math.floor(seconds/60)}분 {seconds%60}초</span><span>{shortId}</span></div>}</div>
+   <div className="rca-actions"><a className="ui-button" href="#B3-Incidents">장애 목록</a>{!d.publicView&&record?.source==='MANUAL'&&<button type="button" className="ui-button" disabled={busy} onClick={()=>mutate(base,'PATCH',{status:open?'RESOLVED':'OPEN'})}>{open?'해결됨으로 표시':'다시 열기'}</button>}</div></header>
    <div role="tablist" className="sx-page-tabs" aria-label="장애 상세">{tabs.map((t,i)=><button role="tab" key={t} aria-selected={tab===i} onClick={()=>setTab(i)}>{t}</button>)}</div>
    {error||detailError?<p role="alert">{error||detailError}</p>:null}
-   {tab===0&&(result?.candidates?.length?<RecordedDiagnosis key={result.jobId} result={result}/>:<p role="status">{result?'이 구간의 원인 후보 없음':selected?.status==='FAILED'?'분석 실패':jobs&&!jobs.items.length?'분석 기록 없음':'분석 결과 조회 중…'}</p>)}
+   {tab===0&&(result?.candidates?.length?<RecordedDiagnosis key={result.jobId} result={result} record={record}/>:<p role="status">{result?'이 구간의 원인 후보 없음':selected?.status==='FAILED'?'분석 실패':jobs&&!jobs.items.length?'분석 기록 없음':'분석 결과 조회 중…'}</p>)}
+   {(tab===1||tab===3)&&record&&<IncidentObservations key={tab+':'+service+':'+period.get('at')} d={d} service={service} end={period.get('at')} timeline={tab===1}/>}
    {tab===1&&<section className="panel obs-panel"><h2>장애 타임라인</h2><div className="sx-table-scroll"><table className="data-table"><thead><tr><th>시각</th><th>이벤트</th></tr></thead><tbody>{[[record?.occurredAt,'장애 발생'],[record?.createdAt,'기록 등록'],[selected?.finishedAt,'선택한 모델 분석 종료'],[record?.resolvedAt,'장애 종료']].filter(([t])=>t).sort((a,b)=>Date.parse(a[0])-Date.parse(b[0])).map(([time,title])=><tr key={title}><td>{at(time)}</td><td>{title}</td></tr>)}</tbody></table></div></section>}
-   {tab===2&&<ObservationMap embedded/>}
-   {tab===3&&<section className="panel obs-panel"><h2>Trace와 로그</h2><p>{service} · {at(result?.windowEnd||record?.occurredAt)}</p><a className="ui-button" href={'#B6-Trace?'+period}>관련 Trace</a> <a className="ui-button" href={'#B7-Logs?'+period}>관련 로그</a></section>}
+   {tab===2&&<ObservationMap embedded result={result}/>}
+
    {tab===4&&<section className="panel obs-panel"><h2>메모</h2><p>{record?.description||'등록된 메모가 없습니다.'}</p></section>}
   </>;
  }

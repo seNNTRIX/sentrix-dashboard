@@ -231,3 +231,31 @@ button:disabled { cursor: not-allowed; }
  .g .sx-history-row a { white-space:normal; overflow-wrap:anywhere; font-size:12px; line-height:16px; }
  .g .sx-legend { column-gap:8px; }
 }
+
+.exhibit-notice{background:#16264d;color:#fff;text-align:center;padding:12px 16px;font:500 12px/22px var(--font)}
+.g .page-content:has(> .sx-page-tabs){gap:24px}
+.rca-heading,.rca-actions,.rca-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.rca-heading{justify-content:space-between;align-items:flex-start;gap:16px}.rca-meta{gap:4px 20px;color:var(--text-2);font-variant-numeric:tabular-nums}
+.rca-meta .active,.rca-values b{color:var(--error-text)}
+.g .rca-summary{display:grid;grid-template-columns:minmax(200px,260px) minmax(0,1fr);gap:24px}
+.g .rca-summary .obs-list button>span:nth-child(2){min-width:0}
+.rca-name,.rca-summary .obs-list small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g .rca-detail{gap:20px}.g .rca-detail header{align-items:flex-start;flex-wrap:nowrap}
+.g .rca-detail header h2{margin:4px 0;font-size:16px;line-height:24px;font-weight:600;overflow-wrap:anywhere}
+.g .rca-detail .rca-tag{display:inline-block;border-radius:4px;padding:1px 8px;font-size:12px;color:var(--on-tag)}
+.rca-tag.edge{background:var(--tag-net)}.rca-tag.node{background:var(--tag-cpu)}
+.rca-score{text-align:right}.rca-score strong{font-size:28px;line-height:32px;font-weight:500;font-variant-numeric:tabular-nums}.rca-score small{display:block}
+.rca-trend{margin:0;display:grid;gap:8px}.rca-trend figcaption,.rca-keys{display:flex;justify-content:space-between;gap:8px;color:var(--text-2);font-size:13px}
+.g .rca-trend svg,.rca-empty{width:100%;height:120px}.rca-empty{display:grid;place-content:center;color:var(--text-2);font-size:13px}
+.rca-keys{justify-content:flex-start;flex-wrap:wrap;gap:4px 16px;font-size:12px}.rca-keys span{display:inline-flex;align-items:center;gap:8px}.rca-keys i{width:12px;height:2px}.rca-keys i.rca-band-key{height:8px;background:var(--shade)}
+.rca-detail h3{margin:0 0 4px;font-size:13px;color:var(--text-2);font-weight:500}
+.g .rca-detail .obs-evidence li{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:baseline;padding:12px 0}.obs-evidence li>small{min-width:80px}.rca-values{margin-left:auto;white-space:nowrap}
+.rca-detail nav{display:flex;flex-wrap:wrap;gap:8px 20px}
+@media(max-width:800px){.g .rca-summary{grid-template-columns:1fr}.rca-heading h1{overflow-wrap:anywhere}}
+.service-diagnostics>summary{cursor:pointer;padding:12px 0;font-weight:500}
+.sx-state-columns{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.sx-state-columns .obs-panel{min-height:164px;justify-content:space-between}.sx-state-columns p{margin:0}
+.sx-source-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px}.sx-source-tools input{max-width:100%;width:360px}
+.workspace-state{display:grid;gap:24px;margin-top:24px}
+.g .obs-list .bound-source-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;padding:14px 20px}.bound-source-row small{color:var(--text-2);font-size:12px}
+.rca-log{display:flex;gap:12px;align-items:baseline}.rca-log time{flex:none;color:var(--text-2)}.rca-log span{overflow-wrap:anywhere}
