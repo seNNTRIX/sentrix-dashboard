@@ -1,3 +1,4 @@
+import {RecordedDiagnosis} from './RecordedDiagnosis.jsx';
 import {validateIncident} from './incident-values.js';
 import {validateJob,validateAnalysisResult,jobLabel,canCancelJob,decisionLabel,analysisReason} from './analysis-values.js';
 import React,{useEffect,useRef,useState} from 'react';
@@ -45,16 +46,16 @@ function IncidentPanelRecords({environmentId,service,recent}) {
   });
  },[environmentId,service,recent]);
  const title=recent?'최근 장애 기록':service?service+'에 등록된 열린 장애':'환경 전체의 열린 장애';
- return <section className="panel panel-padded" style={panel} aria-label={title}>
-  <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',gap:12}}>
-   <h2 className="section-title">{title}{!recent&&data&&!error?' · '+data.totalElements+'건':''}</h2>
-   <a href="#B3-Incidents">전체 기록</a>
-  </div>
-  {error?<p role="alert">{error}</p>:!data?<p role="status">조회 중…</p>:data.items.length?
-   <ul>{data.items.map(x=><li key={x.id}><a href={'#B4-Incident?incidentId='+encodeURIComponent(x.id)}>{x.title}</a>
-    {' · '+x.service+' · '+(x.status==='OPEN'?'열림':'종료')+' · '+at(x.occurredAt)}</li>)}</ul>:
-   <p>{recent?'아직 등록된 장애 기록이 없습니다.':'열린 기록이 없습니다.'}</p>}
- </section>;
+ if(!recent){
+  const record=data?.items[0];
+  return <a className="panel obs-alert" href={record?'#B4-Incident?incidentId='+encodeURIComponent(record.id):'#B3-Incidents'}>
+   <span>{error?'장애 기록 조회 실패':!data?'장애 기록 조회 중…':record?'진행 중 장애 · '+record.title:'진행 중 장애 없음'}</span><span>{record?'상세 보기':'전체 보기'} →</span></a>;
+ }
+ return <section className="panel obs-panel"><header><h2>{title}</h2><a href="#B3-Incidents">전체 보기</a></header>
+  {error?<p role="alert">{error}</p>:!data?<p role="status">조회 중…</p>:!data.items.length?<p>등록된 장애 없음</p>:
+   <div style={{overflowX:'auto'}}><table className="data-table"><thead><tr><th>장애</th><th>서비스</th><th>상태</th><th>발생 시각</th></tr></thead><tbody>
+    {data.items.map(x=><tr key={x.id}><td><a href={'#B4-Incident?incidentId='+encodeURIComponent(x.id)}>{x.title}</a></td><td>{x.service}</td><td>{x.status==='OPEN'?'진행 중':'종료'}</td><td>{at(x.occurredAt)}</td></tr>)}
+   </tbody></table></div>}</section>;
 }
 
 export function Incidents(){const d=useDesign();return <><DataNotice/>{d.environment&&<History key={d.environment.id} d={d}/>}</>;}
@@ -152,6 +153,11 @@ function Detail({d}){
   catch(e){if(!c.signal.aborted)setError(e.message);}
   finally{if(!c.signal.aborted)setBusy(false);}
  };
+ if(d.environment.recorded) return <>
+  <a href="#B3-Incidents">← 장애 목록</a><header><h1 className="page-title">{record?.title||'장애 상세'}</h1>
+   {record&&<span className="secondary-text">{record.status==='OPEN'?'진행 중':'해결됨'} · {at(record.occurredAt)}{record.resolvedAt?' – '+at(record.resolvedAt):''}</span>}</header>
+  {error||detailError?<p role="alert">{error||detailError}</p>:result?.candidates?.length?<RecordedDiagnosis key={result.jobId} result={result}/>:<p role="status">{result?'이 구간의 원인 후보 없음':selected?.status==='FAILED'?'분석 실패':jobs&&!jobs.items.length?'분석 기록 없음':'분석 결과 조회 중…'}</p>}
+ </>;
  return <><a href="#B3-Incidents">← 장애 기록 목록</a><h1 className="page-title">{record?.title||'장애 기록 상세'}</h1>
  {error&&<p role="alert">{error}</p>}{!record&&!error&&<p role="status">조회 중…</p>}
  <button className="ui-button" disabled={busy} onClick={()=>setRev(n=>n+1)}>기록·분석 새로고침</button>
@@ -162,7 +168,8 @@ function Detail({d}){
   <p>종료 시각 {at(record.resolvedAt)}</p>
   {record.source==='MANUAL'&&<><button className="ui-button" disabled={busy} onClick={()=>mutate(base,'PATCH',{status:record.status==='OPEN'?'RESOLVED':'OPEN'})}>{record.status==='OPEN'?'수동 종료':'기록 다시 열기'}</button>
   <p className="secondary-text">수동 종료는 서비스 자동 회복 판정이 아닙니다.</p></>}
- </section><section style={panel} aria-label="분석 작업 이력">
+ </section>
+ <section style={panel} aria-label="분석 작업 이력">
   <div style={{display:'flex',gap:12,justifyContent:'space-between',flexWrap:'wrap'}}><h2 style={{fontSize:16}}>분석 작업 이력</h2><button className="ui-button" disabled={busy||record.status!=='OPEN'} onClick={()=>mutate(base+'/rca-jobs','POST',{requestKey:jobKey.current})}>발생 시점 분석</button><button className="ui-button" disabled={busy||record.status!=='OPEN'} onClick={()=>mutate(base+'/rca-jobs','POST',{requestKey:latestKey.current,latest:true})}>최근 30초 분석</button></div>
   <p className="secondary-text">모델 미연결로 대기한 요청은 연결 후에도 자동 실행되지 않습니다. 새 분석을 요청해야 합니다.</p>
   <div className="scroll-region" style={{overflowX:'auto'}} tabIndex="0"><table className="data-table"><thead><tr><th>분석 구간 시작</th><th>작업 ID</th><th>상태</th><th>요청 시각</th><th>작업</th></tr></thead><tbody>{jobs.items.map(j=><tr key={j.id}><td><button className="ui-button" aria-pressed={selectedId===j.id} onClick={()=>{pinned.current=true;setSelectedId(j.id);}}>{at(j.windowStart)}</button></td><td>{j.id.slice(0,8)}</td><td>{jobLabel(j.status)}</td><td>{at(j.createdAt)}</td><td><button className="ui-button" disabled={busy||!canCancelJob(j.status)} onClick={()=>mutate(base+'/rca-jobs/'+j.id+'/cancel','POST')}>요청 취소</button></td></tr>)}</tbody></table></div>
@@ -178,16 +185,16 @@ function Detail({d}){
    {selected.status==='BLOCKED_MODEL_UNAVAILABLE'&&<p>모델 미연결로 이 요청의 분석은 실행되지 않았습니다.</p>}
   </div>}
  </section><section style={panel} aria-label="RCA 결과"><h2 style={{fontSize:16}}>RCA 결과</h2>
-  {result?<AnalysisResult value={result}/>:<p>{!selectedId?'작업 ID를 선택하면 저장된 결과를 확인할 수 있습니다.':detailError?'결과를 확인하지 못했습니다. 새로고침 후 다시 확인하세요.':selected?.status==='SUCCEEDED'?'저장된 결과 조회 중…':selected?'이 작업에는 완료된 분석 결과가 없습니다.':'작업 조회 중…'}</p>}
+  {result?<AnalysisResult value={result} showCandidates={!d.environment.recorded}/>:<p>{!selectedId?'작업 ID를 선택하면 저장된 결과를 확인할 수 있습니다.':detailError?'결과를 확인하지 못했습니다. 새로고침 후 다시 확인하세요.':selected?.status==='SUCCEEDED'?'저장된 결과 조회 중…':selected?'이 작업에는 완료된 분석 결과가 없습니다.':'작업 조회 중…'}</p>}
  </section></>}
  </>;
 }
-function AnalysisResult({value}){
+function AnalysisResult({value,showCandidates=true}){
  return <div style={{overflowWrap:'anywhere'}}>
   <p><strong>판정 · {decisionLabel(value.decision)}</strong>{value.score!=null&&<> · 점수 {value.score}</>}</p>
   <p className="secondary-text">점수는 모델이 반환한 값이며 확률을 뜻하지 않습니다.</p>
   {value.abstainReason&&<p>보류 사유 · {analysisReason(value.abstainReason)}</p>}
   <p>모델 {value.modelVersion} · 특징 {value.featureSchemaVersion} · 계약 {value.contractVersion}</p>
-  {value.candidates.length?<div className="scroll-region" style={{overflowX:'auto'}} tabIndex="0"><table className="data-table"><thead><tr><th>순위</th><th>원인 후보</th><th>장애 유형</th><th>점수</th><th>근거</th></tr></thead><tbody>{[...value.candidates].sort((a,b)=>a.rank-b.rank).map(c=><tr key={c.rank}><td>{c.rank}</td><td>{c.kind==='NODE'?<>서비스 · {c.service}</>:<>호출 경로 · {c.source} → {c.target}</>}</td><td>{c.faultType}</td><td>{c.score}</td><td>{c.evidence.length?<ul>{c.evidence.map((e,i)=><li key={i}>{e}</li>)}</ul>:'제공된 근거 없음'}</td></tr>)}</tbody></table></div>:<p>반환된 원인 후보가 없습니다.</p>}
+  {!showCandidates&&value.candidates.length?null:value.candidates.length?<div className="scroll-region" style={{overflowX:'auto'}} tabIndex="0"><table className="data-table"><thead><tr><th>순위</th><th>원인 후보</th><th>장애 유형</th><th>점수</th><th>근거</th></tr></thead><tbody>{[...value.candidates].sort((a,b)=>a.rank-b.rank).map(c=><tr key={c.rank}><td>{c.rank}</td><td>{c.kind==='NODE'?<>서비스 · {c.service}</>:<>호출 경로 · {c.source} → {c.target}</>}</td><td>{c.faultType}</td><td>{c.score}</td><td>{c.evidence.length?<ul>{c.evidence.map((e,i)=><li key={i}>{e}</li>)}</ul>:'제공된 근거 없음'}</td></tr>)}</tbody></table></div>:<p>반환된 원인 후보가 없습니다.</p>}
  </div>;
 }

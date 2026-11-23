@@ -47,6 +47,21 @@ function Connected({route,params,initialTheme}){
    }).catch(e=>{if(!abort.signal.aborted)setResult({error:e.message});});
   }else if(route==='B1-Overview'||route==='B5-Service'){
    setResult({});
+   if(environment.recorded){
+    request(base+'/observed-calls?'+new URLSearchParams({service}),{signal:abort.signal}).then(rows=>{
+     if(!Array.isArray(rows))throw Error('관측 구간 응답을 확인하세요.');
+     const data={};
+     const byTime=new Map(rows.map(row=>[Date.parse(row.timestamp),row]));
+     for(const metric of ['rate','error','p90']){
+      const points=[];
+      for(let t=Date.parse(range.from);t<Date.parse(range.to);t+=range.stepSeconds*1000){
+       points.push({timestamp:new Date(t).toISOString(),value:byTime.get(Math.floor(t/10000)*10000)?.[metric]??null});
+      }
+      data[metric]={data:{points}};
+     }
+     if(!abort.signal.aborted)setMetrics(data);
+    }).catch(e=>{if(!abort.signal.aborted)setMetrics(Object.fromEntries(['rate','error','p90'].map(id=>[id,{error:e.message}])));});
+   }else
    for(const [metric] of metricDefinitions)request(`${base}/metrics?${new URLSearchParams({service,metric,...range})}`,{signal:abort.signal}).then(data=>{
     if(data.service!==service||data.metric!==metric||!Array.isArray(data.points))throw new Error('지표 응답 형식이 올바르지 않습니다.');
     if(!abort.signal.aborted)setMetrics(old=>({...old,[metric]:{data}}));
@@ -63,7 +78,7 @@ function Connected({route,params,initialTheme}){
  },[environment?.id,selected,detailRevision]);
  const [overview,setOverview]=useState(null);
  useEffect(()=>{
-  if(route!=='B1-Overview'||!environment)return;
+  if(!['B1-Overview','B2-ServiceMap'].includes(route)||!environment)return;
   const id=environment.id;
   setOverview(null);
   return pollRecords(new AbortController(),async signal=>{
@@ -74,6 +89,12 @@ function Connected({route,params,initialTheme}){
    } catch(e){if(!signal.aborted)setOverview({environmentId:id,error:e.message});}
   });
  },[environment?.id,route,revision]);
+ useEffect(()=>{
+  if(location.pathname!=='/display'||!['B1-Overview','B5-Service'].includes(route)||!rangeLabel.startsWith('지난 '))return;
+  const duration=Date.parse(range.to)-Date.parse(range.from);
+  const timer=setInterval(()=>{if(!document.hidden)setRange(queryRange(Date.now()-duration,Date.now()));},30000);
+  return ()=>clearInterval(timer);
+ },[route,rangeLabel,environment?.id]);
  const changeRange=(from,to,label)=>{setRange(queryRange(from,to));setRangeLabel(label);};
  const refresh=()=>{const seconds={'지난 5분':300,'지난 15분':900,'지난 30분':1800,'지난 1시간':3600,'지난 3시간':10800,'지난 6시간':21600,'지난 12시간':43200,'지난 24시간':86400}[rangeLabel];if(seconds)setRange(queryRange(Date.now()-seconds*1000,Date.now()));else run();};
  const live={...env,overview:overview?.environmentId===environment?.id?overview:null,incidentId:params.get("incidentId"),jobId:params.get("jobId"),route,service,setService,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory,inventoryLoading,inventoryError,metrics,traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};

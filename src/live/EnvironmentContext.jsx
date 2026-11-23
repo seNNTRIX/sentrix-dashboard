@@ -11,6 +11,30 @@ export function EnvironmentProvider({ children }) {
  useEffect(() => {
   const controller = new AbortController();
   setLoading(true); setError(''); setItems([]);
+  // The exhibit uses the ordinary dashboard. Follow the selected observation environment
+  // on Overview, but keep an incident or trace open while the operator is investigating it.
+  if(location.pathname==='/display'){
+   let timer;
+   async function follow(){
+    try{
+     const home=/^#?(B1-Overview)?$/.test(location.hash);
+     const pinned=new URLSearchParams(location.search).get('environment')||sessionStorage.getItem('sentrix-display-env');
+     const path=!home&&pinned?'/display-environment?environment='+encodeURIComponent(pinned):'/display-environment';
+     const response=await fetch(path,{signal:controller.signal,cache:'no-store'});
+     if(!response.ok)throw Error('관측 환경을 확인할 수 없습니다.');
+     const env=await response.json();
+     if(!Number.isSafeInteger(env.id)||!env.name)throw Error('관측 환경 응답을 확인하세요.');
+     if(!controller.signal.aborted){
+      sessionStorage.setItem('sentrix-display-env',String(env.id));
+      setItems(current=>current[0]?.id===env.id?current:[env]);
+      setError('');setLoading(false);
+     }
+    }catch(e){if(!controller.signal.aborted){setError(e.message);setLoading(false);}}
+    finally{if(!controller.signal.aborted)timer=setTimeout(follow,4000);}
+   }
+   follow();
+   return ()=>{controller.abort();clearTimeout(timer);};
+  }
   (async () => {
    let all = [], page = 0, pages;
    do {
@@ -26,7 +50,7 @@ export function EnvironmentProvider({ children }) {
   return () => controller.abort();
  }, [revision]);
  useEffect(() => { try { localStorage.setItem('sentrix-environment', selected); } catch {} }, [selected]);
- const environment = items.find(e => String(e.id) === selected);
+ const environment = location.pathname==='/display' ? items[0] : items.find(e => String(e.id) === selected);
  return <Context.Provider value={{ items, environment, selected, loading, error, select: setSelected,
   reload: () => setRevision(n=>n+1), add: item => { setItems(old=>[...old,item]); setSelected(String(item.id)); } }}>{children}</Context.Provider>;
 }
