@@ -153,7 +153,7 @@ function Detail({d}){
   catch(e){if(!c.signal.aborted)setError(e.message);}
   finally{if(!c.signal.aborted)setBusy(false);}
  };
- if(d.environment.recorded) return <>
+ if(d.environment.recorded || location.pathname==='/display') return <>
   <a href="#B3-Incidents">← 장애 목록</a><header><h1 className="page-title">{record?.title||'장애 상세'}</h1>
    {record&&<span className="secondary-text">{record.status==='OPEN'?'진행 중':'해결됨'} · {at(record.occurredAt)}{record.resolvedAt?' – '+at(record.resolvedAt):''}</span>}</header>
   {error||detailError?<p role="alert">{error||detailError}</p>:result?.candidates?.length?<RecordedDiagnosis key={result.jobId} result={result}/>:<p role="status">{result?'이 구간의 원인 후보 없음':selected?.status==='FAILED'?'분석 실패':jobs&&!jobs.items.length?'분석 기록 없음':'분석 결과 조회 중…'}</p>}
