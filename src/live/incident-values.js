@@ -10,3 +10,11 @@ export function lastDetectedWindow(windows,range,incidentId) {
    (!incidentId || w.incidentId===incidentId);
  });
 }
+
+// The overview and incident list poll independently. During a disagreement,
+// keep the observed diagnosis visible until the open count is confirmed.
+export function incidentBannerLabel(listCount,overviewCount) {
+ if(listCount==null)return '장애 기록 조회 중…';
+ if(Number.isSafeInteger(overviewCount)&&overviewCount!==listCount)return '진행 상태 갱신 중…';
+ return listCount?'진행 중 장애 '+listCount+'건':'진행 중 장애 없음';
+}

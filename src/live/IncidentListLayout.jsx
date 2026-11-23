@@ -82,7 +82,7 @@ export function IncidentListLayout({empty, fault, faults, hDur, hScore, hStart, 
     {"Status"}
    </span>
    <span>
-    {"Incident"}
+    {"장애 · 첫 경보 후보"}
    </span>
    <button type={"button"} onClick={sortScore} disabled={!!scoreHint} title={scoreHint||"대표 후보 점수로 정렬"} aria-label={'대표 후보 점수로 정렬'+(scoreHint?' · '+scoreHint:'')} style={css(hScore)}>
     <svg width={"12"} height={"12"} viewBox={"0 0 24 24"} fill={"none"} stroke={"currentColor"} strokeWidth={"2.2"} strokeLinecap={"round"} strokeLinejoin={"round"} aria-hidden={"true"}>
@@ -145,7 +145,7 @@ export function IncidentListLayout({empty, fault, faults, hDur, hScore, hStart, 
      <div style={css("margin: 0 8px 12px 158px; padding: 12px 16px; border-radius: 8px; background: var(--bg2); display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px")}>
       <div style={css("display: flex; flex-direction: column; min-width: 0")}>
        <span style={css("font-size: 12px; line-height: 18px; color: var(--text-2)")}>
-        {"확인된 유형별 후보"}
+        {"첫 경보 원인 후보"}
        </span>
        {r.leaders.length?r.leaders.map(c=><span key={c.label} style={css("font-size: 13px; line-height: 20px; font-weight: 500")}>{c.label} · {c.name} <small>{c.scoreLabel} {c.score}</small></span>):'—'}
       </div>

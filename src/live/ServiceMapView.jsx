@@ -1,6 +1,6 @@
 import React,{useEffect,useId,useRef,useState} from 'react';
 import {environmentPath,queryRange,request} from './api.js';
-import {rankedCandidates} from './candidate-ranks.js';
+import {storedCandidates} from './candidate-ranks.js';
 import {focusedTopology} from './map-sample.js';
 import {formatErrorPercent} from './design-values.js';
 import {MetricPlot} from './OverviewPlots.jsx';
@@ -83,9 +83,9 @@ export function ServiceMapView({d,nodes:graphNodes,edges,range=d.range,candidate
  const extra=nodes.filter(n=>!Object.hasOwn(positions,n)),height=nodes.some(n=>Object.hasOwn(positions,n))?650:0;
  function pos(n){if(neighborhood)return neighborhood.positions.get(n);const i=extra.indexOf(n);return i<0?positions[n]:[125+(i%4)*245,height+55+Math.floor(i/4)*105];}
 
- const ranked=rankedCandidates(candidates),shown=causes?ranked:[];
- const nodeRanks=new Map(shown.filter(c=>c.kind==='NODE').map(c=>[c.service,c.kindRank]));
- const edgeRanks=new Map(shown.filter(c=>c.kind==='EDGE').map(c=>[JSON.stringify([c.source,c.target]),c.kindRank]));
+ const ranked=storedCandidates(candidates),shown=causes?ranked:[];
+ const nodeRanks=new Map(shown.filter(c=>c.kind==='NODE').map(c=>[c.service,c.rank]));
+ const edgeRanks=new Map(shown.filter(c=>c.kind==='EDGE').map(c=>[JSON.stringify([c.source,c.target]),c.rank]));
  const allLinks=edges.filter(e=>nodes.includes(e.source)&&nodes.includes(e.target));
  const observed=new Set(allLinks.map(e=>JSON.stringify([e.source,e.target])));
  for(const c of shown)if(c.kind==='EDGE'&&nodes.includes(c.source)&&nodes.includes(c.target)&&!observed.has(JSON.stringify([c.source,c.target])))allLinks.push({...c,candidateOnly:true});
@@ -103,7 +103,7 @@ export function ServiceMapView({d,nodes:graphNodes,edges,range=d.range,candidate
   if(mode==='지연')return Number.isFinite(v)?(v>=400?'이상':v>=200?'경고':'정상'):'미관측';
   if(mode==='오류')return links.some(e=>e.target===n&&e.explicitErrorCount>0)?'오류 관측':'미판정';
   if(decision==='NORMAL')return '환경 정상';
-  if(decision==='ANOMALY'&&ranked.some(c=>c.kind==='NODE'&&c.service===n&&c.kindRank===1))return '이상 후보';
+  if(decision==='ANOMALY'&&ranked.some(c=>c.kind==='NODE'&&c.service===n&&c.rank===1))return '이상 후보';
   return '미판정';
  }
  return <><div className="sm-toolbar"><label>기준 서비스 <select className="ui-input" aria-label="기준 서비스" value={focus} onChange={e=>choose(e.target.value)}><option value="">전체 서비스</option>{nodes.map(n=><option key={n} value={n}>{n}</option>)}</select></label>

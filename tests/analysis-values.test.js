@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validateJob,validateAnalysisResult,canCancelJob,jobLabel,candidateScoreLabel,hasReplicaOutage,knownRankingMethod} from '../src/live/analysis-values.js';
+import {validateJob,validateAnalysisResult,canCancelJob,jobLabel,candidateScoreLabel,diagnosisBasis,hasReplicaOutage,knownRankingMethod} from '../src/live/analysis-values.js';
 
 const job={id:'job-1',incidentId:'incident-1',environmentId:1,namespace:'sentrix',status:'SUCCEEDED',createdAt:'2026-11-22T00:00:00Z',updatedAt:'2026-11-22T00:01:00Z',windowStart:'2026-11-21T23:59:30Z',windowEnd:'2026-11-22T00:00:00Z',contractVersion:'v1',featureSchemaVersion:'test-v1',modelVersion:'test-model'};
 const result={jobId:job.id,environmentId:1,namespace:'sentrix',windowStart:job.windowStart,windowEnd:job.windowEnd,contractVersion:'v1',featureSchemaVersion:'test-v1',modelVersion:'test-model',decision:'ANOMALY',score:0.8,candidates:[{rank:1,kind:'EDGE',source:'frontend',target:'catalog',faultType:'NETWORK_DELAY',score:2.5,evidence:['span duration increased']},{rank:2,kind:'NODE',service:'catalog',faultType:'CPU',score:0.4,evidence:[]}]};
@@ -27,6 +27,22 @@ test('model-specific explanations require a compatible saved analysis',()=>{
  assert.equal(knownRankingMethod({...live,modelVersion:'re2ob-v2-freeze'}),true);
  for(const key of Object.keys(live)) assert.equal(knownRankingMethod({...live,[key]:'unknown'}),false);
  assert.equal(knownRankingMethod({}),false);
+});
+
+test('shows a diagnosis basis only when the routed model saved its explanation',()=>{
+ const reason='분석 기준 · 수신 처리 외 지연이 늘었습니다.';
+ const routed={...result,modelVersion:'linuxv1-b-fold2-route1',contractVersion:'sentrix-analysis-v1-draft',featureSchemaVersion:'re2ob-v0-rel18-all58',
+  candidates:[{...result.candidates[0],evidence:[reason]}]};
+ const routedJob={...job,modelVersion:routed.modelVersion,contractVersion:routed.contractVersion,featureSchemaVersion:routed.featureSchemaVersion};
+ assert.equal(validateAnalysisResult(routed,routedJob,'sentrix'),routed);
+ assert.equal(knownRankingMethod(routed),true);
+ assert.equal(diagnosisBasis(routed,routed.candidates[0]),reason);
+ const secondReason='분석 기준 · 두 번째 호출의 수신 처리 외 시간이 늘었습니다.';
+ const second={...routed.candidates[0],rank:2,evidence:[secondReason]};
+ assert.equal(diagnosisBasis({...routed,candidates:[...routed.candidates,second]},second),secondReason);
+ assert.equal(diagnosisBasis({...routed,modelVersion:'linuxv1-b-fold2'},routed.candidates[0]),null);
+ assert.equal(diagnosisBasis(routed,{...routed.candidates[0],evidence:[]}),null);
+ assert.throws(()=>validateAnalysisResult({...routed,candidates:result.candidates},routedJob,'sentrix'));
 });
 
 test('analysis jobs keep legacy null metadata and limit cancellation to active states',()=>{

@@ -5,7 +5,7 @@ import {ServiceMapView} from './ServiceMapView.jsx';
 import {sampleIds,sampleTopology} from './map-sample.js';
 import {TimePicker} from '../components/TimePicker.jsx';
 import {validateMap} from './observation-values.js';
-import {leadingCandidates,rankedCandidates,kindRankLabel} from './candidate-ranks.js';
+import {leadingCandidates,storedCandidates,kindRankLabel} from './candidate-ranks.js';
 
 // Stable slots keep the mini map readable while observed traces change.
 const previewOrder=['adservice','recommendationservice','productcatalogservice','frontend','checkoutservice','currencyservice','cartservice','paymentservice','shippingservice','redis-cart','emailservice'];
@@ -126,7 +126,7 @@ export function ObservationMap({mini=false,embedded=false,result=null}) {
  const {graph,error}=d.environment?.recorded?single:sampled;
  const edges=graph?.edges||[], inventory=d.inventory.map(n=>n.name);
  const nodes=[...new Set([...inventory,...(graph?.nodes||[])])].filter(n=>!d.applicationServices||d.applicationServices.includes(n)).sort();
- const first=diagnosis?.candidates?.[0];
+ const [first]=leadingCandidates(diagnosis?.candidates);
  if(mini){
 
   return <section className="panel panel-padded obs-panel obs-map" aria-labelledby="map-h"><header><h2 id="map-h">Service map</h2><a href="#B2-ServiceMap">전체 보기 · {nodes.length}개</a></header><div>{nodes.length?<MapPreview nodes={nodes} edges={edges} candidates={diagnosis?.candidates} selected={d.metricService}/>:<span className="obs-empty">{error||'관측된 서비스 없음'}</span>}</div></section>;
@@ -147,9 +147,9 @@ export function ServiceConnections(){
 export function ServiceIncidents(){
  const d=useDesign(),items=new Map();
  for(const w of d.overview?.recentWindows||[]){
-  const locations=rankedCandidates(w.locations||[]).filter(c=>[c.source,c.target,c.service].includes(d.service));
+  const locations=storedCandidates(w.locations||[]).filter(c=>[c.source,c.target,c.service].includes(d.service));
   if(w.incidentId&&locations.length&&!items.has(w.incidentId))items.set(w.incidentId,{w,locations});
  }
- return <section className="panel obs-panel"><header><h2>원인 후보에 오른 장애</h2><a href="#B3-Incidents">장애 목록</a></header><div className="sx-table-scroll"><table className="data-table"><thead><tr><th>장애</th><th>유형별 순위</th><th>원인 후보</th><th>분석 시각</th></tr></thead><tbody>{[...items].flatMap(([id,{w,locations}])=>locations.map(loc=><tr key={id+':'+loc.rank}><td><a href={'#B4-Incident?incidentId='+id+'&jobId='+w.jobId}>{id.slice(0,8)}</a></td><td>{kindRankLabel(loc)}</td><td>{loc.service||loc.source+' → '+loc.target}</td><td>{new Date(w.windowEnd).toLocaleString('ko-KR')}</td></tr>))}</tbody></table></div>
- <small>{d.overview?.error||(!d.overview?'조회 중…':items.size?'최근 분석 요약에 포함된 후보입니다. 장애 상세에서 유형별 후보 전체를 볼 수 있습니다.':'최근 분석 요약에 이 서비스와 관련된 후보가 없습니다.')}</small></section>;
+ return <section className="panel obs-panel"><header><h2>원인 후보에 오른 장애</h2><a href="#B3-Incidents">장애 목록</a></header><div className="sx-table-scroll"><table className="data-table"><thead><tr><th>장애</th><th>원인 후보 순위</th><th>원인 후보</th><th>분석 시각</th></tr></thead><tbody>{[...items].flatMap(([id,{w,locations}])=>locations.map(loc=><tr key={id+':'+loc.rank}><td><a href={'#B4-Incident?incidentId='+id+'&jobId='+w.jobId}>{id.slice(0,8)}</a></td><td>{kindRankLabel(loc)}</td><td>{loc.service||loc.source+' → '+loc.target}</td><td>{new Date(w.windowEnd).toLocaleString('ko-KR')}</td></tr>))}</tbody></table></div>
+ <small>{d.overview?.error||(!d.overview?'조회 중…':items.size?'최근 분석 요약에 포함된 후보입니다. 장애 상세에서 해당 분석 구간의 근거를 확인할 수 있습니다.':'최근 분석 요약에 이 서비스와 관련된 후보가 없습니다.')}</small></section>;
 }

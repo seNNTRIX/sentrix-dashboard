@@ -18,7 +18,7 @@ export function ExhibitionIncidents({d}){
    const data=await request(base+'?'+params,{signal:c.signal});
    const items=await Promise.all(data.items.map(async row=>{
     validateIncident(row,d.environment.id);
-    try{const r=await request(base+'/'+encodeURIComponent(row.id)+'/rca',{signal:c.signal});if(r.incidentId===row.id&&r.environmentId===d.environment.id)return {...row,leaders:leadingCandidates(r.result?.candidates),modelVersion:r.result?.modelVersion,knownMethod:!!r.result&&knownRankingMethod(r.result)};}catch{/* Records remain visible without a completed diagnosis. */}return row;
+    try{const r=await request(base+'/'+encodeURIComponent(row.id)+(row.source==='AUTOMATIC'?'/rca?at=first':'/rca'),{signal:c.signal});if(r.incidentId===row.id&&r.environmentId===d.environment.id)return {...row,leaders:leadingCandidates(r.result?.candidates),modelVersion:r.result?.modelVersion,knownMethod:!!r.result&&knownRankingMethod(r.result)};}catch{/* Records remain visible without a completed diagnosis. */}return row;
    }));
    if(!c.signal.aborted)setState({items,pages:data.totalPages,total:data.totalElements});
   }catch(e){if(!c.signal.aborted)setState({error:e.message});}finally{if(!c.signal.aborted)timer=setTimeout(load,30000);}}

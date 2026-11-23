@@ -3,7 +3,7 @@ import {ExhibitionIncidents} from './ExhibitionIncidents.jsx';
 import {ObservationMap} from './ObservationPanels.jsx';
 import {publicView} from './public-view.js';
 import {RecordedDiagnosis,candidateName} from './RecordedDiagnosis.jsx';
-import {lastDetectedWindow,validateIncident} from './incident-values.js';
+import {incidentBannerLabel,lastDetectedWindow,validateIncident} from './incident-values.js';
 import {leadingCandidates,kindRankLabel,candidateScoreText} from './candidate-ranks.js';
 import {validateJob,validateAnalysisResult,jobLabel,canCancelJob,decisionLabel,analysisReason,knownRankingMethod} from './analysis-values.js';
 import React,{useEffect,useRef,useState} from 'react';
@@ -55,7 +55,7 @@ function IncidentPanelRecords({environmentId,service,recent,overview,range}) {
     const items=await Promise.all(response.items.map(async row=>{
      if(closedResults.current.has(row.id))return {...row,diagnosis:closedResults.current.get(row.id)};
      try{
-      const rca=await request(environmentPath(environmentId)+'/incidents/'+row.id+'/rca',{signal});
+      const rca=await request(environmentPath(environmentId)+'/incidents/'+row.id+(recent&&row.source==='AUTOMATIC'?'/rca?at=first':'/rca'),{signal});
       if(rca.environmentId!==environmentId||rca.incidentId!==row.id)return row;
       const diagnosis={jobId:rca.result?.jobId,knownMethod:!!rca.result&&knownRankingMethod(rca.result),leaders:leadingCandidates(rca.result?.candidates)};
       if(row.status==='RESOLVED'&&diagnosis.leaders.length){
@@ -74,24 +74,26 @@ function IncidentPanelRecords({environmentId,service,recent,overview,range}) {
   const record=data?.items[0];
   const detected=data&&!error&&!service?lastDetectedWindow(overview?.recentWindows,range,record?.id):null;
   const leaders=detected&&detected.jobId!==record?.diagnosis?.jobId?leadingCandidates(detected.locations):record?.diagnosis?.leaders||[];
+  const leader=leaders[0];
+  const overviewCount=service?null:overview?.openIncidents;
   const incidentId=detected?.incidentId||record?.id;
   const params=incidentId?new URLSearchParams({incidentId,...(detected?{jobId:detected.jobId}:{})}):null;
   return <a className="panel obs-alert triage-alert" data-open={!!record&&!error} href={params?'#B4-Incident?'+params:'#B3-Incidents'}>
-   <div aria-live="polite"><strong>{error?'장애 기록 조회 실패':!data?'장애 기록 조회 중…':record?'진행 중 장애 '+data.totalElements+'건':'진행 중 장애 없음'}</strong>
+   <div aria-live="polite"><strong>{error?'장애 기록 조회 실패':incidentBannerLabel(data?.totalElements,overviewCount)}</strong>
     {detected&&<time dateTime={detected.windowEnd}>최근 이상 판정 {at(detected.windowEnd)}</time>}
     {record&&!error&&!detected&&<time dateTime={record.occurredAt}>{at(record.occurredAt)} 시작</time>}
-    {!error&&leaders.map(c=><b key={c.kind}>{kindRankLabel(c)} · {candidateName(c)}</b>)}
+    {!error&&leader&&<b>{kindRankLabel(leader)} · {candidateName(leader)}</b>}
     {!detected&&!error&&leaders[0]?.evidence?.[0]&&<small>{leaders[0].evidence[0]}</small>}</div><span>{params?'원인 분석':'장애 목록'} →</span></a>;
  }
  return <section className="panel obs-panel sx-incidents"><header><h2>최근 장애</h2><a href="#B3-Incidents">장애 목록</a></header>
   {error?<p role="alert">{error}</p>:!data?<p role="status">조회 중…</p>:!data.items.length?<p>등록된 장애 없음</p>:
-   <div className="sx-table-scroll"><table className="data-table"><thead><tr>{['ID','상태','원인 후보','유형별 순위','후보 점수','시작','지속'].map(x=><th key={x}>{x}</th>)}</tr></thead><tbody>
+   <div className="sx-table-scroll"><table className="data-table"><thead><tr>{['ID','상태','첫 경보 원인 후보','순위','후보 점수','시작','지속'].map(x=><th key={x}>{x}</th>)}</tr></thead><tbody>
     {data.items.map(x=>{
-     const leaders=x.diagnosis?.leaders||[],seconds=Math.max(0,Math.floor(((x.resolvedAt?Date.parse(x.resolvedAt):Date.now())-Date.parse(x.occurredAt))/1000));
+     const leader=x.diagnosis?.leaders[0],seconds=Math.max(0,Math.floor(((x.resolvedAt?Date.parse(x.resolvedAt):Date.now())-Date.parse(x.occurredAt))/1000));
      return <tr key={x.id}><td><a title={x.title+' · '+x.id} href={'#B4-Incident?incidentId='+x.id}>{x.id.slice(0,8)}</a></td>
       <td><span className={'sx-badge '+(x.status==='OPEN'?'open':'')}>{x.status==='OPEN'?'진행 중':'해결됨'}</span></td>
-      <td>{leaders.length?leaders.map(c=><div key={c.kind}>{candidateName(c)}</div>):'—'}</td><td>{leaders.length?leaders.map(c=><div key={c.kind}>{kindRankLabel(c)}</div>):'—'}</td>
-      <td>{leaders.length?leaders.map(c=><div key={c.kind}>{candidateScoreText(c,x.diagnosis.knownMethod)}</div>):'—'}</td><td>{at(x.occurredAt)}</td><td>{Math.floor(seconds/60)}분 {seconds%60}초</td></tr>;
+      <td>{leader?candidateName(leader):'—'}</td><td>{leader?kindRankLabel(leader):'—'}</td>
+      <td>{leader?candidateScoreText(leader,x.diagnosis.knownMethod):'—'}</td><td>{at(x.occurredAt)}</td><td>{Math.floor(seconds/60)}분 {seconds%60}초</td></tr>;
     })}</tbody></table></div>}</section>;
 }
 
@@ -121,13 +123,14 @@ function CreateIncident({base,env}){
  return <form className="live-form" onSubmit={async e=>{e.preventDefault();if(busy)return;const body={service,title,description,occurredAt:new Date(time).toISOString()};const fingerprint=JSON.stringify(body);if(payload.current!==fingerprint){token.current=crypto.randomUUID();payload.current=fingerprint;}setBusy(true);setError('');try{const x=await request(base,{method:'POST',signal:active.current.signal,body:{...body,requestKey:token.current}});validateIncident(x,env);if(!active.current.signal.aborted)location.hash=`B4-Incident?incidentId=${x.id}`;}catch(e){if(!active.current.signal.aborted)setError(e.message);}finally{if(!active.current.signal.aborted)setBusy(false);}}}><p>장애 의심 상황을 수동 기록으로 저장합니다. 자동 탐지 결과가 아닙니다.</p><label>제목<input aria-label="장애 기록 제목" required maxLength={200} value={title} onChange={e=>setTitle(e.target.value)}/></label><label>서비스<input aria-label="장애 기록 대상 서비스" required maxLength={253} pattern="[a-z0-9]([a-z0-9.-]*[a-z0-9])?" value={service} onChange={e=>setService(e.target.value)}/></label><label>발생 시각<input aria-label="장애 발생 시각" required type="datetime-local" value={time} onChange={e=>setTime(e.target.value)}/></label><label>관측 내용<textarea aria-label="관측 내용" maxLength={2000} value={description} onChange={e=>setDescription(e.target.value)}/></label>{error&&<p role="alert">{error}</p>}<button className="ui-button" disabled={busy}>{busy?'저장 중…':'기록 저장'}</button></form>;
 }
 function Pager({page,pages,change}){return <div style={{display:'flex',gap:12,marginTop:16}}><button className="ui-button" disabled={page===0} onClick={()=>change(page-1)}>이전</button><span>{page+1} / {Math.max(1,pages)}</span><button className="ui-button" disabled={page+1>=pages} onClick={()=>change(page+1)}>다음</button></div>;}
-export function IncidentDetail(){const d=useDesign();return <><DataNotice/>{d.environment&&<Detail key={`${d.environment.id}:${d.incidentId}:${d.jobId||''}`} d={d}/>}</>;}
+export function IncidentDetail(){const d=useDesign();return <><DataNotice/>{d.environment&&<Detail key={`${d.environment.id}:${d.incidentId}:${d.jobId||''}:${d.incidentSnapshot}`} d={d}/>}</>;}
 function Detail({d}){
  const [tab,setTab]=useState(0);
  const [record,setRecord]=useState(null),[jobs,setJobs]=useState(null),[page,setPage]=useState(0),[rev,setRev]=useState(0),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [selectedId,setSelectedId]=useState(d.jobId||''),[selected,setSelected]=useState(null),[result,setResult]=useState(null),[detailError,setDetailError]=useState('');
  const active=useRef(null),jobKey=useRef(crypto.randomUUID()),latestKey=useRef(crypto.randomUUID());
  const pinned=useRef(Boolean(d.jobId));
+ const [missingAlarm,setMissingAlarm]=useState(false);
  const base=`${environmentPath(d.environment.id)}/incidents/${encodeURIComponent(d.incidentId||'')}`;
  useEffect(()=>{
   const c=new AbortController();active.current=c;setRecord(null);setJobs(null);setError('');
@@ -142,14 +145,18 @@ function Detail({d}){
     setRecord(x);setJobs(j);setError('');
     if(!pinned.current && page===0 && j.items.length){
      let diagnosis;
-     try { diagnosis=await request(base+'/rca',{signal}); }
+     const automaticDisplay=x.source==='AUTOMATIC' && (d.environment.recorded || location.pathname==='/display');
+     try { diagnosis=await request(base+(automaticDisplay?'/rca?at='+d.incidentSnapshot:'/rca'),{signal}); }
      catch(error) {
-      if(error.status!==404)throw error;
+      if(error.status!==404 || automaticDisplay)throw error;
       if(!signal.aborted && !pinned.current)setSelectedId(id=>id||j.items[0].id);
       return;
      }
      if(diagnosis.incidentId!==x.id || diagnosis.environmentId!==d.environment.id)throw new Error('원인 분석의 환경 또는 기록이 일치하지 않습니다.');
-     if(!signal.aborted && !pinned.current)setSelectedId(diagnosis.result?.jobId || j.items[0].id);
+     if(!signal.aborted && !pinned.current){
+      setMissingAlarm(automaticDisplay && !diagnosis.result);
+      setSelectedId(diagnosis.result?.jobId || (automaticDisplay?'':j.items[0].id));
+     }
     }
    } catch(e){if(!signal.aborted)setError(e.message);}
   });
@@ -192,18 +199,31 @@ function Detail({d}){
   finally{if(!c.signal.aborted)setBusy(false);}
  };
  if(d.environment.recorded || location.pathname==='/display'){
-  const candidate=result?.candidates?.[0],service=candidate?.source||candidate?.service||record?.service;
+  const [candidate]=leadingCandidates(result?.candidates);
+  const service=candidate?.source||candidate?.service||record?.service;
   const period=new URLSearchParams({service:service||d.service,at:result?.windowEnd||record?.occurredAt||d.range.to});
   const tabs=['요약','타임라인','전파 경로','Trace와 로그','메모'];
   const open=record?.status==='OPEN';
   const shortId=record?.id.slice(0,8);
+  function changeSnapshot(event){
+   const params=new URLSearchParams({incidentId:d.incidentId});
+   if(event.target.value==='latest')params.set('snapshot','latest');
+   location.hash='B4-Incident?'+params;
+  }
   const seconds=Math.max(0,Math.floor(((Date.parse(record?.resolvedAt)||Date.now())-Date.parse(record?.occurredAt))/1000));
   return <><header className="rca-heading"><div><h1 className="page-title">{record?.title||'장애 원인 분석'}</h1>
    {record&&<div className="rca-meta"><strong className={open?'active':''}>{open?'진행 중':'해결됨'}</strong><span>{at(record.occurredAt)} 시작 · {Math.floor(seconds/60)}분 {seconds%60}초</span><span>{shortId}</span></div>}</div>
    <div className="rca-actions"><a className="ui-button" href="#B3-Incidents">장애 목록</a>{!d.publicView&&record?.source==='MANUAL'&&<button type="button" className="ui-button" disabled={busy} onClick={()=>mutate(base,'PATCH',{status:open?'RESOLVED':'OPEN'})}>{open?'해결됨으로 표시':'다시 열기'}</button>}</div></header>
    <div role="tablist" className="sx-page-tabs" aria-label="장애 상세">{tabs.map((t,i)=><button role="tab" key={t} aria-selected={tab===i} onClick={()=>setTab(i)}>{t}</button>)}</div>
    {error||detailError?<p role="alert">{error||detailError}</p>:null}
-   {tab===0&&(result?.candidates?.length?<RecordedDiagnosis key={result.jobId} result={result} record={record}/>:<p role="status">{result?'이 구간의 원인 후보 없음':selected?.status==='FAILED'?'분석 실패':jobs&&!jobs.items.length?'분석 기록 없음':'분석 결과 조회 중…'}</p>)}
+   {tab===0&&record?.source==='AUTOMATIC'&&<div className="rca-snapshot">
+    <label>분석 시점 <select className="ui-button" value={d.jobId?'selected':d.incidentSnapshot} onChange={changeSnapshot}>
+     {d.jobId&&<option value="selected">선택한 분석 구간</option>}
+     <option value="first">첫 경보</option><option value="latest">최근 이상 판정</option>
+    </select></label>
+    {result?.windowEnd&&<time dateTime={result.windowEnd}>{new Date(result.windowEnd).toLocaleTimeString('ko-KR',{hour12:false})} 구간 종료</time>}
+   </div>}
+   {tab===0&&(result?.candidates?.length?<RecordedDiagnosis key={result.jobId} result={result} record={record}/>:<p role="status">{result?'이 구간의 원인 후보 없음':selected?.status==='FAILED'?'분석 실패':jobs&&!jobs.items.length?'분석 기록 없음':missingAlarm?'저장된 이상 판정 없음':'분석 결과 조회 중…'}</p>)}
    {(tab===1||tab===3)&&record&&<IncidentObservations key={tab+':'+service+':'+period.get('at')} d={d} service={service} end={period.get('at')} timeline={tab===1}/>}
    {tab===1&&<section className="panel obs-panel"><h2>장애 타임라인</h2><div className="sx-table-scroll"><table className="data-table"><thead><tr><th>시각</th><th>이벤트</th></tr></thead><tbody>{[[record?.occurredAt,'장애 발생'],[record?.createdAt,'기록 등록'],[selected?.finishedAt,'선택한 모델 분석 종료'],[record?.resolvedAt,'장애 종료']].filter(([t])=>t).sort((a,b)=>Date.parse(a[0])-Date.parse(b[0])).map(([time,title])=><tr key={title}><td>{at(time)}</td><td>{title}</td></tr>)}</tbody></table></div></section>}
    {tab===2&&<ObservationMap embedded result={result}/>}

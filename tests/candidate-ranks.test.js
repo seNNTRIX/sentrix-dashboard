@@ -1,26 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {candidateScoreText,kindRankLabel,leadingCandidates,rankedCandidates,scoreComparisonKey} from '../src/live/candidate-ranks.js';
+import {candidateScoreText,kindRankLabel,leadingCandidates,storedCandidates,scoreComparisonKey} from '../src/live/candidate-ranks.js';
 
-test('rank within node and edge groups follows original evidence order regardless of score',()=>{
- const rows=[
-  {rank:4,kind:'EDGE',source:'a',target:'b',score:.99},
-  {rank:2,kind:'NODE',service:'b',score:.88},
-  {rank:3,kind:'NODE',service:'c',score:.12},
-  {rank:1,kind:'NODE',service:'a',score:.03},
-  {rank:5,kind:'EDGE',source:'b',target:'c',score:1}
- ];
- const ranked=rankedCandidates(rows);
- assert.deepEqual(ranked.map(c=>[c.rank,kindRankLabel(c)]),[[1,'서비스 1위'],[2,'서비스 2위'],[3,'서비스 3위'],[4,'호출 경로 1위'],[5,'호출 경로 2위']]);
- assert.equal(ranked.find(c=>c.service==='b').kindRank,2);
- assert.deepEqual(leadingCandidates(rows).map(c=>c.rank),[1,4]);
- assert.equal(rows[0].rank,4);
- assert.equal(rows[0].kindRank,undefined);
+test('display single-branch candidates in the exact order and ranks returned by the model',()=>{
+ const rows=[{rank:1,kind:'NODE',service:'a',score:.03},{rank:2,kind:'NODE',service:'b',score:.88}];
+ assert.equal(storedCandidates(rows),rows);
+ assert.deepEqual(rows.map(kindRankLabel),['서비스 1위','서비스 2위']);
+ assert.deepEqual(leadingCandidates(rows),[rows[0]]);
+ const edge={kind:'EDGE',rank:1,source:'a',target:'b',score:.8};
+ assert.deepEqual(leadingCandidates([edge]).map(kindRankLabel),['호출 경로 1위']);
 });
 
-test('a truncated overview contains leaders only for kinds actually returned',()=>{
- assert.deepEqual(leadingCandidates([{kind:'EDGE',rank:1},{kind:'EDGE',rank:2}]).map(kindRankLabel),['호출 경로 1위']);
- assert.deepEqual(leadingCandidates(null),[]);
+test('legacy mixed candidates do not imply a selected diagnosis',()=>{
+ const mixed=[{rank:1,kind:'NODE',service:'a'},{rank:2,kind:'EDGE',source:'b',target:'a'}];
+ for(const entries of [mixed,null,[]]){
+  assert.deepEqual(storedCandidates(entries),[]);
+  assert.deepEqual(leadingCandidates(entries),[]);
+ }
 });
 
 test('representative scores from different methods or model versions are not comparable',()=>{
