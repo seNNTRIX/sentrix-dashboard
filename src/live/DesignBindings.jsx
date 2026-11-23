@@ -40,6 +40,7 @@ export function DataNotice({detail=false}){
  const s=detail?d.detail:d.result;
  const warnings={MISSING_PARENT_SPANS:'수집되지 않은 부모 구간이 있습니다.',OUTSIDE_ENVIRONMENT_OMITTED:'다른 환경의 구간은 제외했습니다.',UPSTREAM_PARTIAL:'저장소가 일부 구간만 반환했습니다.',MISSING_SERVICE_NAME:'서비스 이름이 없는 구간이 있습니다.'};
  return <div className={`bound-notice ${detail?'bound-notice-detail':''}`} aria-live="polite">
+  {d.chartRefreshError&&<p role="status">그래프 갱신 실패 · 해당 그래프는 마지막 조회 결과입니다. {d.chartRefreshError}</p>}
   {d.loading?<p role="status">환경을 불러오는 중…</p>:d.error?<p role="alert">{d.error} <button className="ui-button" onClick={d.reload}>다시 연결</button></p>:!d.environment?<p>등록된 환경이 없습니다. <a href="#A4-Onboarding">환경 등록</a></p>:s.loading?<p role="status">조회 중…</p>:s.error?<p role="alert">{s.error}</p>:null}
   {s.data?.truncated&&<p>최근 로그 {s.data.limit}건을 표시합니다.</p>}
   {s.data?.limitReached&&<p>조회 한도에 도달해 검색된 Trace만 최신 시작 시각순으로 표시합니다.</p>}

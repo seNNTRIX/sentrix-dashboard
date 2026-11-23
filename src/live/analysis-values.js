@@ -6,6 +6,22 @@ export const jobLabel=status=>labels[status]||'확인 불가';
 export const canCancelJob=status=>['BLOCKED_MODEL_UNAVAILABLE','QUEUED','RUNNING'].includes(status);
 export const decisionLabel=decision=>({ANOMALY:'이상',NORMAL:'정상',ABSTAIN:'판정 보류'}[decision]||'확인 불가');
 
+// Version 1 stores these observations as evidence text, including on historical jobs.
+const noAvailableReplicas = 'Kubernetes에서 최근 30초간 목표 복제본은 1개 이상, 가용 복제본은 0개로 관측됐습니다.';
+const replicaLossScore = '모델 입력 부족으로 이 후보의 점수는 목표 대비 가용 복제본 손실률(100%)을 표시합니다.';
+
+export function hasReplicaOutage(candidate) {
+ return candidate?.kind === 'NODE' && candidate.evidence?.includes(noAvailableReplicas) === true;
+}
+
+export function candidateScoreLabel(candidate) {
+ if (candidate?.kind === 'EDGE') return '경로 통계 점수';
+ if (candidate?.kind !== 'NODE') return '후보 점수';
+ if (hasReplicaOutage(candidate) && candidate.evidence.includes(replicaLossScore)) return '복제본 손실률';
+ if (!candidate.evidence?.length) return '서비스 후보 점수';
+ return '서비스 모델 점수';
+}
+
 export function validateJob(x,env,incidentId,id){
  if(!x||!text(x.id)||(id!==undefined&&x.id!==id)||x.environmentId!==env||x.incidentId!==incidentId||!Object.hasOwn(labels,x.status)||!date(x.createdAt)||!date(x.updatedAt))fail();
  for(const field of ['windowStart','windowEnd','startedAt','finishedAt','readyAt'])if(x[field]!=null&&!date(x[field]))fail();

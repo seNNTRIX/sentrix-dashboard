@@ -3,11 +3,14 @@ import {environmentPath,queryRange,request} from './api.js';
 import {referenceMinutes,serviceDeviation,serviceSignals} from './service-deviation.js';
 
 import {historySignals,serviceHealth} from './service-health.js';
+import {chartScope,failedRefresh,matchesWindow} from './chart-snapshot.js';
+import {useDesign} from './DesignContext.jsx';
 
 export function useServiceDeviation(environmentId,service,range,enabled,health=false){
  const [result,setResult]=useState({});
+ const rolling=useDesign().rangeLabel.startsWith('지난 ');
  const from=Math.ceil(Date.parse(range.from)/60000)*60000,to=Math.floor(Date.parse(range.to)/60000)*60000;
- const key=JSON.stringify([environmentId,service,from,to,health]);
+ const scope=chartScope(environmentId,[service,health],range,rolling);
  useEffect(()=>{
   if(!enabled||!environmentId||!service)return;
   const abort=new AbortController();
@@ -28,12 +31,10 @@ export function useServiceDeviation(environmentId,service,range,enabled,health=f
     }
     return [metric,samples];
    }));
-   if(!abort.signal.aborted)setResult({key,service,environmentId,health,from,to,points:(health?serviceHealth:serviceDeviation)(new Map(series),from,to)});
+   if(!abort.signal.aborted)setResult({scope,range,data:(health?serviceHealth:serviceDeviation)(new Map(series),from,to)});
   }
-  load().catch(e=>{if(!abort.signal.aborted)setResult({key,error:e.message});});
+  load().catch(e=>{if(!abort.signal.aborted)setResult(old=>failedRefresh(old,scope,range,e.message));});
   return ()=>abort.abort();
- },[key,enabled]);
- const rolling=result.service===service && result.environmentId===environmentId && result.health===health
-  && to>=result.to && to-result.to<=60000 && from>=result.from && from-result.from<=60000;
- return enabled && (result.key===key || rolling) ? result : {};
+ },[scope,from,to,enabled]);
+ return enabled&&matchesWindow(result,scope,range)?{points:result.data,error:result.error||result.refreshError}:{};
 }

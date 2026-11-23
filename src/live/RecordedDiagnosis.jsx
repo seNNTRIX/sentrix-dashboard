@@ -1,4 +1,5 @@
 import {CandidateTypeTag} from './CandidateTypeTag.jsx';
+import {candidateScoreLabel,hasReplicaOutage} from './analysis-values.js';
 import React,{useState,useEffect} from 'react';
 import {environmentPath,request,queryRange} from './api.js';
 import {MetricPlot} from './OverviewPlots.jsx';
@@ -19,23 +20,28 @@ function EvidenceTrend({candidate,record,end,environment}){
   async function read(){
    if(recorded){
     const graph=await request(base+'/observed-topology?'+new URLSearchParams({end}),{signal});
-    return [(graph.history||[]).map(h=>({timestamp:h.time,value:edge?h.latency?.[names.join('>')]:h.cpu?.[names[0]]})).filter(p=>Date.parse(p.timestamp)>=Date.parse(range.from))];
+    const points=(graph.history||[]).map(h=>({timestamp:h.time,value:edge?h.latency?.[names.join('>')]:h.cpu?.[names[0]]})).filter(p=>Date.parse(p.timestamp)>=Date.parse(range.from));
+    return {series:[points],failed:[]};
    }
-   return Promise.all(names.map(async service=>{
+   const results=await Promise.allSettled(names.map(async service=>{
     const r=await request(base+'/metrics?'+new URLSearchParams({service,metric,...range}),{signal});
     if(r.environmentId!==environment.id||r.service!==service||r.metric!==metric||!Array.isArray(r.points))throw Error('시계열 응답을 확인하세요.');
     return r.points;
    }));
+   return {series:results.map(r=>r.status==='fulfilled'?r.value:[]),failed:names.filter((_,i)=>results[i].status==='rejected')};
   }
-  read().then(series=>{if(!signal.aborted)setState({key,range,series});}).catch(e=>{if(!signal.aborted)setState({key,error:e.message});});
+  read().then(data=>{if(!signal.aborted)setState({key,range,...data});}).catch(e=>{if(!signal.aborted)setState({key,error:e.message});});
   return ()=>ctrl.abort();
  },[key,recorded]);
  const title=recorded?(edge?'경로 Span p90 (ms)':'CPU 변화 · 평소 변동폭 단위'):(edge?'서비스별 서버 처리 시간 p90 (ms)':'CPU 사용량 (cores)');
  const loaded=state.key===key,series=loaded?state.series:null;
  const values=(series||[]).flat().map(p=>p.value).filter(Number.isFinite);
+ const min=recorded&&!edge?Math.min(0,...values)*1.08:0;
+ const failure=loaded&&state.failed?.length?state.failed.join(', ')+' 지표 조회 실패':'';
  const bands=record?[{jobId:record.id,decision:'ANOMALY',windowStart:record.occurredAt,windowEnd:record.resolvedAt||end}]:[];
  return <figure className="rca-trend"><figcaption><span>{title}</span><span>{clock(Date.parse(end)-1800000)}–{clock(end)}</span></figcaption>
- {values.length?<MetricPlot chart={{series,max:Math.max(.001,...values)*1.08,aria:title}} rows={bands} range={state.range}/>:<div className="rca-empty" role="status">{loaded?(state.error||'선택한 기간에 수집된 값이 없습니다.'):'시계열 조회 중…'}</div>}
+ {values.length?<MetricPlot chart={{series,min,max:Math.max(.001,...values)*1.08,aria:title}} rows={bands} range={state.range}/>:<div className="rca-empty" role="status">{loaded?(state.error||failure||'선택한 기간에 수집된 값이 없습니다.'):'시계열 조회 중…'}</div>}
+ {values.length>0&&failure&&<small role="status">{failure}</small>}
  <div className="rca-keys">{(recorded?[candidateName(candidate)]:names).map((n,i)=><span key={n}><i style={{background:i?'var(--text-2)':'var(--text)'}}/>{n}</span>)}<span><i className="rca-band-key"/>장애 구간</span></div></figure>;
 }
 
@@ -46,9 +52,10 @@ export function RecordedDiagnosis({result,record}){
  const period=new URLSearchParams({service:candidate.source||candidate.service,at:result.windowEnd});
  return <div className="obs-candidates rca-summary">
   <section aria-labelledby="cand-h"><h2 id="cand-h">원인 후보</h2><div className="panel obs-list">{result.candidates.map(c=><button type="button" key={c.rank} aria-pressed={c.rank===candidate.rank} onClick={()=>setRank(c.rank)}>
-   <span>{c.rank}</span><span><span className="rca-name" title={candidateName(c)}>{candidateName(c)}</span><small title={c.faultType}>{c.faultType}</small></span><span>{c.score.toFixed(2)}</span>
-  </button>)}</div></section>
-  <section className="panel obs-panel rca-detail" aria-labelledby="sel-h"><header><div><small>{candidate.rank}순위 후보</small><h2 id="sel-h">{name}</h2><CandidateTypeTag kind={candidate.kind} label={candidate.faultType}/></div><div className="rca-score"><strong>{candidate.score.toFixed(2)}</strong><small>점수</small></div></header>
+   <span aria-label={c.rank+'순위'}>{c.rank}</span><span><span className="rca-name" title={candidateName(c)}>{candidateName(c)}</span><small title={c.faultType}>{hasReplicaOutage(c)?'가용 복제본 0개':c.faultType}</small></span><span className="rca-list-score" title={candidateScoreLabel(c)}>{c.score.toFixed(2)}</span>
+  </button>)}</div><p className="rca-rank-note">서비스와 호출 경로의 점수는 계산 방식이 다릅니다. 원인 순위에는 가용성과 호출 지연도 반영됩니다.</p></section>
+  <section className="panel obs-panel rca-detail" aria-labelledby="sel-h"><header><div><small>{candidate.rank}순위 후보</small><h2 id="sel-h">{name}</h2><CandidateTypeTag kind={candidate.kind} label={candidate.faultType}/></div><div className="rca-score"><strong>{candidate.score.toFixed(2)}</strong><small>{candidateScoreLabel(candidate)}</small></div></header>
+  {hasReplicaOutage(candidate)&&<div className="rca-availability"><strong>가용 복제본 0개</strong><span>최근 30초 동안 목표 복제본이 1개 이상이었습니다. 이 조건이 한 서비스에서만 관측되면 해당 서비스가 1순위입니다.</span></div>}
   <EvidenceTrend candidate={candidate} end={result.windowEnd} record={record} environment={d.environment}/>
   <section><h3>Evidence</h3><ul className="obs-evidence">{candidate.evidence.map((item,i)=>{
    const match=item.match(/^(.*?)\s+([-+]?\d[\d.,]*\s*(?:ms|%|s)?)\s*→\s*([-+]?\d[\d.,]*\s*(?:ms|%|s)?)$/);

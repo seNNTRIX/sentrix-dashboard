@@ -84,11 +84,11 @@ export function IncidentListLayout({empty, fault, faults, hDur, hScore, hStart, 
    <span>
     {"Incident"}
    </span>
-   <button type={"button"} onClick={sortScore} aria-label={"점수로 정렬"} style={css(hScore)}>
+   <button type={"button"} onClick={sortScore} aria-label={"1순위 후보 점수로 정렬"} style={css(hScore)}>
     <svg width={"12"} height={"12"} viewBox={"0 0 24 24"} fill={"none"} stroke={"currentColor"} strokeWidth={"2.2"} strokeLinecap={"round"} strokeLinejoin={"round"} aria-hidden={"true"}>
      <path d={iScore} />
     </svg>
-    {"Score"}
+    {"후보 점수"}
    </button>
    <button type={"button"} onClick={sortStart} aria-label={"시작 시각으로 정렬"} style={css(hStart)}>
     <svg width={"12"} height={"12"} viewBox={"0 0 24 24"} fill={"none"} stroke={"currentColor"} strokeWidth={"2.2"} strokeLinecap={"round"} strokeLinejoin={"round"} aria-hidden={"true"}>
@@ -126,12 +126,13 @@ export function IncidentListLayout({empty, fault, faults, hDur, hScore, hStart, 
        </span>
        <CandidateTypeTag kind={r.candidateKind} label={r.faultLabel}/>
        <span>
-        {r.service}
+        {r.candidateKind?'1순위 '+r.target:'관측 서비스 '+r.service}
        </span>
       </div>
      </div>
      <span style={css("text-align: right; font-size: 14px; line-height: 22px; color: var(--text); font-variant-numeric: tabular-nums")}>
       {r.score}
+      {r.scoreLabel&&<small className="rca-row-score-type">{r.scoreLabel}</small>}
      </span>
      <span style={css("text-align: right; font-size: 14px; line-height: 22px; color: var(--text-2); font-variant-numeric: tabular-nums")}>
       {r.start}

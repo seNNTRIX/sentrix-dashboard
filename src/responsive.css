@@ -245,6 +245,10 @@ button:disabled { cursor: not-allowed; }
 .g .rca-tag{display:inline-block;width:fit-content;max-width:100%;box-sizing:border-box;border-radius:4px;padding:1px 8px;font-size:12px;line-height:20px;color:var(--on-tag);word-break:keep-all;overflow-wrap:anywhere}
 .rca-tag.edge{background:var(--tag-net)}.rca-tag.node{background:var(--tag-cpu)}
 .rca-score{text-align:right}.rca-score strong{font-size:28px;line-height:32px;font-weight:500;font-variant-numeric:tabular-nums}.rca-score small{display:block}
+.rca-score,.rca-row-score-type{white-space:nowrap}.rca-list-score{font-variant-numeric:tabular-nums}
+.rca-row-score-type{display:block;color:var(--text-2);font-size:12px;line-height:18px}
+.rca-rank-note{margin:10px 0 0;color:var(--text-2);font-size:12px;line-height:1.5;word-break:keep-all}
+.rca-availability{display:grid;gap:4px;padding:10px 12px;border-left:2px solid var(--border);background:var(--bg2);font-size:13px;line-height:1.5;word-break:keep-all}
 .rca-trend{margin:0;display:grid;gap:8px}.rca-trend figcaption,.rca-keys{display:flex;justify-content:space-between;gap:8px;color:var(--text-2);font-size:13px}
 .g .rca-trend svg,.rca-empty{width:100%;height:120px}.rca-empty{display:grid;place-content:center;color:var(--text-2);font-size:13px}
 .rca-keys{justify-content:flex-start;flex-wrap:wrap;gap:4px 16px;font-size:12px}.rca-keys span{display:inline-flex;align-items:center;gap:8px}.rca-keys i{width:12px;height:2px}.rca-keys i.rca-band-key{height:8px;background:var(--shade)}

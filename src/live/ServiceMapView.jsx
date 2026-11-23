@@ -36,15 +36,17 @@ function useReadings(env,names,range){
 }
 
 function Inspector({env,name,range,decision,rank,incidentId,jobId,traceId,windows,onClose}){
- const [readings,setReadings]=useState({});
+ const [snapshot,setSnapshot]=useState(null);
  useEffect(()=>{
   if(!env||env.recorded)return;
   const c=new AbortController();
   Promise.allSettled(definitions.map(([m])=>pointsFor(env,name,m,range,c.signal))).then(values=>{
-   if(!c.signal.aborted)setReadings(Object.fromEntries(values.map((r,i)=>[definitions[i][0],r.status==='fulfilled'?r.value:null])));
+   if(!c.signal.aborted)setSnapshot({range,readings:Object.fromEntries(values.map((r,i)=>[definitions[i][0],r.status==='fulfilled'?r.value:null]))});
   });
   return ()=>c.abort();
  },[env?.id,env?.recorded,name,range.from,range.to,range.stepSeconds]);
+ const readings=snapshot?.readings||{}, plottedRange=snapshot?.range||range;
+ const refreshing=!env?.recorded && (!snapshot||plottedRange.from!==range.from||plottedRange.to!==range.to);
  const series=readings.latency_p99_ms||[],peak=Math.max(1,...series.map(p=>p.value||0));
  const serviceQuery=new URLSearchParams({service:name});
  if(jobId)serviceQuery.set('at',range.to);
@@ -54,8 +56,8 @@ function Inspector({env,name,range,decision,rank,incidentId,jobId,traceId,window
   <header><h2>{name}</h2><button type="button" onClick={onClose} aria-label="서비스 패널 닫기">×</button></header>
   <div className="sm-badges"><span>{decision}</span>{rank&&<b>원인 후보 {rank}순위</b>}</div>
   <dl>{definitions.map(([m,label,unit])=>{const v=last(readings[m]);return <div key={m}><dt>{label}</dt><dd>{Number.isFinite(v)?format(m==='error_ratio'?v*100:v)+unit:'—'}</dd></div>;})}</dl>
-  <div className="sm-trend"><span>p99 latency</span>{series.some(p=>Number.isFinite(p.value))?<MetricPlot chart={{series:[series],max:peak*1.08,aria:name+' p99 지연'}} range={range} rows={windows}/>:<div className="sm-no-series">{!Object.keys(readings).length&&!env?.recorded?'지표 조회 중…':readings.latency_p99_ms===null?'지표 조회 실패':'관측값 없음'}</div>}
-  <footer><time>{clock(range.from)}</time><time>{clock(range.to)}</time></footer></div>
+  <div className="sm-trend" aria-busy={refreshing}><span>p99 latency{snapshot&&refreshing?' · 갱신 중':''}</span>{series.some(p=>Number.isFinite(p.value))?<MetricPlot chart={{series:[series],max:peak*1.08,aria:name+' p99 지연'}} range={plottedRange} rows={windows}/>:<div className="sm-no-series">{!snapshot&&!env?.recorded?'지표 조회 중…':readings.latency_p99_ms===null?'지표 조회 실패':'관측값 없음'}</div>}
+  <footer><time>{clock(plottedRange.from)}</time><time>{clock(plottedRange.to)}</time></footer></div>
   <nav><a href={'#B5-Service?'+serviceQuery}>서비스 Dashboard</a>
    {incidentId&&<a href={'#B4-Incident?'+incidentQuery}>장애 원인 분석</a>}
    <a href={'#B6-Trace?'+(traceId?new URLSearchParams({traceId,service:name}):serviceQuery)}>{traceId?'이 요청의 Trace 상세':'관련 trace'}</a></nav>

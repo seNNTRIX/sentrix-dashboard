@@ -8,6 +8,7 @@ import {request,environmentPath,queryRange,metricDefinitions} from './api.js';
 import {volumeRange,validateVolume} from './log-volume.js';
 import {pollRecords} from './Incidents.jsx';
 import {designValues} from './design-values.js';
+import {chartScope,failedRefresh,matchesWindow,rollingRange} from './chart-snapshot.js';
 import './design-binding.css';
 export const connectedRoutes=new Set(['A1-Login','A2-Signup','A3-Reset','B3-Incidents','B4-Incident','B2-ServiceMap','B1-Overview','B5-Service','B6-Trace','B7-Logs','C3-Settings','A4-Onboarding','B8-Model','C1-Notifications','C2-AlertRules','C4-Team','C5-Account','C6-Audit','C7-States']);
 function Connected({route,params,initialTheme}){
@@ -15,7 +16,15 @@ function Connected({route,params,initialTheme}){
  const [serviceChoice,setService]=useState(params.get('service')||'frontend'),[search,setSearch]=useState(''),[limit,setLimit]=useState(route==='B6-Trace'?'20':'100');
  const [traceFilters,setTraceFilters]=useState({namedRoot:true,minSpanMs:'',errorOnly:false,operation:''});
  const explore=route==='B6-Trace'||route==='B7-Logs';
- const [range,setRange]=useState(()=>{const end=Date.parse(params.get('at'));return Number.isFinite(end)?queryRange(end-900000,end):queryRange(Date.now()-(route==='B3-Incidents'?86400000:explore?3600000:900000),Date.now());}),[rangeLabel,setRangeLabel]=useState(params.has('at')?'장애 발생 구간':route==='B3-Incidents'?'지난 24시간':explore?'지난 1시간':'지난 15분'),[revision,setRevision]=useState(0);
+ const chartRoute=['B1-Overview','B2-ServiceMap','B5-Service'].includes(route);
+ const [range,setRange]=useState(()=>{
+  const incidentEnd=Date.parse(params.get('at'));
+  if(Number.isFinite(incidentEnd))return queryRange(incidentEnd-900000,incidentEnd);
+  const now=Date.now(),duration=route==='B3-Incidents'?86400000:explore?3600000:900000;
+  return chartRoute?rollingRange(now,duration):queryRange(now-duration,now);
+ });
+ const [rangeLabel,setRangeLabel]=useState(params.has('at')?'장애 발생 구간':route==='B3-Incidents'?'지난 24시간':explore?'지난 1시간':'지난 15분');
+ const [revision,setRevision]=useState(0);
  const [volume,setVolume]=useState({});
  const [result,setResult]=useState({loading:true}),[inventory,setInventory]=useState([]),[metrics,setMetrics]=useState({});
  const [traceId,setTraceId]=useState(params.get('traceId')||''),[selected,setSelected]=useState(''),[detail,setDetail]=useState({}),[detailRevision,setDetailRevision]=useState(0);
@@ -36,8 +45,10 @@ function Connected({route,params,initialTheme}){
  const [homeChoice,setHomeChoice]=useState(params.get('service')||'frontend');
  const homeService=route==='B1-Overview'?(serviceNames.includes(homeChoice)?homeChoice:serviceNames[0]||''):null;
  const metricService=homeService??service;
- const [loadedMetricService,setLoadedMetricService]=useState(null);
- useEffect(()=>{setMetrics({});setLoadedMetricService(metricService);},[metricService]);
+ const rolling=rangeLabel.startsWith('지난 ');
+ const metricScope=chartScope(environment?.id,metricService,range,rolling);
+ const environmentScope=chartScope(environment?.id,null,range,rolling);
+ const visibleMetrics=Object.fromEntries(Object.entries(metrics).filter(([,v])=>matchesWindow(v,metricScope,range)));
  const run=()=>{setRevision(n=>n+1);};
  const chooseTrace=id=>{setSelected(id);setDetailRevision(n=>n+1);};
  useEffect(()=>{setService(params.get('service')||'frontend');setSelected('');},[params.get('service'),route]);
@@ -48,7 +59,7 @@ function Connected({route,params,initialTheme}){
   return()=>abort.abort();
  },[environment?.id,revision]);
  useEffect(()=>{
-  setResult({loading:true});setVolume({});setSelected(route==='B6-Trace'&&service===(linkedService||'frontend')?(params.get('traceId')||''):'');setDetail({});
+  if(explore){setResult({loading:true});setVolume({});setSelected(route==='B6-Trace'&&service===(linkedService||'frontend')?(params.get('traceId')||''):'');setDetail({});}
   if(!environment)return;const abort=new AbortController(),base=environmentPath(environment.id);
   const {stepSeconds,...time}=range;
   if(explore){
@@ -87,26 +98,28 @@ function Connected({route,params,initialTheme}){
       for(let t=Date.parse(range.from);t<Date.parse(range.to);t+=range.stepSeconds*1000){
        points.push({timestamp:new Date(t).toISOString(),value:byTime.get(Math.floor(t/10000)*10000)?.[metric]??null});
       }
-      data[metric]={data:{points}};
+      data[metric]={scope:metricScope,range,data:{points}};
      }
      if(!abort.signal.aborted)setMetrics(data);
-    }).catch(e=>{if(!abort.signal.aborted)setMetrics(Object.fromEntries(['rate','error','p90'].map(id=>[id,{error:e.message}])));});
+    }).catch(e=>{if(!abort.signal.aborted)setMetrics(old=>Object.fromEntries(['rate','error','p90'].map(id=>[id,failedRefresh(old[id],metricScope,range,e.message)])));});
    }else
    for(const [metric] of metricDefinitions)request(`${base}/metrics?${new URLSearchParams({service:metricService,metric,...range})}`,{signal:abort.signal}).then(data=>{
-    if(data.service!==metricService||data.metric!==metric||!Array.isArray(data.points))throw new Error('지표 응답 형식이 올바르지 않습니다.');
-    if(!abort.signal.aborted)setMetrics(old=>({...old,[metric]:{data}}));
-   }).catch(e=>{if(!abort.signal.aborted)setMetrics(old=>({...old,[metric]:{error:e.message} }));});
+    if(data.environmentId!==environment.id||data.service!==metricService||data.metric!==metric||data.from!==range.from||data.to!==range.to||data.stepSeconds!==range.stepSeconds||!Array.isArray(data.points))throw new Error('지표 응답 형식이 올바르지 않습니다.');
+    if(!abort.signal.aborted)setMetrics(old=>({...old,[metric]:{scope:metricScope,range,data}}));
+   }).catch(e=>{if(!abort.signal.aborted)setMetrics(old=>({...old,[metric]:failedRefresh(old[metric],metricScope,range,e.message)}));});
   }else setResult({});
   return()=>abort.abort();
  // Filters are applied with Run query; time and service links apply immediately.
- },[environment?.id,route,range,revision,params.get('service'),homeService,exploreService,metricService]);
+ },[environment?.id,route,range,revision,params.get('service'),homeService,exploreService,metricService,metricScope]);
  useEffect(()=>{
   setDetail(selected?{loading:true}:{});if(!selected||!environment)return;
   const abort=new AbortController();request(`${environmentPath(environment.id)}/traces/${encodeURIComponent(selected)}`,{signal:abort.signal})
    .then(data=>{if(data.traceId!==selected||data.environmentId!==environment.id||!Array.isArray(data.spans))throw new Error('상세 응답 형식이 올바르지 않습니다.');if(!abort.signal.aborted)setDetail({data});})
    .catch(e=>{if(!abort.signal.aborted)setDetail({error:e.message});});return()=>abort.abort();
  },[environment?.id,selected,detailRevision]);
- const [overview,setOverview]=useState(null);
+ const [overviewState,setOverview]=useState(null);
+ const currentOverview=matchesWindow(overviewState,environmentScope,range)?overviewState:null;
+ const overview=currentOverview?.data || (currentOverview?.error?{environmentId:environment?.id,error:currentOverview.error}:null);
  useEffect(()=>{
   if(!exhibition)return;
   const abort=new AbortController();
@@ -123,21 +136,31 @@ function Connected({route,params,initialTheme}){
    try {
     const data=await request(environmentPath(id)+'/overview?'+new URLSearchParams({from:range.from,to:range.to}),{signal});
     if(data.environmentId!==id||!Number.isSafeInteger(data.openIncidents)||!Array.isArray(data.recentWindows)) throw new Error('환경 요약 형식을 확인해 주세요.');
-    if(!signal.aborted)setOverview(data);
-   } catch(e){if(!signal.aborted)setOverview({environmentId:id,error:e.message});}
+    if(!signal.aborted)setOverview({scope:environmentScope,range,data});
+   } catch(e){if(!signal.aborted)setOverview(old=>failedRefresh(old,environmentScope,range,e.message));}
   });
- },[environment?.id,route,revision,range.from,range.to]);
+ },[environment?.id,route,revision,range.from,range.to,environmentScope]);
  useEffect(()=>{
   if(!['B1-Overview','B2-ServiceMap','B5-Service'].includes(route)||params.has('incidentId')||params.has('traceId')||!rangeLabel.startsWith('지난 '))return;
   const duration=Date.parse(range.to)-Date.parse(range.from);
-  const advance=()=>{if(!document.hidden){const now=Date.now();setRange(queryRange(now-duration,now));}};
+  const advance=()=>{if(!document.hidden){const next=rollingRange(Date.now(),duration);setRange(old=>old.to===next.to?old:next);}};
   const timer=setInterval(advance,30000);
   document.addEventListener('visibilitychange',advance);
   return ()=>{clearInterval(timer);document.removeEventListener('visibilitychange',advance);};
  },[route,rangeLabel,environment?.id]);
- const changeRange=(from,to,label)=>{setRange(queryRange(from,to));setRangeLabel(label);};
- const refresh=()=>{const seconds={'지난 5분':300,'지난 15분':900,'지난 30분':1800,'지난 1시간':3600,'지난 3시간':10800,'지난 6시간':21600,'지난 12시간':43200,'지난 24시간':86400}[rangeLabel];if(seconds)setRange(queryRange(Date.now()-seconds*1000,Date.now()));else run();};
- const live={...env,publicView,modelVersion:policy?.modelVersion,settingsTab:params.get('tab'),threshold:policy?.threshold,applicationServices:policy?.applicationServices,overview:overview?.environmentId===environment?.id?overview:null,incidentId:params.get("incidentId"),jobId:params.get("jobId"),route,service,setService,traceFilters,setTraceFilters,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory:visibleInventory,inventoryLoading,inventoryError,serviceNames,metricService,setHomeChoice,metrics:loadedMetricService===metricService?metrics:{},traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
+ const changeRange=(from,to,label)=>{
+  const requested=queryRange(from,to);
+  setRange(chartRoute&&label.startsWith('지난 ')?rollingRange(Date.parse(requested.to),Date.parse(requested.to)-Date.parse(requested.from)):requested);
+  setRangeLabel(label);
+ };
+ const refresh=()=>{
+  if(!rolling){run();return;}
+  const duration=Date.parse(range.to)-Date.parse(range.from),now=Date.now();
+  changeRange(now-duration,now,rangeLabel);
+  // Re-read even when a manual refresh falls within the same chart step.
+  if(chartRoute && rollingRange(now,duration).to===range.to)run();
+ };
+ const live={...env,publicView,modelVersion:policy?.modelVersion,settingsTab:params.get('tab'),threshold:policy?.threshold,applicationServices:policy?.applicationServices,overview,chartRefreshError:currentOverview?.refreshError||Object.values(visibleMetrics).find(m=>m.refreshError)?.refreshError,incidentId:params.get("incidentId"),jobId:params.get("jobId"),route,service,setService,traceFilters,setTraceFilters,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory:visibleInventory,inventoryLoading,inventoryError,serviceNames,metricService,setHomeChoice,metrics:visibleMetrics,traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
  live.values=view=>designValues(view,live);
  if(exhibition&&!explore&&!policy?.applicationServices)return <p role="status" className="bound-notice">{policy?.error?<>{'전시 서비스 목록을 불러오지 못했습니다. '}<button className="ui-button" onClick={run}>다시 조회</button></>:'전시 서비스 조회 중…'}</p>;
  if(exhibition&&route==='B5-Service'&&linkedService&&!applicationServices.includes(linkedService))return <p className="bound-notice">전시 대상에 없는 서비스입니다. <a href="#B1-Overview">홈으로</a></p>;
