@@ -79,3 +79,6 @@
 .sx-map-modes{display:inline-flex;padding:2px;background:var(--bg2);border-radius:8px}
 .sx-map-modes button{height:28px;padding:0 12px;background:none;border:0;border-radius:6px}
 .sx-map-modes button[aria-checked=true]{background:var(--bg1);box-shadow:var(--shadow-z1)}
+
+.home-service-picker{display:flex;align-items:center;gap:10px;color:var(--text-2);font-size:13px}
+.home-service-picker select{min-width:0;max-width:100%;color:var(--text)}

@@ -130,6 +130,13 @@ try {
  for(const label of await requestCard.locator('.chart-ticks > span').allTextContents())expect(label).toMatch(/^\d{2}:\d{2}$/);
  await expect(page.getByRole('heading',{name:'지연',exact:true})).toBeVisible();
 
+ const picker=page.getByRole('combobox',{name:'지표 서비스'});
+ await expect(picker).toHaveValue('frontend');
+ const start=calls.length;
+ await picker.selectOption('checkoutservice');
+ await expect.poll(()=>new Set(calls.slice(start).filter(c=>c.path.endsWith('/metrics')&&new URLSearchParams(c.query).get('service')==='checkoutservice').map(c=>new URLSearchParams(c.query).get('metric'))).size).toBe(5);
+ await expect(requestCard).toContainText('checkoutservice req/s');
+ await expect(page.locator('.kpi-strip')).toContainText('checkoutservice 기준');
  await timeline.getByRole('link',{name:'checkoutservice',exact:true}).click();
  await expect.poll(()=>calls.filter(c=>c.path.endsWith('/metrics')).at(-1)?.query).toContain('service=checkoutservice');
  await expect(page.getByRole('heading',{name:'checkoutservice',exact:true})).toBeVisible();

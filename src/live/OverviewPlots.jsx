@@ -46,6 +46,16 @@ export function ScorePanel({rows,error,threshold,range}){
  </svg><footer>{ticks(from,to,6).map((t,i)=><span key={i}>{t}</span>)}</footer></>:<div className="obs-empty">{error||'이 기간에 관측된 점수가 없습니다.'}</div>}</section>;
 }
 
+export function HomeServicePicker({live}){
+ const {metricService,serviceNames,setHomeChoice,inventoryLoading,inventoryError}=live;
+ return <label className="home-service-picker">서비스
+  <select className="ui-input" aria-label="지표 서비스" value={metricService} disabled={!serviceNames.length} onChange={e=>setHomeChoice(e.target.value)}>
+   {!serviceNames.length&&<option value="">{inventoryLoading?'조회 중…':inventoryError?'서비스 조회 실패':'서비스 없음'}</option>}
+   {serviceNames.map(name=><option key={name} value={name}>{name}</option>)}
+  </select>
+ </label>;
+}
+
 export function MetricPlot({chart,range,rows}){
  const from=Date.parse(range.from),to=Date.parse(range.to), x=t=>600*(t-from)/(to-from),y=v=>119-117*v/chart.max;
  const series=chart.series.map(points=>points.map(p=>({t:Date.parse(p.timestamp),value:p.value})));

@@ -19,6 +19,14 @@ function Connected({route,params,initialTheme}){
  const [traceId,setTraceId]=useState(params.get('traceId')||''),[selected,setSelected]=useState(''),[detail,setDetail]=useState({}),[detailRevision,setDetailRevision]=useState(0);
  const [inventoryLoading,setInventoryLoading]=useState(true),[inventoryError,setInventoryError]=useState('');
  const [sources,setSources]=useState([]),[sourceError,setSourceError]=useState('');
+ const [policy,setPolicy]=useState(null);
+ const applicationServices=policy?.applicationServices;
+ const serviceNames=inventory.map(item=>item.name).filter(name=>!applicationServices||applicationServices.includes(name));
+ const [homeChoice,setHomeChoice]=useState(params.get('service')||'frontend');
+ const homeService=route==='B1-Overview'?(serviceNames.includes(homeChoice)?homeChoice:serviceNames[0]||''):null;
+ const metricService=homeService??service;
+ const [loadedMetricService,setLoadedMetricService]=useState(null);
+ useEffect(()=>{setMetrics({});setLoadedMetricService(metricService);},[metricService]);
  const run=()=>{setRevision(n=>n+1);};
  const chooseTrace=id=>{setSelected(id);setDetailRevision(n=>n+1);};
  useEffect(()=>{setService(params.get('service')||'frontend');setSelected('');},[params.get('service'),route]);
@@ -50,8 +58,9 @@ function Connected({route,params,initialTheme}){
    }).catch(e=>{if(!abort.signal.aborted)setResult({error:e.message});});
   }else if(route==='B1-Overview'||route==='B5-Service'){
    setResult({});
+   if(!metricService)return ()=>abort.abort();
    if(environment.recorded){
-    request(base+'/observed-calls?'+new URLSearchParams({service}),{signal:abort.signal}).then(rows=>{
+    request(base+'/observed-calls?'+new URLSearchParams({service:metricService}),{signal:abort.signal}).then(rows=>{
      if(!Array.isArray(rows))throw Error('관측 구간 응답을 확인하세요.');
      const data={};
      const byTime=new Map(rows.map(row=>[Date.parse(row.timestamp),row]));
@@ -65,14 +74,14 @@ function Connected({route,params,initialTheme}){
      if(!abort.signal.aborted)setMetrics(data);
     }).catch(e=>{if(!abort.signal.aborted)setMetrics(Object.fromEntries(['rate','error','p90'].map(id=>[id,{error:e.message}])));});
    }else
-   for(const [metric] of metricDefinitions.filter(([id])=>route==='B5-Service'||!['cpu_usage_cores','memory_working_set_bytes'].includes(id)))request(`${base}/metrics?${new URLSearchParams({service,metric,...range})}`,{signal:abort.signal}).then(data=>{
-    if(data.service!==service||data.metric!==metric||!Array.isArray(data.points))throw new Error('지표 응답 형식이 올바르지 않습니다.');
+   for(const [metric] of metricDefinitions.filter(([id])=>route==='B5-Service'||!['cpu_usage_cores','memory_working_set_bytes'].includes(id)))request(`${base}/metrics?${new URLSearchParams({service:metricService,metric,...range})}`,{signal:abort.signal}).then(data=>{
+    if(data.service!==metricService||data.metric!==metric||!Array.isArray(data.points))throw new Error('지표 응답 형식이 올바르지 않습니다.');
     if(!abort.signal.aborted)setMetrics(old=>({...old,[metric]:{data}}));
    }).catch(e=>{if(!abort.signal.aborted)setMetrics(old=>({...old,[metric]:{error:e.message} }));});
   }else setResult({});
   return()=>abort.abort();
  // Filters are applied with Run query; time and service links apply immediately.
- },[environment?.id,route,range,revision,params.get('service')]);
+ },[environment?.id,route,range,revision,params.get('service'),homeService]);
  useEffect(()=>{
   setDetail(selected?{loading:true}:{});if(!selected||!environment)return;
   const abort=new AbortController();request(`${environmentPath(environment.id)}/traces/${encodeURIComponent(selected)}`,{signal:abort.signal})
@@ -80,7 +89,6 @@ function Connected({route,params,initialTheme}){
    .catch(e=>{if(!abort.signal.aborted)setDetail({error:e.message});});return()=>abort.abort();
  },[environment?.id,selected,detailRevision]);
  const [overview,setOverview]=useState(null);
- const [policy,setPolicy]=useState(null);
  useEffect(()=>{
   if(location.pathname!=='/display'||environment?.id!==1||!['B1-Overview','B2-ServiceMap','B8-Model','C2-AlertRules','C3-Settings','C7-States'].includes(route))return;
   const abort=new AbortController();
@@ -109,7 +117,7 @@ function Connected({route,params,initialTheme}){
  },[route,rangeLabel,environment?.id]);
  const changeRange=(from,to,label)=>{setRange(queryRange(from,to));setRangeLabel(label);};
  const refresh=()=>{const seconds={'지난 5분':300,'지난 15분':900,'지난 30분':1800,'지난 1시간':3600,'지난 3시간':10800,'지난 6시간':21600,'지난 12시간':43200,'지난 24시간':86400}[rangeLabel];if(seconds)setRange(queryRange(Date.now()-seconds*1000,Date.now()));else run();};
- const live={...env,publicView,modelVersion:policy?.modelVersion,settingsTab:params.get('tab'),threshold:policy?.threshold,applicationServices:policy?.applicationServices,overview:overview?.environmentId===environment?.id?overview:null,incidentId:params.get("incidentId"),jobId:params.get("jobId"),route,service,setService,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory,inventoryLoading,inventoryError,metrics,traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
+ const live={...env,publicView,modelVersion:policy?.modelVersion,settingsTab:params.get('tab'),threshold:policy?.threshold,applicationServices:policy?.applicationServices,overview:overview?.environmentId===environment?.id?overview:null,incidentId:params.get("incidentId"),jobId:params.get("jobId"),route,service,setService,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory,inventoryLoading,inventoryError,serviceNames,metricService,setHomeChoice,metrics:loadedMetricService===metricService?metrics:{},traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
  live.values=view=>designValues(view,live);
  const Screen=screens[route]||WorkspacePage;
  return <DesignContext.Provider value={live}><Screen theme={initialTheme} tab={route==='C3-Settings'?'데이터 소스':undefined} live={live}/></DesignContext.Provider>;
