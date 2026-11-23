@@ -81,7 +81,7 @@ function Connected({route,params,initialTheme}){
      if(!abort.signal.aborted)setMetrics(data);
     }).catch(e=>{if(!abort.signal.aborted)setMetrics(Object.fromEntries(['rate','error','p90'].map(id=>[id,{error:e.message}])));});
    }else
-   for(const [metric] of metricDefinitions.filter(([id])=>route==='B5-Service'||!['cpu_usage_cores','memory_working_set_bytes'].includes(id)))request(`${base}/metrics?${new URLSearchParams({service:metricService,metric,...range})}`,{signal:abort.signal}).then(data=>{
+   for(const [metric] of metricDefinitions)request(`${base}/metrics?${new URLSearchParams({service:metricService,metric,...range})}`,{signal:abort.signal}).then(data=>{
     if(data.service!==metricService||data.metric!==metric||!Array.isArray(data.points))throw new Error('지표 응답 형식이 올바르지 않습니다.');
     if(!abort.signal.aborted)setMetrics(old=>({...old,[metric]:{data}}));
    }).catch(e=>{if(!abort.signal.aborted)setMetrics(old=>({...old,[metric]:{error:e.message} }));});

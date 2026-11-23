@@ -27,7 +27,7 @@ function Series({points,x,y,color,width=1.5}) {
   {last&&<circle key={'dot'+points.at(-1).t} className="sx-sample" cx={last.split(' ')[0]} cy={last.split(' ')[1]} r="1.65" fill={color} stroke="none"/>}
  </g>;
 }
-export function ScorePanel({rows,error,threshold,range}){
+export function ScorePanel({rows,error,threshold,range,service}){
  const from=Date.parse(range.from),to=Date.parse(range.to),bands=intervals(rows,from,to);
  const x=t=>600*(t-from)/(to-from),y=v=>156-152*v;
  const points=[];let lastEnd;
@@ -36,14 +36,19 @@ export function ScorePanel({rows,error,threshold,range}){
   lastEnd=Date.parse(row.windowEnd);
   points.push({t:lastEnd,value:row.score});
  }
+ const latest=bands.at(-1)?.row;
+ const matches=(latest?.locations||[]).filter(c=>c.service===service||c.source===service||c.target===service);
+ const candidateText=latest?.decision==='ANOMALY'
+  ? matches.map(c=>c.kind==='EDGE'?c.rank+'순위 경로 '+c.source+' → '+c.target:c.rank+'순위 서비스').join(' · ')||'상위 3개 후보에 없음'
+  :latest?.decision==='NORMAL'?'환경 정상 · 원인 후보 없음':'판정 대기';
  const current=points.findLast(p=>Number.isFinite(p.value))?.value;
- return <section className="panel obs-panel obs-score" aria-labelledby="score-h"><header><h2 id="score-h">Anomaly score</h2><span className="mono">
+ return <section className="panel obs-panel obs-score" aria-labelledby="score-h"><header><h2 id="score-h">Anomaly score <small>환경 전체</small></h2><span className="mono">
   현재 {Number.isFinite(current)?current.toFixed(2):'—'}{Number.isFinite(threshold)&&' · 임계값 '+Number(threshold.toPrecision(3))}
  </span></header>{points.some(p=>Number.isFinite(p.value))?<><svg viewBox="0 0 600 160" preserveAspectRatio="none" role="img" aria-label="이상 점수 · 음영은 실제 이상 판정 구간">
   <Shading bands={bands} x={x} height={160}/>
   {Number.isFinite(threshold)&&<line x2="600" y1={y(threshold)} y2={y(threshold)} stroke="var(--border-strong)" strokeDasharray="3 4" vectorEffect="non-scaling-stroke"><title>현재 모델의 운영 임계값</title></line>}
   <Series points={points} x={x} y={y} color="var(--text)"/>
- </svg><footer>{ticks(from,to,6).map((t,i)=><span key={i}>{t}</span>)}</footer></>:<div className="obs-empty">{error||'이 기간에 관측된 점수가 없습니다.'}</div>}</section>;
+ </svg><footer>{ticks(from,to,6).map((t,i)=><span key={i}>{t}</span>)}</footer></>:<div className="obs-empty">{error||'이 기간에 관측된 점수가 없습니다.'}</div>}{service&&<p className="sx-score-context">{service} · {candidateText}</p>}</section>;
 }
 
 export function HomeServicePicker({live}){
@@ -79,7 +84,7 @@ const states={normal:'정상 판정',warn:'경고 · 2~3순위 후보',alarm:'�
 export function ServiceHistory({live}){
  const {range,overview,inventory}=live, from=Date.parse(range.from),to=Date.parse(range.to);
  const bands=intervals(overview?.recentWindows,from,to);
- const inventoryRows=inventory.filter(s=>!live.applicationServices||live.applicationServices.includes(s.name)).sort((a,b)=>Number(b.name===live.service)-Number(a.name===live.service));
+ const inventoryRows=inventory.filter(s=>!live.applicationServices||live.applicationServices.includes(s.name)).sort((a,b)=>Number(b.name===live.metricService)-Number(a.name===live.metricService));
  return <section className="panel obs-panel sx-history" aria-labelledby="st-h"><header><h2 id="st-h">서비스 상태</h2><div className="sx-legend">{[['normal','정상'],['warn','경고'],['alarm','이상'],['unknown','미판정']].map(([key,label])=><span key={key} title={states[key]}><i className={'sx-'+key}/>{label}</span>)}</div></header>
  <div className="sx-history-body">{!inventory.length&&<p>{live.inventoryError||'서비스 목록 조회 중…'}</p>}{inventoryRows.map(({name})=>{
   const segments=[];

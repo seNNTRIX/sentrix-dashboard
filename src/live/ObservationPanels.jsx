@@ -6,10 +6,8 @@ import {sampleIds,sampleTopology} from './map-sample.js';
 import {TimePicker} from '../components/TimePicker.jsx';
 import {validateMap} from './observation-values.js';
 
-const previewCoordinates = {
- frontend:[102,150], productcatalogservice:[306,60], currencyservice:[306,150],
- recommendationservice:[306,240], checkoutservice:[504,150], cartservice:[504,240]
-};
+// Stable slots keep the mini map readable while observed traces change.
+const previewOrder=['adservice','recommendationservice','productcatalogservice','frontend','checkoutservice','currencyservice','cartservice','paymentservice','shippingservice','redis-cart','emailservice'];
 
 const number = value => Number.isFinite(value) ? value.toFixed(2) : '—';
 
@@ -63,19 +61,18 @@ function useMapSample(env,service,range) {
  return result;
 }
 
-function MapPreview({nodes,edges,candidates=[]}){
- const top=candidates[0],focus=top?(top.kind==='EDGE'?[top.source,top.target]:[top.service]):[];
- const visible=[...new Set([...focus,...Object.keys(previewCoordinates),...nodes].filter(n=>nodes.includes(n)))].slice(0,6);
- const extras=visible.filter(n=>!previewCoordinates[n]);
- const slots=Object.entries(previewCoordinates).filter(([name])=>!visible.includes(name)).map(([,xy])=>xy);
- const pos=n=>previewCoordinates[n]||slots[extras.indexOf(n)];
- return <div className="obs-graph obs-mini" style={{aspectRatio:2}}>
- <svg viewBox="0 0 600 300" aria-hidden="true" preserveAspectRatio="none">{edges.filter(e=>visible.includes(e.source)&&visible.includes(e.target)).map(e=>{
+function MapPreview({nodes,edges,candidates=[],selected}){
+ const top=candidates[0];
+ const visible=[...previewOrder.filter(n=>nodes.includes(n)),...nodes.filter(n=>!previewOrder.includes(n))];
+ const rows=Math.ceil(visible.length/3);
+ const pos=n=>{const index=visible.indexOf(n);return [100+200*(index%3),30+60*Math.floor(index/3)];};
+ return <div className="obs-graph obs-mini" style={{height:60*rows}}>
+ <svg viewBox={'0 0 600 '+60*rows} aria-hidden="true" preserveAspectRatio="none">{edges.filter(e=>visible.includes(e.source)&&visible.includes(e.target)).map(e=>{
   const [x,y]=pos(e.source),[a,b]=pos(e.target);
   const ranked=candidates.some(c=>c.kind==='EDGE'&&c.source===e.source&&c.target===e.target);
   return <line key={e.source+'>'+e.target} x1={x} y1={y} x2={a} y2={b} stroke={ranked?'var(--cause)':'var(--border-strong)'} strokeWidth={ranked?2:1} vectorEffect="non-scaling-stroke"/>;
  })}</svg>
- {visible.map(n=>{const [x,y]=pos(n);return <span key={n} className="obs-node" data-cause={top?.source===n?'source':(top?.target===n||top?.service===n)?'first':undefined} style={{left:x/6+'%',top:y/3+'%'}}>{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</span>;})}</div>;
+ {visible.map(n=>{const [x,y]=pos(n);return <span key={n} className="obs-node" data-cause={top?.source===n?'source':(top?.target===n||top?.service===n)?'first':undefined} data-selected={n===selected} style={{left:x/6+'%',top:y}}>{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</span>;})}</div>;
 }
 
 export function ObservationMap({mini=false,embedded=false}) {
@@ -96,16 +93,16 @@ export function ObservationMap({mini=false,embedded=false}) {
  const end=(d.incidentId && diagnosis?.windowEnd)||d.overview?.recentWindows?.[0]?.windowEnd||d.range.to;
  const pinned=d.incidentId&&diagnosis?.windowEnd;
  const range=useMemo(()=>pinned?queryRange(Date.parse(pinned)-(Date.parse(d.range.to)-Date.parse(d.range.from)),pinned):d.range,[pinned,d.range]);
- const single=useTopology(mini||d.environment?.recorded?d.environment:null,end,d.service,d.traceId);
- const sampled=useMapSample(mini?null:d.environment,d.service,range);
- const {graph,error}=mini||d.environment?.recorded?single:sampled;
+ const single=useTopology(d.environment?.recorded?d.environment:null,end,d.service,d.traceId);
+ const sampled=useMapSample(d.environment,d.service,range);
+ const {graph,error}=d.environment?.recorded?single:sampled;
  const edges=graph?.edges||[], inventory=d.inventory.map(n=>n.name);
+ const nodes=[...new Set([...inventory,...(graph?.nodes||[])])].filter(n=>!d.applicationServices||d.applicationServices.includes(n)).sort();
  const first=diagnosis?.candidates?.[0];
  if(mini){
-  const nodes=graph?.nodes?.length?graph.nodes:inventory;
-  return <section className="panel panel-padded obs-panel obs-map" aria-labelledby="map-h"><header><h2 id="map-h">Service map</h2><a href="#B2-ServiceMap">전체 보기</a></header><a href="#B2-ServiceMap" aria-label="Service map 열기">{nodes.length?<MapPreview nodes={nodes} edges={edges} candidates={diagnosis?.candidates}/>:<span className="obs-empty">{error||'관측된 서비스 없음'}</span>}</a></section>;
+
+  return <section className="panel panel-padded obs-panel obs-map" aria-labelledby="map-h"><header><h2 id="map-h">Service map</h2><a href="#B2-ServiceMap">전체 보기 · {nodes.length}개</a></header><a href="#B2-ServiceMap" aria-label="Service map 열기">{nodes.length?<MapPreview nodes={nodes} edges={edges} candidates={diagnosis?.candidates} selected={d.metricService}/>:<span className="obs-empty">{error||'관측된 서비스 없음'}</span>}</a></section>;
  }
- const nodes=[...new Set([...inventory,...(graph?.nodes||[])])].filter(n=>!d.applicationServices||d.applicationServices.includes(n)).sort();
  const decision=pinned?diagnosis?.decision:latest?.decision;
  return <>{!embedded&&<header style={{display:'flex',justifyContent:'space-between',alignItems:'end',flexWrap:'wrap',gap:12}}><div><h1 className="page-title" style={{fontSize:22,margin:0}}>Service map</h1><span className="secondary-text">{d.environment?.name} · 서비스 {nodes.length}개 · 관측 연결 {edges.filter(e=>nodes.includes(e.source)&&nodes.includes(e.target)).length}개</span></div>{!pinned&&<TimePicker/>}</header>}
  <ServiceMapView key={d.environment?.id} d={d} nodes={nodes} edges={edges} range={range} candidates={diagnosis?.candidates} decision={decision} preferred={first?.target||first?.service||new URLSearchParams(location.hash.split('?')[1]).get('service')} incidentId={d.incidentId||alarm?.incidentId} jobId={d.jobId||alarm?.jobId} error={error} loading={!graph&&!error} scope={graph?.sampleSize!==undefined?'최근 요청 '+graph.sampleSize+'건에서 확인한 호출 관계':undefined}/></>;

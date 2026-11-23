@@ -9,7 +9,7 @@
 .sm-inspector {flex:0 0 min(320px,31%);overflow-wrap:anywhere}
 .sm-guide {padding:9px 12px;color:var(--text-2);background:var(--page);border-bottom:1px solid var(--border-weak);font-size:12px}
 .sm-scroll {max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
-.sm-canvas {position:relative;min-width:900px;width:100%;isolation:isolate}
+.sm-canvas {position:relative;min-width:610px;width:100%;isolation:isolate}
 .sm-canvas svg {position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .sm-edge {fill:none;vector-effect:non-scaling-stroke}
 .sm-line-base {stroke:var(--border-strong)} .sm-fill-base {fill:var(--border-strong)}
@@ -47,3 +47,6 @@
 .sm-inspector nav a:first-child {background:var(--text);color:var(--bg1);border-color:transparent}
 @media(max-width:850px){.sm-layout{flex-direction:column}.sm-inspector{flex:1 1 auto}.sm-surface,.sm-inspector{padding:16px}.sm-toolbar{gap:8px}.sm-toolbar input[type=search]{flex:1 1 160px}}
 @media(prefers-reduced-motion:reduce){.sm-node{transition:none}}
+
+.sm-scroll{container-type:inline-size}
+@container (max-width:870px){.sm-node{max-width:22%;font-size:12px;line-height:16px;padding:6px 8px}.sm-node small{font-size:11px}}

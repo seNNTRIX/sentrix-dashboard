@@ -26,3 +26,18 @@ test('overview uses actual inventory, unassessed history, bars and short time ti
  assert.ok(v.timeline.every(x=>x.segs[0].tip.includes('미판정')));
  assert.equal(chartBars([{value:null}],1),'');
 });
+
+test('home shows observed resources when server request telemetry is absent',()=>{
+ const red=['request_rate','error_ratio','latency_p50_ms','latency_p90_ms','latency_p99_ms'];
+ const metrics=Object.fromEntries(red.map(id=>[id,{data:{dataStatus:'NO_DATA',points:[{value:null}]}}]));
+ metrics.cpu_usage_cores={data:{points:[{value:0}]}};
+ metrics.memory_working_set_bytes={data:{points:[{value:6291456}]}};
+ const live={route:'B1-Overview',service:'frontend',metricService:'redis-cart',range:{from:'2026-11-24T01:00:00Z',to:'2026-11-24T01:15:00Z'},metrics};
+ const view={state:{},props:{}};
+ const values=designValues(view,live);
+ assert.deepEqual(values.red.map(x=>x.title),['CPU 사용량','메모리']);
+ assert.equal(values.red[1].now,'6 MiB');
+ assert.equal(values.kpis.at(-1).value,'서버 요청 미관측');
+ metrics.request_rate={data:{dataStatus:'AVAILABLE',points:[{value:0}]}};
+ assert.equal(designValues(view,live).red[0].now,'0 req/s');
+});

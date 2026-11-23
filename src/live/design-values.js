@@ -50,9 +50,18 @@ export function designValues(view,d){
  redCharts[0].legend=[{label:`${scope} req/s`,sw:'width:12px;height:2px;background:var(--border)'}];
  redCharts[1].legend=[{label:`${scope} Error rate`,sw:'width:12px;height:2px;background:var(--text)'}];
  if(Number.isFinite(d.metrics.latency_p99_ms?.data?.points?.at(-1)?.value))redCharts[2].now='p99 '+redCharts[2].now;
+ const noServerSpans=d.route==='B1-Overview'&&!d.environment?.recorded&&['request_rate','error_ratio','latency_p50_ms','latency_p90_ms','latency_p99_ms'].every(id=>d.metrics[id]?.data?.dataStatus==='NO_DATA');
+ const homeCharts=noServerSpans?[
+  chart(['cpu_usage_cores'],'CPU 사용량',1,'cores'),
+  chart(['memory_working_set_bytes'],'메모리',1/1048576,'MiB')
+ ]:redCharts;
+ if(noServerSpans){
+  for(const c of redCharts)c.now='서버 요청 미관측';
+  for(const c of homeCharts)c.legend=[{label:scope,sw:'width:12px;height:2px;background:var(--text)'}];
+ }
  const latest=d.overview?.recentWindows?.[0];
  const overviewStatus=d.overview?.error?'조회 실패':d.overview?'기록 없음':'조회 중…';
  return {...shared,ticks:tickValues(d.range,d.route==='B1-Overview'?[0,.2,.4,.6,.8,1]:undefined),ticksShort:tickValues(d.range),redCharts,resCharts:[chart(['cpu_usage_cores'],'CPU 사용량',1,'cores'),{...chart(['unsupported'],'CPU throttling'),now:'API 미연결',ymax:'—',legend:[]},chart(['memory_working_set_bytes'],'메모리',1/1048576,'MiB')],
-  kpis:[['최근 자동 분석',latest?(latest.decision?decisionLabel(latest.decision):jobLabel(latest.status)):overviewStatus,latest?new Date(latest.windowEnd).toLocaleString('ko-KR'):'환경 전체'],['진행 중 장애',d.overview?.openIncidents??'—',d.overview?.error?'조회 실패':'환경 전체'],...redCharts.map(x=>[x.title,x.now,scope?`${scope} 기준`:'서비스 미선택'])].map(([label,value,note],i)=>({label,value,note,unit:'',cell:`display:flex;flex-direction:column;gap:4px;padding:16px 20px;${i?'border-left:1px solid var(--border-weak)':''}`,valueStyle:'font-size:24px;line-height:32px;font-weight:500'})),
-  red:redCharts.map((x,i)=>({...x,p1:i===0?'':x.p1})),miniNodes:[],timeline:(d.inventory||[]).map(x=>({name:x.name,segs:[{tip:'상태 이력 미연결 · 미판정',style:'flex:1;border-radius:2px;background:var(--bg2)'}]})),scoreLine2:'',scoreLine:'',scoreArea:'',stats:[],mini:[]};
+  kpis:[['최근 자동 분석',latest?(latest.decision?decisionLabel(latest.decision):jobLabel(latest.status)):overviewStatus,latest?new Date(latest.windowEnd).toLocaleString('ko-KR'):'환경 전체'],['진행 중 장애',d.overview?.openIncidents??'—',d.overview?.error?'조회 실패':'환경 전체'],...redCharts.map(x=>[x.title,x.now,scope?`${scope} 기준`:'서비스 미선택'])].map(([label,value,note],i)=>({label,value,note,unit:'',cell:`display:flex;flex-direction:column;gap:4px;padding:16px 20px;${i?'border-left:1px solid var(--border-weak)':''}`,valueStyle:`font-size:${typeof value==='string'&&!/^[0-9]|^p99/.test(value)?16:24}px;line-height:32px;font-weight:500;word-break:keep-all;overflow-wrap:anywhere`})),
+  red:homeCharts.map(x=>({...x,p1:x.column?'':x.p1})),miniNodes:[],timeline:(d.inventory||[]).map(x=>({name:x.name,segs:[{tip:'상태 이력 미연결 · 미판정',style:'flex:1;border-radius:2px;background:var(--bg2)'}]})),scoreLine2:'',scoreLine:'',scoreArea:'',stats:[],mini:[]};
 }

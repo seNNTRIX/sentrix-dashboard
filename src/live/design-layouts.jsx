@@ -518,7 +518,7 @@ function LayoutC1({closeMenu, empty, filters, hasItems, items, markAll, menuOpen
     {hasItems && <>
      <ul style={css("list-style: none; margin: 0; padding: 0")}>
       {(items || []).map((n, i) => <React.Fragment key={i}>
-       <li style={css(n.row)}>
+       <li className="notice-row" style={css(n.row)}>
         <a href={routeHref(n.href)} style={css("flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; color: var(--text); text-decoration: none")}>
          <span style={css(n.titleStyle)}>
           {n.title}
@@ -527,9 +527,7 @@ function LayoutC1({closeMenu, empty, filters, hasItems, items, markAll, menuOpen
           {n.body}
          </span>
         </a>
-        <span style={css("flex: none; width: 64px; text-align: right; font-size: 13px; line-height: 20px; color: var(--text-2); font-variant-numeric: tabular-nums")}>
-         {n.time}
-        </span>
+        <time className="notice-time" dateTime={n.timeIso} title={n.timeFull}>{n.time}</time>
         <button type={"button"} onClick={n.read} disabled={n.isRead} aria-label={n.readLabel} title={"읽음으로 표시"} style={css("width: 28px; height: 28px; flex: none; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: none; color: var(--text-2)")}>
          <svg width={"16"} height={"16"} viewBox={"0 0 24 24"} fill={"none"} stroke={"currentColor"} strokeWidth={"2"} strokeLinecap={"round"} strokeLinejoin={"round"} aria-hidden={"true"}>
           <path d={"M5 12.5l4.5 4.5L19 7.5"} />
