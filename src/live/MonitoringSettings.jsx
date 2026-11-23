@@ -51,10 +51,14 @@ function WindowHistory({id}){
    .catch(e=>{if(!abort.signal.aborted)setError(e.message);});
   return ()=>abort.abort();
  },[id,revision]);
+ return <ScoreWindows rows={rows} error={error} refresh={()=>refresh(n=>n+1)}/>;
+}
+
+export function ScoreWindows({rows,error,refresh}){
  return <section className="panel" style={{padding:'16px 24px'}}>
   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><h2 className="section-title">최근 자동 분석</h2>
-   <button type="button" className="ui-button" onClick={()=>refresh(n=>n+1)}>이력 새로고침</button></div>
-  {error?<p role="alert">{error}</p>:rows===null?<p>이력을 불러오는 중…</p>:rows.length?<div style={{overflowX:'auto'}}><table className="data-table">
+   {refresh&&<button type="button" className="ui-button" onClick={refresh}>이력 새로고침</button>}</div>
+  {error?<p role="alert">{error}</p>:rows==null?<p>이력을 불러오는 중…</p>:rows.length?<div style={{overflowX:'auto'}}><table className="data-table">
    <thead><tr>{['구간 종료','점수','판정 또는 작업 상태','사유','장애 기록'].map(x=><th key={x}>{x}</th>)}</tr></thead>
    <tbody>{rows.map(x=><tr key={x.jobId}><td>{new Date(x.windowEnd).toLocaleString('ko-KR')}</td><td>{x.score??'—'}</td>
     <td>{x.decision?decisionLabel(x.decision):jobLabel(x.status)}</td><td>{analysisReason(x.reason)}</td><td>{x.incidentId?<a href={`#B4-Incident?incidentId=${encodeURIComponent(x.incidentId)}`}>기록 보기</a>:'—'}</td></tr>)}</tbody>

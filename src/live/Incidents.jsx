@@ -9,7 +9,7 @@ const panel={border:'1px solid var(--border-weak)',borderRadius:8,background:'va
 const at=t=>t?new Date(t).toLocaleString():'—';
 
 // Schedule the next read only after the last one finishes. Changing filters aborts it.
-function pollRecords(controller, read) {
+export function pollRecords(controller, read) {
  let timer;
  async function update() {
   try {
@@ -20,6 +20,41 @@ function pollRecords(controller, read) {
  }
  update();
  return ()=>{controller.abort();clearTimeout(timer);};
+}
+
+export function IncidentPanel({recent=false, serviceScoped=false}) {
+ const d=useDesign();
+ const service=serviceScoped ? d.service : '';
+ if(!d.environment || (serviceScoped && !service)) return null;
+ return <IncidentPanelRecords key={JSON.stringify([d.environment.id,service,recent])}
+  environmentId={d.environment.id} service={service} recent={recent}/>;
+}
+
+function IncidentPanelRecords({environmentId,service,recent}) {
+ const [data,setData]=useState(null), [error,setError]=useState('');
+ useEffect(()=>{
+  const query=new URLSearchParams(recent ? {size:5} : {status:'OPEN',size:1});
+  if(service) query.set('service',service);
+  return pollRecords(new AbortController(),async signal=>{
+   try {
+    const response=await request(environmentPath(environmentId)+'/incidents?'+query,{signal});
+    if(!Array.isArray(response.items)||!Number.isSafeInteger(response.totalElements)) throw new Error('장애 기록 응답을 읽을 수 없습니다.');
+    response.items.forEach(row=>validateIncident(row,environmentId));
+    if(!signal.aborted){setData(response);setError('');}
+   } catch(e){if(!signal.aborted)setError(e.message);}
+  });
+ },[environmentId,service,recent]);
+ const title=recent?'최근 장애 기록':service?service+'에 등록된 열린 장애':'환경 전체의 열린 장애';
+ return <section className="panel panel-padded" style={panel} aria-label={title}>
+  <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',gap:12}}>
+   <h2 className="section-title">{title}{!recent&&data&&!error?' · '+data.totalElements+'건':''}</h2>
+   <a href="#B3-Incidents">전체 기록</a>
+  </div>
+  {error?<p role="alert">{error}</p>:!data?<p role="status">조회 중…</p>:data.items.length?
+   <ul>{data.items.map(x=><li key={x.id}><a href={'#B4-Incident?incidentId='+encodeURIComponent(x.id)}>{x.title}</a>
+    {' · '+x.service+' · '+(x.status==='OPEN'?'열림':'종료')+' · '+at(x.occurredAt)}</li>)}</ul>:
+   <p>{recent?'아직 등록된 장애 기록이 없습니다.':'열린 기록이 없습니다.'}</p>}
+ </section>;
 }
 
 export function Incidents(){const d=useDesign();return <><DataNotice/>{d.environment&&<History key={d.environment.id} d={d}/>}</>;}
