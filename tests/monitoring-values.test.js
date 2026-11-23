@@ -14,3 +14,9 @@ test('configured model does not imply automatic analysis is running',()=>{
  assert.equal(validateMonitoring(data,1),data);
  assert.throws(()=>validateMonitoring({...data,executionStatus:'RUNNING'},1));
 });
+
+test('scheduled monitoring accepts the timestamp of the last completed model request',()=>{
+ const data={environmentId:1,enabled:true,intervalSeconds:60,modelStatus:'CONFIGURED',executionStatus:'SCHEDULED',lastSuccessfulAt:'2026-11-23T01:00:00Z'};
+ assert.equal(validateMonitoring(data,1),data);
+ assert.throws(()=>validateMonitoring({...data,modelStatus:'UNAVAILABLE'},1));
+});

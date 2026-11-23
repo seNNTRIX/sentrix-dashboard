@@ -29,3 +29,5 @@ export function validateAnalysisResult(x,job,namespace){
  }
  return x;
 }
+
+export const analysisReason=reason=>({AWAITING_EXECUTION:'실행 대기',EXECUTING:'분석 중',COMPLETED:'처리 완료',MONITORING_DISABLED:'자동 분석 중지',WORKER_INTERRUPTED:'실행 중단',FEATURE_INPUT_UNAVAILABLE:'분석할 구간의 특징 데이터가 아직 준비되지 않았습니다.',CALIBRATION_AND_CONSECUTIVE_WINDOWS_REQUIRED:'정상 기준값과 연속 구간 확인이 필요합니다.',TRACE_SEARCH_INCOMPLETE:'트레이스 검색이 완료되지 않아 분석을 보류했습니다.',TRACE_QUERY_LIMIT:'트레이스 조회 상한에 도달해 분석을 보류했습니다.',INVALID_TRACE_ID:'저장소의 트레이스 식별자를 확인할 수 없습니다.',TRACE_ID_MISMATCH:'트레이스 상세 응답의 식별자가 일치하지 않습니다.',TRACE_PARENT_UNAVAILABLE:'호출의 부모 구간이 수집되지 않아 분석을 보류했습니다.',BASELINE_METRIC_COVERAGE_INSUFFICIENT:'정상 기준 구간의 지표 표본이 부족합니다.',INSUFFICIENT_METRIC_SAMPLES:'분석 구간의 지표 표본이 부족합니다.',LOG_SEVERITY_UNAVAILABLE:'로그 심각도를 확인할 수 없어 분석을 보류했습니다.',LOG_QUERY_LIMIT:'로그 조회 상한에 도달해 분석을 보류했습니다.',TELEMETRY_UPSTREAM_ERROR:'관측 저장소 조회에 실패했습니다.',TELEMETRY_BUDGET_EXCEEDED:'관측 데이터 조회 시간이 초과됐습니다.',BASELINE_OVERLAPS_ANALYSIS:'정상 기준 구간과 분석 구간이 겹칩니다.'}[reason]||reason);

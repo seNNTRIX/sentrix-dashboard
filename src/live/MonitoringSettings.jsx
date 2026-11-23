@@ -1,6 +1,7 @@
 import React,{useEffect,useState,useRef} from 'react';
 import {useEnvironment} from './EnvironmentContext.jsx';
 import {request,environmentPath} from './api.js';
+import {jobLabel,decisionLabel,analysisReason} from './analysis-values.js';
 import {validateMonitoring,monitoringLabel} from './monitoring-values.js';
 const field={height:32,padding:'0 8px',border:'1px solid var(--border)',borderRadius:6,background:'var(--bg1)',color:'inherit'};
 export function MonitoringSettings(){
@@ -21,12 +22,12 @@ export function MonitoringSettings(){
   setBusy(true);setError('');setNotice('');
   try{
    const d=await request(`${environmentPath(environment.id)}/monitoring`,{method:'PUT',body:{enabled,intervalSeconds:Number(interval)},signal:abort.signal});
-   validateMonitoring(d,environment.id);if(abort.signal.aborted)return;setSaved(d);setEnabled(d.enabled);setInterval(String(d.intervalSeconds));setNotice('설정을 저장했습니다. 자동 분석 실행기는 아직 준비 중입니다.');
+   validateMonitoring(d,environment.id);if(abort.signal.aborted)return;setSaved(d);setEnabled(d.enabled);setInterval(String(d.intervalSeconds));setNotice('설정을 저장했습니다.');
   }catch(e){if(!abort.signal.aborted)setError(e.message);}finally{if(!abort.signal.aborted)setBusy(false);}
  };
  return <div style={{maxWidth:760,display:'flex',flexDirection:'column',gap:16}}><form className="panel" style={{background:"var(--bg1)",border:"1px solid var(--border-weak)",borderRadius:8}} onSubmit={save}>
   <div style={{padding:'20px 24px',display:'flex',flexDirection:'column',gap:16}}>
-   <div><h2 className="section-title" style={{margin:0,fontSize:14,fontWeight:500}}>이상 탐지</h2><p className="secondary-text">실행 설정을 저장합니다. 자동 분석 실행기는 아직 준비 중입니다.</p></div>
+   <div><h2 className="section-title" style={{margin:0,fontSize:14,fontWeight:500}}>자동 분석</h2><p className="secondary-text">환경별로 최근 30초 데이터를 분석합니다. 창을 닫아도 서버에서 실행됩니다.</p></div>
    {!environment&&<p>먼저 관측 환경을 선택하세요.</p>}
    {busy&&!saved&&<p role="status">설정을 불러오는 중…</p>}
    {error&&<div role="alert">{error} <button type="button" disabled={busy} onClick={()=>setRevision(n=>n+1)}>다시 조회</button></div>}
@@ -38,5 +39,25 @@ export function MonitoringSettings(){
    {notice&&<p role="status">{notice}</p>}
   </div><div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,padding:'12px 24px',borderTop:'1px solid var(--border-weak)',background:'var(--canvas)',borderRadius:'0 0 8px 8px'}}>
    <span className="secondary-text">실행 주기 30~3600초</span><button type="submit" disabled={busy||!saved} style={{height:32,padding:'0 14px',border:0,borderRadius:6,background:'var(--primary)',color:'var(--on-primary)',fontWeight:500}}>{busy&&saved?'저장 중…':'저장'}</button>
-  </div></form></div>;
+  </div></form>{environment&&<WindowHistory key={environment.id} id={environment.id}/>}</div>;
+}
+
+function WindowHistory({id}){
+ const [rows,setRows]=useState(null),[error,setError]=useState(''),[revision,refresh]=useState(0);
+ useEffect(()=>{
+  const abort=new AbortController();
+  request(environmentPath(id)+'/anomaly-scores?limit=5',{signal:abort.signal})
+   .then(items=>{if(!Array.isArray(items))throw new Error('구간 응답을 확인할 수 없습니다.');if(!abort.signal.aborted){setRows(items);setError('');}})
+   .catch(e=>{if(!abort.signal.aborted)setError(e.message);});
+  return ()=>abort.abort();
+ },[id,revision]);
+ return <section className="panel" style={{padding:'16px 24px'}}>
+  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><h2 className="section-title">최근 자동 분석</h2>
+   <button type="button" className="ui-button" onClick={()=>refresh(n=>n+1)}>이력 새로고침</button></div>
+  {error?<p role="alert">{error}</p>:rows===null?<p>이력을 불러오는 중…</p>:rows.length?<div style={{overflowX:'auto'}}><table className="data-table">
+   <thead><tr>{['구간 종료','점수','판정 또는 작업 상태','사유'].map(x=><th key={x}>{x}</th>)}</tr></thead>
+   <tbody>{rows.map(x=><tr key={x.jobId}><td>{new Date(x.windowEnd).toLocaleString('ko-KR')}</td><td>{x.score??'—'}</td>
+    <td>{x.decision?decisionLabel(x.decision):jobLabel(x.status)}</td><td>{analysisReason(x.reason)}</td></tr>)}</tbody>
+  </table></div>:<p>자동 분석 기록이 없습니다.</p>}
+ </section>;
 }
