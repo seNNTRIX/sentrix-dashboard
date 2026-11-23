@@ -47,13 +47,15 @@ test('error rate keeps true zero, small positives and an unobserved latest windo
  const view={state:{},props:{}};
  for(const [values,current] of [
   [[0],'0%'],[[0,.0000012],'0.00012%'],[[.00042],'0.042%'],
-  [[.42],'42%'],[[.0042,null],'데이터 없음'],[[],'데이터 없음']
+  [[.42],'42%'],[[.0042,0],'0%'],[[.0042,null],'데이터 없음'],[[],'데이터 없음']
  ]){
   d.metrics.error_ratio={data:{points:values.map(value=>({value}))}};
   const actual=designValues(view,d),chart=actual.red[1];
   assert.equal(actual.kpis[1].value,current);
+  assert.equal(actual.kpis[1].note,'frontend · 직전 1분');
   assert.equal(chart.now,current);
   assert.match(chart.legend[0].label,/frontend.+직전 1분/);
+  if(values[0]===.0042)assert.match(chart.legend[0].label,/구간 최고 0\.42%/);
   if(current==='0.00012%'){
    assert.equal(chart.series[0][1].value,values[1]*100);
    assert.equal(chart.ymax,'0.0002%');
