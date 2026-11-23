@@ -11,7 +11,7 @@ function intervals(rows, from, to) {
 }
 function Shading({bands,x,height}) {
  return bands.filter(({row})=>row.decision==='ANOMALY').map(({row,start,end})=>
-  <rect key={row.jobId} x={x(start)} width={x(end)-x(start)} height={height} fill="var(--shade)"/>);
+  <rect key={row.jobId} x={x(start)} width={x(end)-x(start)} height={height} className="sx-anomaly-band" fill="var(--shade)"><title>환경 이상 판정 · {time(start)}–{time(end)}</title></rect>);
 }
 function Series({points,x,y,color,width=1.5}) {
  let path='',last,tip;
@@ -58,12 +58,12 @@ export function ScorePanel({rows,error,threshold,range,service,environment}){
   </div>
   {finite?<div className="score-plot"><div className="score-axis" aria-label="Y축">{[1,.75,.5,.25,0].map(n=><span key={n}>{local?n*100:n.toFixed(2)}</span>)}</div>
    <svg viewBox="0 0 600 160" preserveAspectRatio="none" role="img" aria-label={(local?service+' 서비스 지표 이탈 점수':'환경 모델 이상 점수')+' · 세로축 0~'+maximum}>
-    {!local&&<Shading bands={bands} x={x} height={160}/>}
+    <Shading bands={bands} x={x} height={160}/>
     {Number.isFinite(limit)&&<line x2="600" y1={y(limit)} y2={y(limit)} stroke="var(--text-2)" strokeDasharray="4 4" vectorEffect="non-scaling-stroke"/>}
     <Series points={series} x={x} y={y} color="var(--text)"/>
    </svg><footer>{ticks(from,to,6).map((t,i)=><span key={i}>{t}</span>)}</footer></div>
    :<div className="obs-empty">{local?(state.error||(state.points?'비교할 서비스 지표가 부족합니다.':'서비스 지표 조회 중…')):(error||'이 기간에 관측된 점수가 없습니다.')}</div>}
-  <p className="sx-score-context">{local?'직전 1시간과 비교한 요청량·오류율·p99 지연 중 가장 큰 이탈입니다.':environment?.id===1&&location.pathname==='/display'?'두 연속 분석 구간의 점수가 임계값을 넘고 관측 증상이 확인되면 이상으로 판정합니다. 음영은 실제 이상 판정입니다.':'점선은 현재 모델의 임계값, 음영은 실제 이상 판정입니다.'}</p>
+  <p className="sx-score-context">{local?'직전 1시간과 비교한 요청량·오류율·p99 지연 중 가장 큰 이탈입니다. 분홍 음영은 환경 모델의 이상 판정 구간입니다.':environment?.id===1&&location.pathname==='/display'?'두 연속 분석 구간의 점수가 임계값을 넘고 관측 증상이 확인되면 이상으로 판정합니다. 음영은 실제 이상 판정입니다.':'점선은 현재 모델의 임계값, 음영은 실제 이상 판정입니다.'}</p>
  </section>;
 }
 
@@ -100,8 +100,9 @@ const states={normal:'정상 판정',warn:'경고 · 2~3순위 후보',alarm:'�
 export function ServiceHistory({live}){
  const {range,overview,inventory}=live, from=Date.parse(range.from),to=Date.parse(range.to);
  const bands=intervals(overview?.recentWindows,from,to);
+ if(!overview||overview.error)return <section className="panel obs-panel"><h2>서비스 상태</h2><p role="status">{overview?.error||'분석 이력 조회 중…'}</p></section>;
  const inventoryRows=inventory.filter(s=>!live.applicationServices||live.applicationServices.includes(s.name)).sort((a,b)=>Number(b.name===live.metricService)-Number(a.name===live.metricService));
- return <section className="panel obs-panel sx-history" aria-labelledby="st-h"><header><h2 id="st-h">서비스 상태</h2><div className="sx-legend">{[['normal','정상'],['warn','경고'],['alarm','이상'],['unknown','미판정']].map(([key,label])=><span key={key} title={states[key]}><i className={'sx-'+key}/>{label}</span>)}</div></header>
+ return <section className="panel obs-panel sx-history" aria-labelledby="st-h"><header><h2 id="st-h">서비스 상태</h2><div className="sx-legend">{[['normal','정상'],['warn','경고'],['alarm','이상'],['unknown','미판정'],['unranked','후보 외']].map(([key,label])=><span key={key} title={states[key]}><i className={'sx-'+key}/>{label}</span>)}</div></header>
  <div className="sx-history-body">{!inventory.length&&<p>{live.inventoryError||'서비스 목록 조회 중…'}</p>}{inventoryRows.map(({name})=>{
   const segments=[];
   for(const b of bands){const status=serviceState(b.row,name),last=segments.at(-1);if(last?.status===status&&last.end===b.start)last.end=b.end;else segments.push({...b,status});}

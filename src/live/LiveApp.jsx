@@ -118,15 +118,14 @@ function Connected({route,params,initialTheme}){
  useEffect(()=>{
   if(!['B1-Overview','B2-ServiceMap','B5-Service'].includes(route)||!environment)return;
   const id=environment.id;
-  setOverview(null);
   return pollRecords(new AbortController(),async signal=>{
    try {
-    const data=await request(environmentPath(id)+'/overview?limit=100',{signal});
+    const data=await request(environmentPath(id)+'/overview?'+new URLSearchParams({from:range.from,to:range.to}),{signal});
     if(data.environmentId!==id||!Number.isSafeInteger(data.openIncidents)||!Array.isArray(data.recentWindows)) throw new Error('환경 요약 형식을 확인해 주세요.');
     if(!signal.aborted)setOverview(data);
    } catch(e){if(!signal.aborted)setOverview({environmentId:id,error:e.message});}
   });
- },[environment?.id,route,revision]);
+ },[environment?.id,route,revision,range.from,range.to]);
  useEffect(()=>{
   if(location.pathname!=='/display'||!['B1-Overview','B2-ServiceMap','B5-Service'].includes(route)||params.has('incidentId')||params.has('traceId')||!rangeLabel.startsWith('지난 '))return;
   const duration=Date.parse(range.to)-Date.parse(range.from);

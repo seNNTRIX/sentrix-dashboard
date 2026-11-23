@@ -58,7 +58,7 @@
 .sx-history-row a{font-size:13px;color:var(--text);text-decoration:none;overflow:hidden;text-overflow:ellipsis}
 .sx-history-row footer{margin-top:6px}.sx-track,.sx-unknown{background:repeating-linear-gradient(135deg,var(--bg1) 0 3px,var(--bg2) 3px 5px)}
 .sx-track{height:16px;border-radius:3px;position:relative;overflow:hidden}.sx-track span{position:absolute;height:100%;border-radius:2px;box-shadow:inset -1px 0 var(--bg1)}
-.sx-normal,.sx-unranked{background:var(--bg2)}.sx-warn{background:var(--warning)}.sx-alarm{background:var(--error)}
+.sx-normal{background:var(--bg2)}.sx-unranked{background:var(--border)}.sx-anomaly-band{fill:var(--error);fill-opacity:.12}.sx-warn{background:var(--warning)}.sx-alarm{background:var(--error)}
 .sx-legend,.sx-legend span{display:flex;align-items:center;gap:6px}.sx-legend{gap:12px;flex-wrap:wrap}.sx-legend i{width:12px;height:8px;border-radius:2px}
 .obs-mini .obs-node{width:28%;max-width:128px;padding:4px 6px;text-align:center;font-size:12px;white-space:normal;line-height:1.35}
 .obs-node[data-cause=first]{border-color:var(--cause)}.obs-node[data-cause=source]{border-color:var(--error);color:var(--error-text)}
