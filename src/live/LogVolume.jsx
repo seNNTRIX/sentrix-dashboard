@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useState} from 'react';
 import {useDesign} from './DesignContext.jsx';
 const time=x=>new Date(x).toLocaleTimeString('ko-KR',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
 export function LogVolume(){
@@ -18,15 +18,26 @@ export function LogVolume(){
      {buckets.map((b,i)=><rect key={b.from} x={i*step+step*.14} y={b.count===null?1:120-b.count/scale*120} width={step*.72} height={b.count===null?118:b.count/scale*120} fill={b.count===null?'none':'var(--border-strong)'} stroke={b.count===null?'var(--border-strong)':'none'} strokeDasharray={b.count===null?'2 3':undefined}><title>{time(b.from)} 초과 ~ {time(b.to)} 이하: {b.count===null?'집계값 없음':`${b.count}건`}</title></rect>)}
     </svg>
    </div>
-   <div className="chart-ticks" style={{display:'flex',justifyContent:'space-between',marginLeft:48,fontSize:12,color:'var(--text-2)'}}><span>{time(data.from)}</span><span>{time(data.to)}</span></div>
-   <p className="secondary-text" style={{fontSize:12,margin:0}}>{d.publicView?'서비스별 전체 로그 집계입니다.':'서비스·포함 문자열 기준 전체 집계입니다. 아래 목록의 Limit·중복 제거·심각도 표시 필터와 독립적입니다.'} 수집 누락 여부는 알 수 없습니다.{missing?' 점선은 로그 없음 또는 미수집으로 집계값을 확인할 수 없는 구간입니다.':''}{data.to!==d.range.to||data.from!==d.range.from?' 선택 기간 안의 완성된 분 구간만 집계합니다.':''}{data.warnings.includes('UPSTREAM_WARNING')?' 저장소 조회 경고가 있습니다.':''}</p>
+   <div className="chart-ticks explore-volume-ticks">{Array.from({length:6},(_,i)=><span key={i}>{time(Date.parse(data.from)+(Date.parse(data.to)-Date.parse(data.from))*i/5).slice(0,5)}</span>)}</div>
+   {(missing||data.warnings.includes('UPSTREAM_WARNING'))&&<small className="secondary-text">{missing?'점선은 집계값이 없는 구간입니다. ':''}{data.warnings.includes('UPSTREAM_WARNING')?'저장소 조회 경고가 있습니다.':''}</small>}
   </>}
  </section>;
 }
 
 export function PublicLogRows(){
- const d=useDesign(),buckets=d.volume?.data?.buckets||[];
- return <section className="panel obs-panel"><header><h2>Logs</h2><span>공개 화면 · 분 단위 집계</span></header>
- <div className="sx-table-scroll"><table className="data-table"><thead><tr><th>시각</th><th>서비스</th><th>로그 건수</th></tr></thead><tbody>{buckets.slice().reverse().map(b=><tr key={b.from}><td>{time(b.from)} – {time(b.to)}</td><td>{d.volume.data.service}</td><td>{b.count===null?'—':b.count.toLocaleString()}</td></tr>)}</tbody></table></div>
- <p className="secondary-text">로그 원문 검색과 상세 보기는 운영자 화면에서 이용할 수 있습니다.</p></section>;
+ const d=useDesign(),data=d.volume?.data,buckets=data?.buckets||[];
+ const [newest,setNewest]=useState(true),[showTime,setShowTime]=useState(true),[showLabels,setShowLabels]=useState(false);
+ const rows=newest?[...buckets].reverse():buckets;
+ return <section aria-labelledby="logs-h" className="panel explore-log-list"><header><h2 id="logs-h" className="section-title">Logs</h2><small>분 단위 집계 · {rows.length}개 구간</small></header>
+  <div className="explore-log-options">
+   <label><input type="checkbox" checked={showTime} onChange={e=>setShowTime(e.target.checked)}/>Time</label>
+   <label><input type="checkbox" checked={showLabels} onChange={e=>setShowLabels(e.target.checked)}/>Labels</label>
+   <span>정렬</span><div className="sx-map-modes" role="group" aria-label="정렬">{[true,false].map(flag=><button key={String(flag)} aria-pressed={newest===flag} onClick={()=>setNewest(flag)}>{flag?'최신 순':'오래된 순'}</button>)}</div>
+  </div>
+  {!data?<p className="secondary-text">{d.volume?.error||'집계 조회 중…'}</p>:rows.length===0?<p className="secondary-text">조회 구간에 집계된 로그가 없습니다.</p>:rows.map(b=><details key={data.service+b.from} className="explore-log-entry"><summary>
+   {showTime&&<time>{time(b.to)}</time>}<span>{data.service}</span>{showLabels&&<small>{d.environment?.namespace}</small>}
+   <strong>{b.count===null?'집계값 없음':b.count.toLocaleString()+'건'}</strong></summary>
+   <dl><dt>서비스</dt><dd>{data.service}</dd><dt>집계 구간</dt><dd>{time(b.from)} – {time(b.to)}</dd><dt>로그 건수</dt><dd>{b.count===null?'집계값 없음':b.count.toLocaleString()}</dd></dl>
+  </details>)}
+ </section>;
 }

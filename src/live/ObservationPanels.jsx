@@ -37,28 +37,43 @@ export function useTopology(environment,end,service,inventoryTrace) {
  return state;
 }
 
-function useMapSample(env,service,range) {
+async function readBatch(items,signal,read) {
+ const queue=[...items], results=[];
+ async function worker(){
+  while(queue.length&&!signal.aborted){
+   const item=queue.shift();
+   try{results.push(await read(item));}catch{ /* retain successfully observed traces */ }
+  }
+ }
+ await Promise.all(Array.from({length:Math.min(queue.length,3)},worker));
+ return results;
+}
+
+function useMapSample(env,service,inventory,range) {
  const [result,setResult]=useState({});
- useEffect(()=>setResult({}),[env?.id,service]);
+ const services=JSON.stringify(service?[service]:inventory);
+ const key=JSON.stringify([env?.id,services,range.from,range.to]);
  useEffect(()=>{
-  if(!env||env.recorded)return;
+  const names=JSON.parse(services);
+  if(!env||env.recorded||!names.length)return;
   const c=new AbortController(),signal=c.signal,base=environmentPath(env.id);
   async function load(){
-   const results=await request(base+'/traces?'+new URLSearchParams({service,from:range.from,to:range.to,limit:50}),{signal});
-   if(results.environmentId!==env.id||!Array.isArray(results.items))throw Error('Trace 목록 응답을 확인하세요.');
-   const ids=sampleIds(results.items);
-   const responses=await Promise.allSettled(ids.map(async id=>{
+   const lists=await readBatch(names,signal,async name=>{
+    const r=await request(base+'/traces?'+new URLSearchParams({service:name,from:range.from,to:range.to,limit:service?50:12}),{signal});
+    if(r.environmentId!==env.id||r.service!==name||!Array.isArray(r.items))throw Error();
+    return sampleIds(r.items,service?8:2);
+   });
+   const ids=[...new Set(lists.flat())];
+   const traces=await readBatch(ids,signal,async id=>{
     const trace=await request(base+'/traces/'+encodeURIComponent(id),{signal});
-    if(trace.environmentId!==env.id||trace.traceId!==id||!Array.isArray(trace.spans))throw Error('Trace 응답을 확인하세요.');
+    if(trace.environmentId!==env.id||trace.traceId!==id||!Array.isArray(trace.spans))throw Error();
     return trace;
-   }));
-   const valid=responses.filter(r=>r.status==='fulfilled').map(r=>r.value);
-   return {graph:sampleTopology(valid),error:valid.length<ids.length?'일부 요청의 호출 관계를 조회하지 못했습니다.':''};
+   });
+   if(!signal.aborted)setResult({key,graph:sampleTopology(traces),error:lists.length<names.length||traces.length<ids.length?'일부 호출 관계를 조회하지 못했습니다.':''});
   }
-  load().then(r=>{if(!signal.aborted)setResult(r);}).catch(e=>{if(!signal.aborted)setResult({error:e.message});});
-  return ()=>c.abort();
- },[env?.id,env?.recorded,service,range.from,range.to]);
- return result;
+  load();return ()=>c.abort();
+ },[key,services,env?.recorded,service]);
+ return key===result.key?result:{};
 }
 
 function MapPreview({nodes,edges,candidates=[],selected}){
@@ -72,12 +87,13 @@ function MapPreview({nodes,edges,candidates=[],selected}){
   const ranked=candidates.some(c=>c.kind==='EDGE'&&c.source===e.source&&c.target===e.target);
   return <line key={e.source+'>'+e.target} x1={x} y1={y} x2={a} y2={b} stroke={ranked?'var(--cause)':'var(--border-strong)'} strokeWidth={ranked?2:1} vectorEffect="non-scaling-stroke"/>;
  })}</svg>
- {visible.map(n=>{const [x,y]=pos(n);return <span key={n} className="obs-node" data-cause={top?.source===n?'source':(top?.target===n||top?.service===n)?'first':undefined} data-selected={n===selected} style={{left:x/6+'%',top:y}}>{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</span>;})}</div>;
+ {visible.map(n=>{const [x,y]=pos(n);return <a key={n} href={'#B2-ServiceMap?service='+encodeURIComponent(n)} className="obs-node" data-cause={top?.source===n?'source':(top?.target===n||top?.service===n)?'first':undefined} data-selected={n===selected} style={{left:x/6+'%',top:y}}>{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</a>;})}</div>;
 }
 
 export function ObservationMap({mini=false,embedded=false}) {
  const d=useDesign();
  const [diagnosis,setDiagnosis]=useState(null);
+ const [focus,setFocus]=useState(()=>mini?'':new URLSearchParams(location.hash.split('?')[1]).get('service')||'');
  const latest=d.overview?.recentWindows?.find(w=>w.decision);
  const alarm=latest?.decision==='ANOMALY'?latest:null;
  useEffect(()=>{
@@ -94,18 +110,18 @@ export function ObservationMap({mini=false,embedded=false}) {
  const pinned=d.incidentId&&diagnosis?.windowEnd;
  const range=useMemo(()=>pinned?queryRange(Date.parse(pinned)-(Date.parse(d.range.to)-Date.parse(d.range.from)),pinned):d.range,[pinned,d.range]);
  const single=useTopology(d.environment?.recorded?d.environment:null,end,d.service,d.traceId);
- const sampled=useMapSample(d.environment,d.service,range);
+ const sampled=useMapSample(d.environment,focus,d.serviceNames,range);
  const {graph,error}=d.environment?.recorded?single:sampled;
  const edges=graph?.edges||[], inventory=d.inventory.map(n=>n.name);
  const nodes=[...new Set([...inventory,...(graph?.nodes||[])])].filter(n=>!d.applicationServices||d.applicationServices.includes(n)).sort();
  const first=diagnosis?.candidates?.[0];
  if(mini){
 
-  return <section className="panel panel-padded obs-panel obs-map" aria-labelledby="map-h"><header><h2 id="map-h">Service map</h2><a href="#B2-ServiceMap">전체 보기 · {nodes.length}개</a></header><a href="#B2-ServiceMap" aria-label="Service map 열기">{nodes.length?<MapPreview nodes={nodes} edges={edges} candidates={diagnosis?.candidates} selected={d.metricService}/>:<span className="obs-empty">{error||'관측된 서비스 없음'}</span>}</a></section>;
+  return <section className="panel panel-padded obs-panel obs-map" aria-labelledby="map-h"><header><h2 id="map-h">Service map</h2><a href="#B2-ServiceMap">전체 보기 · {nodes.length}개</a></header><div>{nodes.length?<MapPreview nodes={nodes} edges={edges} candidates={diagnosis?.candidates} selected={d.metricService}/>:<span className="obs-empty">{error||'관측된 서비스 없음'}</span>}</div></section>;
  }
  const decision=pinned?diagnosis?.decision:latest?.decision;
  return <>{!embedded&&<header style={{display:'flex',justifyContent:'space-between',alignItems:'end',flexWrap:'wrap',gap:12}}><div><h1 className="page-title" style={{fontSize:22,margin:0}}>Service map</h1><span className="secondary-text">{d.environment?.name} · 서비스 {nodes.length}개 · 관측 연결 {edges.filter(e=>nodes.includes(e.source)&&nodes.includes(e.target)).length}개</span></div>{!pinned&&<TimePicker/>}</header>}
- <ServiceMapView key={d.environment?.id} d={d} nodes={nodes} edges={edges} range={range} candidates={diagnosis?.candidates} decision={decision} preferred={first?.target||first?.service||new URLSearchParams(location.hash.split('?')[1]).get('service')} incidentId={d.incidentId||alarm?.incidentId} jobId={d.jobId||alarm?.jobId} error={error} loading={!graph&&!error} scope={graph?.sampleSize!==undefined?'최근 요청 '+graph.sampleSize+'건에서 확인한 호출 관계':undefined}/></>;
+ <ServiceMapView key={d.environment?.id} focusedService={focus} onFocus={setFocus} d={d} nodes={nodes} edges={edges} range={range} candidates={diagnosis?.candidates} decision={decision} preferred={first?.target||first?.service||new URLSearchParams(location.hash.split('?')[1]).get('service')} incidentId={d.incidentId||alarm?.incidentId} jobId={d.jobId||alarm?.jobId} error={error} loading={!graph&&!error} scope={graph?.sampleSize!==undefined?'최근 요청 '+graph.sampleSize+'건에서 확인한 호출 관계':undefined}/></>;
 }
 
 export function ServiceConnections(){

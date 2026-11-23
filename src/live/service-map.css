@@ -50,3 +50,9 @@
 
 .sm-scroll{container-type:inline-size}
 @container (max-width:870px){.sm-node{max-width:22%;font-size:12px;line-height:16px;padding:6px 8px}.sm-node small{font-size:11px}}
+.sm-toolbar select{max-width:230px}
+.sm-focus-head{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;padding:8px 0;color:var(--text-2);font-size:12px;border-bottom:1px solid var(--border-weak)}
+.sm-focus-head strong{color:var(--text);overflow-wrap:anywhere}
+.obs-mini a.obs-node{text-decoration:none;color:var(--text)}
+.sm-canvas.sm-focused{min-width:0}
+.sm-focused .sm-node{max-width:27%}

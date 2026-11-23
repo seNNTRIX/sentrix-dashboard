@@ -61,7 +61,13 @@ function Connected({route,params,initialTheme}){
    const trace=route==='B6-Trace',filters={service,...time,limit:trace?Math.min(100,+limit):limit,...(trace?{}:{search})};
    request(`${base}/${trace?'traces':'logs'}?${new URLSearchParams(filters)}`,{signal:abort.signal}).then(data=>{
     if(data.environmentId!==environment.id||data.service!==service||!Array.isArray(data.items))throw new Error('조회 응답 형식이 올바르지 않습니다.');
-    if(!abort.signal.aborted)setResult({data});
+    if(!abort.signal.aborted){
+     setResult({data});
+     if(trace&&data.items.length){
+      const first=data.items.find(t=>t.rootOperation&&!/Service\/Export$/.test(t.rootOperation)&&t.rootService&&!t.rootService.startsWith('<'))||data.items[0];
+      setSelected(current=>current||first.traceId);
+     }
+    }
    }).catch(e=>{if(!abort.signal.aborted)setResult({error:e.message});});
   }else if(route==='B1-Overview'||route==='B5-Service'){
    setResult({});

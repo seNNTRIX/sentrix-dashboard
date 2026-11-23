@@ -31,3 +31,16 @@ export function sampleIds(items,limit=6) {
  for (const t of eligible) chosen.add(t.traceId);
  return [...chosen].slice(0,limit);
 }
+
+// Keep incoming and outgoing calls distinct. Each neighbour occupies just one slot.
+export function focusedTopology(center,edges) {
+ const links=edges.filter(e=>e.source===center||e.target===center);
+ const incoming=[...new Set(links.filter(e=>e.target===center&&e.source!==center).map(e=>e.source))].sort();
+ const outgoing=[...new Set(links.filter(e=>e.source===center&&e.target!==center&&!incoming.includes(e.target)).map(e=>e.target))].sort();
+ const height=Math.max(300,96*Math.max(incoming.length,outgoing.length));
+ const positions=new Map([[center,[500,height/2]]]);
+ for(const [peers,x] of [[incoming,145],[outgoing,855]]) {
+  peers.forEach((name,i)=>positions.set(name,[x,height*(i+.5)/peers.length]));
+ }
+ return {links,positions,height};
+}
