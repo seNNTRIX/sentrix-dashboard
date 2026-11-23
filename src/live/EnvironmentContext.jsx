@@ -40,7 +40,7 @@ export function EnvironmentForm() {
   try { const item = await request('/environments', { method:'POST', body:{name,namespace} }); add(item); location.hash='C3-Settings'; }
   catch (e) { setError(e.message); } finally { setBusy(false); }
  }}><h2>관측 환경 등록</h2><p className="secondary-text">관측할 환경 이름과 Kubernetes namespace를 등록하세요. 등록 후 데이터 소스 주소를 설정합니다.</p>
-  <label>환경 이름<input required maxLength={100} value={name} disabled={busy} onChange={e=>setName(e.target.value)} placeholder="Online Boutique"/></label>
+  <label>환경 이름<input required maxLength={100} value={name} disabled={busy} onChange={e=>setName(e.target.value)} placeholder="환경 이름 입력"/></label>
   <label>Namespace<input required maxLength={63} pattern="[a-z0-9]([a-z0-9-]*[a-z0-9])?" value={namespace} disabled={busy} onChange={e=>setNamespace(e.target.value)} placeholder="sentrix"/></label>
   {error && <p role="alert" className="field-error">{error}</p>}
   <button className="ui-button ui-button--primary" disabled={busy}>{busy?'등록 중…':'환경 등록'}</button>
