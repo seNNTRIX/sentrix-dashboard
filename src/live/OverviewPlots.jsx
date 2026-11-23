@@ -5,6 +5,7 @@ import {decisionLabel,jobLabel,analysisReason} from './analysis-values.js';
 import {serviceCutoff} from './service-deviation.js';
 
 const time = value => new Date(value).toLocaleTimeString('ko-KR',{hour12:false,hour:'2-digit',minute:'2-digit'});
+const windowTime = value => new Date(value).toLocaleTimeString('en-GB',{hour12:false});
 const ticks = (from,to,count) => Array.from({length:count},(_,i)=>time(from+(to-from)*i/(count-1)));
 
 function intervals(rows, from, to) {
@@ -49,22 +50,26 @@ export function ScorePanel({rows,error,threshold,range,service,environment}){
   lastEnd=Date.parse(row.windowEnd);
   if(lastEnd<=to)points.push({t:lastEnd,value:row.score});
  }
- const series=local?(state.points||[]):points,latest=series.at(-1);
+ const series=local?(state.points||[]):points;
  const limit=local?serviceCutoff:threshold, maximum=local?100:1;
  const x=t=>600*(t-from)/(to-from),y=v=>156-152*v/maximum;
  const finite=series.some(p=>Number.isFinite(p.value)),format=v=>Number.isFinite(v)?v.toFixed(local?1:4):'—';
- const lastRow=observed.at(-1)?.row;
- const decision={NORMAL:'정상',ANOMALY:'이상',ABSTAIN:'판정 보류'}[lastRow?.decision]||(lastRow?jobLabel(lastRow.status):'판정 대기');
+ const newest=observed.at(-1)?.row;
+ const lastRow=observed.findLast(({row})=>row.decision)?.row;
+ const latestValue=local?series.at(-1)?.value:lastRow?.score;
+ const newerJob=newest && newest.jobId!==lastRow?.jobId;
+ const decision=lastRow?decisionLabel(lastRow.decision):'판정 대기';
  return <section className="panel obs-panel obs-score" aria-labelledby="score-h">
   <header><h2 id="score-h">{local?'서비스 지표 이탈':'Anomaly score'} <small>{local?service:'환경 전체'}</small></h2>
    <div className="sx-map-modes" role="group" aria-label="점수 범위">
     {!environment?.recorded&&<button type="button" aria-pressed={local} onClick={()=>setMode('service')}>서비스 지표</button>}
     <button type="button" aria-pressed={!local} onClick={()=>setMode('environment')}>환경 모델</button>
    </div></header>
-  <div className="score-summary"><strong>{local?'서비스 이탈 점수':'모델 점수'} {format(latest?.value)}</strong>
+  <div className="score-summary"><strong>{local?'서비스 이탈 점수':'모델 점수'} {format(latestValue)}</strong>
    {Number.isFinite(limit)&&<span className="score-key"><i/>{local?'참고선':'현재 점수 기준'} {format(limit)}</span>}
-   {!local&&Number.isFinite(limit)&&latest?.value>limit&&<span>점수 기준 초과</span>}
-   <span>{local?(Number.isFinite(latest?.value)?latest.signal+' · 지표 '+latest.coverage+'/3개':''):<>최종 판정 <b>{decision}</b></>}</span>
+   {!local&&Number.isFinite(limit)&&latestValue>limit&&<span>점수 기준 초과</span>}
+   <span>{local?(Number.isFinite(latestValue)?series.at(-1).signal+' · 지표 '+series.at(-1).coverage+'/3개':''):<>최종 판정 <b>{decision}</b> {lastRow&&<time dateTime={lastRow.windowEnd}>{windowTime(lastRow.windowEnd)}</time>}</>}</span>
+   {!local&&newerJob&&<span>{windowTime(newest.windowEnd)} · {jobLabel(newest.status)}</span>}
   </div>
   {(finite||gaps.length>0)?<div className="score-plot"><div className="score-axis" aria-label="Y축">{[1,.75,.5,.25,0].map(n=><span key={n}>{local?n*100:n.toFixed(2)}</span>)}</div>
    <svg viewBox="0 0 600 160" preserveAspectRatio="none" role="img" aria-label={(local?service+' 서비스 지표 이탈 점수':'환경 모델 이상 점수')+' · 세로축 0~'+maximum}>
@@ -121,7 +126,7 @@ function HistoryRow({name,environment,range}){
 }
 export function ServiceHistory({live}){
  const {range,inventory,environment}=live,from=Date.parse(range.from),to=Date.parse(range.to);
- return <section className="panel obs-panel sx-history" aria-labelledby="st-h"><header><h2 id="st-h">서비스 상태</h2><div className="sx-legend" title="직전 1시간의 중앙값과 비교합니다. 오류율이 2%p 이상 증가하면 빨강, p99가 1.5배 이상이면서 20ms 이상 증가하면 노랑입니다.">{Object.entries(historyStates).map(([key,label])=><span key={key}><i className={'sx-'+key}/>{label}</span>)}</div></header>
+ return <section className="panel obs-panel sx-history" aria-labelledby="st-h"><header><h2 id="st-h">서비스 상태 <small>오류율 · p99</small></h2><div className="sx-legend" title="직전 1시간의 중앙값과 비교합니다. 오류율이 2%p 이상 증가하면 빨강, p99가 1.5배 이상이면서 20ms 이상 증가하면 노랑입니다.">{Object.entries(historyStates).map(([key,label])=><span key={key}><i className={'sx-'+key}/>{label}</span>)}</div></header>
  <div className="sx-history-body">{!inventory.length&&<p>{live.inventoryError||'서비스 목록 조회 중…'}</p>}
  {environment?.recorded?<p>서비스별 서버 지표 이력이 없습니다.</p>:inventory.map(({name})=><HistoryRow key={name} name={name} environment={environment} range={range}/>)}
  <div className="sx-history-row"><span/><footer>{ticks(from,to,6).map((t,i)=><span key={i}>{t}</span>)}</footer></div></div></section>;

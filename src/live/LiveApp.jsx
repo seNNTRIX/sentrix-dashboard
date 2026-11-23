@@ -128,10 +128,12 @@ function Connected({route,params,initialTheme}){
   });
  },[environment?.id,route,revision,range.from,range.to]);
  useEffect(()=>{
-  if(location.pathname!=='/display'||!['B1-Overview','B2-ServiceMap','B5-Service'].includes(route)||params.has('incidentId')||params.has('traceId')||!rangeLabel.startsWith('지난 '))return;
+  if(!['B1-Overview','B2-ServiceMap','B5-Service'].includes(route)||params.has('incidentId')||params.has('traceId')||!rangeLabel.startsWith('지난 '))return;
   const duration=Date.parse(range.to)-Date.parse(range.from);
-  const timer=setInterval(()=>{if(!document.hidden)setRange(queryRange(Date.now()-duration,Date.now()));},30000);
-  return ()=>clearInterval(timer);
+  const advance=()=>{if(!document.hidden){const now=Date.now();setRange(queryRange(now-duration,now));}};
+  const timer=setInterval(advance,30000);
+  document.addEventListener('visibilitychange',advance);
+  return ()=>{clearInterval(timer);document.removeEventListener('visibilitychange',advance);};
  },[route,rangeLabel,environment?.id]);
  const changeRange=(from,to,label)=>{setRange(queryRange(from,to));setRangeLabel(label);};
  const refresh=()=>{const seconds={'지난 5분':300,'지난 15분':900,'지난 30분':1800,'지난 1시간':3600,'지난 3시간':10800,'지난 6시간':21600,'지난 12시간':43200,'지난 24시간':86400}[rangeLabel];if(seconds)setRange(queryRange(Date.now()-seconds*1000,Date.now()));else run();};
