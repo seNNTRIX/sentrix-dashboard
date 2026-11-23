@@ -1,4 +1,6 @@
-import React from 'react';
+import React,{useState} from 'react';
+import {useServiceDeviation} from './useServiceDeviation.js';
+import {serviceCutoff} from './service-deviation.js';
 
 const time = value => new Date(value).toLocaleTimeString('ko-KR',{hour12:false,hour:'2-digit',minute:'2-digit'});
 const ticks = (from,to,count) => Array.from({length:count},(_,i)=>time(from+(to-from)*i/(count-1)));
@@ -27,28 +29,42 @@ function Series({points,x,y,color,width=1.5}) {
   {last&&<circle key={'dot'+points.at(-1).t} className="sx-sample" cx={last.split(' ')[0]} cy={last.split(' ')[1]} r="1.65" fill={color} stroke="none"/>}
  </g>;
 }
-export function ScorePanel({rows,error,threshold,range,service}){
+export function ScorePanel({rows,error,threshold,range,service,environment}){
+ const [mode,setMode]=useState(environment?.recorded?'environment':'service');
+ const local=mode==='service';
+ const state=useServiceDeviation(environment?.id,service,range,local&&!environment?.recorded);
  const from=Date.parse(range.from),to=Date.parse(range.to),bands=intervals(rows,from,to);
- const x=t=>600*(t-from)/(to-from),y=v=>156-152*v;
  const points=[];let lastEnd;
- for(const {row} of bands){
+ if(!local)for(const {row} of bands){
   if(lastEnd && Date.parse(row.windowStart)>lastEnd)points.push({t:lastEnd,value:null});
   lastEnd=Date.parse(row.windowEnd);
-  points.push({t:lastEnd,value:row.score});
+  if(lastEnd<=to)points.push({t:lastEnd,value:row.score});
  }
- const latest=bands.at(-1)?.row;
- const matches=(latest?.locations||[]).filter(c=>c.service===service||c.source===service||c.target===service);
- const candidateText=latest?.decision==='ANOMALY'
-  ? matches.map(c=>c.kind==='EDGE'?c.rank+'순위 경로 '+c.source+' → '+c.target:c.rank+'순위 서비스').join(' · ')||'상위 3개 후보에 없음'
-  :latest?.decision==='NORMAL'?'환경 정상 · 원인 후보 없음':'판정 대기';
- const current=points.findLast(p=>Number.isFinite(p.value))?.value;
- return <section className="panel obs-panel obs-score" aria-labelledby="score-h"><header><h2 id="score-h">Anomaly score <small>환경 전체</small></h2><span className="mono">
-  현재 {Number.isFinite(current)?current.toFixed(2):'—'}{Number.isFinite(threshold)&&' · 임계값 '+Number(threshold.toPrecision(3))}
- </span></header>{points.some(p=>Number.isFinite(p.value))?<><svg viewBox="0 0 600 160" preserveAspectRatio="none" role="img" aria-label="이상 점수 · 음영은 실제 이상 판정 구간">
-  <Shading bands={bands} x={x} height={160}/>
-  {Number.isFinite(threshold)&&<line x2="600" y1={y(threshold)} y2={y(threshold)} stroke="var(--border-strong)" strokeDasharray="3 4" vectorEffect="non-scaling-stroke"><title>현재 모델의 운영 임계값</title></line>}
-  <Series points={points} x={x} y={y} color="var(--text)"/>
- </svg><footer>{ticks(from,to,6).map((t,i)=><span key={i}>{t}</span>)}</footer></>:<div className="obs-empty">{error||'이 기간에 관측된 점수가 없습니다.'}</div>}{service&&<p className="sx-score-context">{service} · {candidateText}</p>}</section>;
+ const series=local?(state.points||[]):points,latest=series.at(-1);
+ const limit=local?serviceCutoff:threshold, maximum=local?100:1;
+ const x=t=>600*(t-from)/(to-from),y=v=>156-152*v/maximum;
+ const finite=series.some(p=>Number.isFinite(p.value)),format=v=>Number.isFinite(v)?v.toFixed(local?1:4):'—';
+ const lastRow=bands.at(-1)?.row;
+ const decision={NORMAL:'정상',ANOMALY:'이상',ABSTAIN:'판정 보류'}[lastRow?.decision]||'판정 대기';
+ return <section className="panel obs-panel obs-score" aria-labelledby="score-h">
+  <header><h2 id="score-h">Anomaly score <small>{local?service:'환경 전체'}</small></h2>
+   <div className="sx-map-modes" role="group" aria-label="점수 범위">
+    {!environment?.recorded&&<button type="button" aria-pressed={local} onClick={()=>setMode('service')}>서비스 지표</button>}
+    <button type="button" aria-pressed={!local} onClick={()=>setMode('environment')}>환경 모델</button>
+   </div></header>
+  <div className="score-summary"><strong>{local?'서비스 이탈 점수':'모델 이상 점수'} {format(latest?.value)}</strong>
+   {Number.isFinite(limit)&&<span className="score-key"><i/>{local?'참고선':'모델 임계값'} {format(limit)}</span>}
+   <span>{local?(Number.isFinite(latest?.value)?latest.signal+' · 지표 '+latest.coverage+'/3개':''):decision}</span>
+  </div>
+  {finite?<div className="score-plot"><div className="score-axis" aria-label="Y축">{[1,.75,.5,.25,0].map(n=><span key={n}>{local?n*100:n.toFixed(2)}</span>)}</div>
+   <svg viewBox="0 0 600 160" preserveAspectRatio="none" role="img" aria-label={(local?service+' 서비스 지표 이탈 점수':'환경 모델 이상 점수')+' · 세로축 0~'+maximum}>
+    {!local&&<Shading bands={bands} x={x} height={160}/>}
+    {Number.isFinite(limit)&&<line x2="600" y1={y(limit)} y2={y(limit)} stroke="var(--text-2)" strokeDasharray="4 4" vectorEffect="non-scaling-stroke"/>}
+    <Series points={series} x={x} y={y} color="var(--text)"/>
+   </svg><footer>{ticks(from,to,6).map((t,i)=><span key={i}>{t}</span>)}</footer></div>
+   :<div className="obs-empty">{local?(state.error||(state.points?'비교할 서비스 지표가 부족합니다.':'서비스 지표 조회 중…')):(error||'이 기간에 관측된 점수가 없습니다.')}</div>}
+  <p className="sx-score-context">{local?'직전 1시간과 비교한 요청량·오류율·p99 지연 중 가장 큰 이탈입니다.':environment?.id===1&&location.pathname==='/display'?'두 연속 분석 구간의 점수가 임계값을 넘고 관측 증상이 확인되면 이상으로 판정합니다. 음영은 실제 이상 판정입니다.':'점선은 현재 모델의 임계값, 음영은 실제 이상 판정입니다.'}</p>
+ </section>;
 }
 
 export function HomeServicePicker({live}){

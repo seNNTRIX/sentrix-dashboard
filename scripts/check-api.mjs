@@ -124,6 +124,7 @@ try {
  await expect(page.getByRole('heading',{name:'개요',exact:true})).toBeVisible();
  await expect(page.getByText('INC-0142',{exact:true})).toHaveCount(0);
  await expect(page.getByRole('heading',{name:'Anomaly score'})).toBeVisible();
+ await page.getByRole('button',{name:'환경 모델',exact:true}).click();
  await expect(page.locator('[aria-labelledby="score-h"]')).toContainText('이 기간에 관측된 점수가 없습니다.');
  const timeline=page.getByRole('region',{name:'서비스 상태',exact:true});
  await expect(timeline).toContainText('미판정');
