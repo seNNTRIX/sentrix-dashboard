@@ -14,8 +14,8 @@ function Connected({route,params,initialTheme}){
  const env=useEnvironment(),{environment}=env;
  const [serviceChoice,setService]=useState(params.get('service')||'frontend'),[search,setSearch]=useState(''),[limit,setLimit]=useState(route==='B6-Trace'?'20':'100');
  const [traceFilters,setTraceFilters]=useState({namedRoot:true,minSpanMs:'',errorOnly:false,operation:''});
- const exploreRoute=route==='B6-Trace'||route==='B7-Logs';
- const [range,setRange]=useState(()=>{const end=Date.parse(params.get('at'));return Number.isFinite(end)?queryRange(end-900000,end):queryRange(Date.now()-(route==='B3-Incidents'?86400000:exploreRoute?3600000:900000),Date.now());}),[rangeLabel,setRangeLabel]=useState(params.has('at')?'장애 발생 구간':route==='B3-Incidents'?'지난 24시간':exploreRoute?'지난 1시간':'지난 15분'),[revision,setRevision]=useState(0);
+ const explore=route==='B6-Trace'||route==='B7-Logs';
+ const [range,setRange]=useState(()=>{const end=Date.parse(params.get('at'));return Number.isFinite(end)?queryRange(end-900000,end):queryRange(Date.now()-(route==='B3-Incidents'?86400000:explore?3600000:900000),Date.now());}),[rangeLabel,setRangeLabel]=useState(params.has('at')?'장애 발생 구간':route==='B3-Incidents'?'지난 24시간':explore?'지난 1시간':'지난 15분'),[revision,setRevision]=useState(0);
  const [volume,setVolume]=useState({});
  const [result,setResult]=useState({loading:true}),[inventory,setInventory]=useState([]),[metrics,setMetrics]=useState({});
  const [traceId,setTraceId]=useState(params.get('traceId')||''),[selected,setSelected]=useState(''),[detail,setDetail]=useState({}),[detailRevision,setDetailRevision]=useState(0);
@@ -24,9 +24,10 @@ function Connected({route,params,initialTheme}){
  const [policy,setPolicy]=useState(null);
  const exhibition=location.pathname==='/display' && environment?.id===1;
  const applicationServices=exhibition?(policy?.applicationServices||[]):undefined;
- const visibleInventory=applicationServices?inventory.filter(item=>applicationServices.includes(item.name)):inventory;
+ // Explore searches telemetry for any discovered deployment, including deployments
+ // without server-request metrics. The exhibition catalog scopes overview and trials.
+ const visibleInventory=applicationServices&&!explore?inventory.filter(item=>applicationServices.includes(item.name)):inventory;
  const serviceNames=visibleInventory.map(item=>item.name);
- const explore=route==='B6-Trace'||route==='B7-Logs';
  const linkedService=params.get('service');
  // Historical trace links can refer to a deployment no longer in the inventory.
  if(explore&&!exhibition&&linkedService&&!serviceNames.includes(linkedService))serviceNames.push(linkedService);
@@ -47,7 +48,7 @@ function Connected({route,params,initialTheme}){
   return()=>abort.abort();
  },[environment?.id,revision]);
  useEffect(()=>{
-  setResult({loading:true});setVolume({});setSelected(route==='B6-Trace'?(params.get('traceId')||''):'');setDetail({});
+  setResult({loading:true});setVolume({});setSelected(route==='B6-Trace'&&service===(linkedService||'frontend')?(params.get('traceId')||''):'');setDetail({});
   if(!environment)return;const abort=new AbortController(),base=environmentPath(environment.id);
   const {stepSeconds,...time}=range;
   if(explore){
@@ -136,7 +137,7 @@ function Connected({route,params,initialTheme}){
  const refresh=()=>{const seconds={'지난 5분':300,'지난 15분':900,'지난 30분':1800,'지난 1시간':3600,'지난 3시간':10800,'지난 6시간':21600,'지난 12시간':43200,'지난 24시간':86400}[rangeLabel];if(seconds)setRange(queryRange(Date.now()-seconds*1000,Date.now()));else run();};
  const live={...env,publicView,modelVersion:policy?.modelVersion,settingsTab:params.get('tab'),threshold:policy?.threshold,applicationServices:policy?.applicationServices,overview:overview?.environmentId===environment?.id?overview:null,incidentId:params.get("incidentId"),jobId:params.get("jobId"),route,service,setService,traceFilters,setTraceFilters,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory:visibleInventory,inventoryLoading,inventoryError,serviceNames,metricService,setHomeChoice,metrics:loadedMetricService===metricService?metrics:{},traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
  live.values=view=>designValues(view,live);
- if(exhibition&&!policy?.applicationServices)return <p role="status" className="bound-notice">{policy?.error?<>{'전시 서비스 목록을 불러오지 못했습니다. '}<button className="ui-button" onClick={run}>다시 조회</button></>:'전시 서비스 조회 중…'}</p>;
+ if(exhibition&&!explore&&!policy?.applicationServices)return <p role="status" className="bound-notice">{policy?.error?<>{'전시 서비스 목록을 불러오지 못했습니다. '}<button className="ui-button" onClick={run}>다시 조회</button></>:'전시 서비스 조회 중…'}</p>;
  if(exhibition&&route==='B5-Service'&&linkedService&&!applicationServices.includes(linkedService))return <p className="bound-notice">전시 대상에 없는 서비스입니다. <a href="#B1-Overview">홈으로</a></p>;
  const Screen=screens[route]||WorkspacePage;
  return <DesignContext.Provider value={live}><Screen theme={initialTheme} tab={route==='C3-Settings'?'데이터 소스':undefined} live={live}/></DesignContext.Provider>;
