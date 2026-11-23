@@ -62,11 +62,13 @@ function Inspector({env,name,range,decision,rank,incidentId,jobId,traceId,window
  </aside>;
 }
 
-export function ServiceMapView({d,nodes,edges,range=d.range,candidates=[],decision,preferred,incidentId,jobId,traceId,scope,error,loading=false,onSearch,focusedService,onFocus}) {
+export function ServiceMapView({d,nodes:graphNodes,edges,range=d.range,candidates=[],decision,preferred,incidentId,jobId,traceId,scope,error,loading=false,onSearch,focusedService,onFocus}) {
  const [pick,setPick]=useState(null),[mode,setMode]=useState('상태'),[causes,setCauses]=useState(true);
  const [overflow,setOverflow]=useState(false),scroll=useRef(null),uid=useId().replace(/:/g,'');
  const [traceFocus,setTraceFocus]=useState('');
- const focus=focusedService??traceFocus;
+ const nodes=d.applicationServices?graphNodes.filter(n=>d.applicationServices.includes(n)):graphNodes;
+ const requestedFocus=focusedService??traceFocus;
+ const focus=nodes.includes(requestedFocus)?requestedFocus:'';
  const selected=focus||(pick===''?'':nodes.includes(preferred)?preferred:nodes.includes('productcatalogservice')?'productcatalogservice':nodes[0]);
  const readings=useReadings(d.environment,nodes,range);
  useEffect(()=>{const el=scroll.current;if(!el)return;const resize=()=>setOverflow(el.scrollWidth>el.clientWidth+1);resize();const o=new ResizeObserver(resize);o.observe(el);return ()=>o.disconnect();},[nodes.length,selected]);

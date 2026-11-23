@@ -22,14 +22,16 @@ function Connected({route,params,initialTheme}){
  const [inventoryLoading,setInventoryLoading]=useState(true),[inventoryError,setInventoryError]=useState('');
  const [sources,setSources]=useState([]),[sourceError,setSourceError]=useState('');
  const [policy,setPolicy]=useState(null);
- const applicationServices=policy?.applicationServices;
- const serviceNames=inventory.map(item=>item.name).filter(name=>!applicationServices||applicationServices.includes(name));
+ const exhibition=location.pathname==='/display' && environment?.id===1;
+ const applicationServices=exhibition?(policy?.applicationServices||[]):undefined;
+ const visibleInventory=applicationServices?inventory.filter(item=>applicationServices.includes(item.name)):inventory;
+ const serviceNames=visibleInventory.map(item=>item.name);
  const explore=route==='B6-Trace'||route==='B7-Logs';
  const linkedService=params.get('service');
  // Historical trace links can refer to a deployment no longer in the inventory.
- if(explore&&linkedService&&!serviceNames.includes(linkedService))serviceNames.push(linkedService);
+ if(explore&&!exhibition&&linkedService&&!serviceNames.includes(linkedService))serviceNames.push(linkedService);
  const exploreService=explore?(serviceNames.includes(serviceChoice)?serviceChoice:serviceNames[0]||''):null;
- const service=exploreService??serviceChoice;
+ const service=exploreService??(exhibition&&!applicationServices.includes(serviceChoice)?serviceNames[0]||'':serviceChoice);
  const [homeChoice,setHomeChoice]=useState(params.get('service')||'frontend');
  const homeService=route==='B1-Overview'?(serviceNames.includes(homeChoice)?homeChoice:serviceNames[0]||''):null;
  const metricService=homeService??service;
@@ -96,7 +98,7 @@ function Connected({route,params,initialTheme}){
   }else setResult({});
   return()=>abort.abort();
  // Filters are applied with Run query; time and service links apply immediately.
- },[environment?.id,route,range,revision,params.get('service'),homeService,exploreService]);
+ },[environment?.id,route,range,revision,params.get('service'),homeService,exploreService,metricService]);
  useEffect(()=>{
   setDetail(selected?{loading:true}:{});if(!selected||!environment)return;
   const abort=new AbortController();request(`${environmentPath(environment.id)}/traces/${encodeURIComponent(selected)}`,{signal:abort.signal})
@@ -105,13 +107,14 @@ function Connected({route,params,initialTheme}){
  },[environment?.id,selected,detailRevision]);
  const [overview,setOverview]=useState(null);
  useEffect(()=>{
-  if(location.pathname!=='/display'||environment?.id!==1||!['B1-Overview','B2-ServiceMap','B6-Trace','B7-Logs','B8-Model','C2-AlertRules','C3-Settings','C7-States'].includes(route))return;
+  if(!exhibition)return;
   const abort=new AbortController();
   fetch('/display-policy',{signal:abort.signal}).then(r=>r.ok?r.json():null).then(x=>{
+   if(!Array.isArray(x?.applicationServices))throw Error();
    if(!abort.signal.aborted)setPolicy(x);
-  }).catch(()=>{});
+  }).catch(()=>{if(!abort.signal.aborted)setPolicy({error:true});});
   return ()=>abort.abort();
- },[environment?.id,route]);
+ },[exhibition,revision]);
  useEffect(()=>{
   if(!['B1-Overview','B2-ServiceMap','B5-Service'].includes(route)||!environment)return;
   const id=environment.id;
@@ -132,8 +135,10 @@ function Connected({route,params,initialTheme}){
  },[route,rangeLabel,environment?.id]);
  const changeRange=(from,to,label)=>{setRange(queryRange(from,to));setRangeLabel(label);};
  const refresh=()=>{const seconds={'지난 5분':300,'지난 15분':900,'지난 30분':1800,'지난 1시간':3600,'지난 3시간':10800,'지난 6시간':21600,'지난 12시간':43200,'지난 24시간':86400}[rangeLabel];if(seconds)setRange(queryRange(Date.now()-seconds*1000,Date.now()));else run();};
- const live={...env,publicView,modelVersion:policy?.modelVersion,settingsTab:params.get('tab'),threshold:policy?.threshold,applicationServices:policy?.applicationServices,overview:overview?.environmentId===environment?.id?overview:null,incidentId:params.get("incidentId"),jobId:params.get("jobId"),route,service,setService,traceFilters,setTraceFilters,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory,inventoryLoading,inventoryError,serviceNames,metricService,setHomeChoice,metrics:loadedMetricService===metricService?metrics:{},traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
+ const live={...env,publicView,modelVersion:policy?.modelVersion,settingsTab:params.get('tab'),threshold:policy?.threshold,applicationServices:policy?.applicationServices,overview:overview?.environmentId===environment?.id?overview:null,incidentId:params.get("incidentId"),jobId:params.get("jobId"),route,service,setService,traceFilters,setTraceFilters,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory:visibleInventory,inventoryLoading,inventoryError,serviceNames,metricService,setHomeChoice,metrics:loadedMetricService===metricService?metrics:{},traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
  live.values=view=>designValues(view,live);
+ if(exhibition&&!policy?.applicationServices)return <p role="status" className="bound-notice">{policy?.error?<>{'전시 서비스 목록을 불러오지 못했습니다. '}<button className="ui-button" onClick={run}>다시 조회</button></>:'전시 서비스 조회 중…'}</p>;
+ if(exhibition&&route==='B5-Service'&&linkedService&&!applicationServices.includes(linkedService))return <p className="bound-notice">전시 대상에 없는 서비스입니다. <a href="#B1-Overview">홈으로</a></p>;
  const Screen=screens[route]||WorkspacePage;
  return <DesignContext.Provider value={live}><Screen theme={initialTheme} tab={route==='C3-Settings'?'데이터 소스':undefined} live={live}/></DesignContext.Provider>;
 }

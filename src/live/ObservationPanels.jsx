@@ -110,7 +110,8 @@ export function ObservationMap({mini=false,embedded=false}) {
  const pinned=d.incidentId&&diagnosis?.windowEnd;
  const range=useMemo(()=>pinned?queryRange(Date.parse(pinned)-(Date.parse(d.range.to)-Date.parse(d.range.from)),pinned):d.range,[pinned,d.range]);
  const single=useTopology(d.environment?.recorded?d.environment:null,end,d.service,d.traceId);
- const sampled=useMapSample(d.environment,focus,d.serviceNames,range);
+ const selectedFocus=!d.applicationServices||d.applicationServices.includes(focus)?focus:'';
+ const sampled=useMapSample(d.environment,selectedFocus,d.serviceNames,range);
  const {graph,error}=d.environment?.recorded?single:sampled;
  const edges=graph?.edges||[], inventory=d.inventory.map(n=>n.name);
  const nodes=[...new Set([...inventory,...(graph?.nodes||[])])].filter(n=>!d.applicationServices||d.applicationServices.includes(n)).sort();
@@ -121,7 +122,7 @@ export function ObservationMap({mini=false,embedded=false}) {
  }
  const decision=pinned?diagnosis?.decision:latest?.decision;
  return <>{!embedded&&<header style={{display:'flex',justifyContent:'space-between',alignItems:'end',flexWrap:'wrap',gap:12}}><div><h1 className="page-title" style={{fontSize:22,margin:0}}>Service map</h1><span className="secondary-text">{d.environment?.name} · 서비스 {nodes.length}개 · 관측 연결 {edges.filter(e=>nodes.includes(e.source)&&nodes.includes(e.target)).length}개</span></div>{!pinned&&<TimePicker/>}</header>}
- <ServiceMapView key={d.environment?.id} focusedService={focus} onFocus={setFocus} d={d} nodes={nodes} edges={edges} range={range} candidates={diagnosis?.candidates} decision={decision} preferred={first?.target||first?.service||new URLSearchParams(location.hash.split('?')[1]).get('service')} incidentId={d.incidentId||alarm?.incidentId} jobId={d.jobId||alarm?.jobId} error={error} loading={!graph&&!error} scope={graph?.sampleSize!==undefined?'최근 요청 '+graph.sampleSize+'건에서 확인한 호출 관계':undefined}/></>;
+ <ServiceMapView key={d.environment?.id} focusedService={selectedFocus} onFocus={setFocus} d={d} nodes={nodes} edges={edges} range={range} candidates={diagnosis?.candidates} decision={decision} preferred={first?.target||first?.service||new URLSearchParams(location.hash.split('?')[1]).get('service')} incidentId={d.incidentId||alarm?.incidentId} jobId={d.jobId||alarm?.jobId} error={error} loading={!graph&&!error} scope={graph?.sampleSize!==undefined?'최근 요청 '+graph.sampleSize+'건에서 확인한 호출 관계':undefined}/></>;
 }
 
 export function ServiceConnections(){
