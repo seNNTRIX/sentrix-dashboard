@@ -15,13 +15,14 @@ export function hasReplicaOutage(candidate) {
 }
 
 export const usesReplicaLossScore=c=>hasReplicaOutage(c)&&c.evidence.includes(replicaLossScore);
+const routedModels=new Set(['linuxv1-b-fold2-route1','linuxv1-b-fold2-route2']);
 export const knownRankingMethod=result=>result.contractVersion==='sentrix-analysis-v1-draft'
  && result.featureSchemaVersion==='re2ob-v0-rel18-all58'
- && ['linuxv1-b-fold2','linuxv1-b-fold2-route1','re2ob-v2-freeze'].includes(result.modelVersion);
+ && (routedModels.has(result.modelVersion)||['linuxv1-b-fold2','re2ob-v2-freeze'].includes(result.modelVersion));
 
 const branchEvidencePrefix='분석 기준 · ';
 export function diagnosisBasis(result, candidate) {
- if(result?.modelVersion!=='linuxv1-b-fold2-route1'||!knownRankingMethod(result))return null;
+ if(!routedModels.has(result?.modelVersion)||!knownRankingMethod(result))return null;
  const line=candidate?.evidence?.[0];
  return line?.startsWith(branchEvidencePrefix)&&line.slice(branchEvidencePrefix.length).trim()?line:null;
 }
@@ -49,7 +50,7 @@ export function validateAnalysisResult(x,job,namespace){
  if(Date.parse(x.windowStart)>=Date.parse(x.windowEnd)||(x.score!=null&&!Number.isFinite(x.score)))fail();
  if(x.decision==='ABSTAIN'&&!text(x.abstainReason))fail();
  if(x.decision!=='ANOMALY'&&x.candidates.length)fail();
- if(x.modelVersion==='linuxv1-b-fold2-route1'&&new Set(x.candidates.map(c=>c?.kind)).size>1)fail();
+ if(routedModels.has(x.modelVersion)&&new Set(x.candidates.map(c=>c?.kind)).size>1)fail();
  const ranks=new Set();
  for(const c of x.candidates){
   if(!c||!Number.isSafeInteger(c.rank)||c.rank<1||ranks.has(c.rank)||!['NODE','EDGE'].includes(c.kind)||!text(c.faultType)||!Number.isFinite(c.score)||!Array.isArray(c.evidence)||c.evidence.some(e=>!text(e)))fail();

@@ -29,9 +29,9 @@ test('model-specific explanations require a compatible saved analysis',()=>{
  assert.equal(knownRankingMethod({}),false);
 });
 
-test('shows a diagnosis basis only when the routed model saved its explanation',()=>{
+for(const modelVersion of ['linuxv1-b-fold2-route1','linuxv1-b-fold2-route2'])test(`shows the diagnosis basis saved by ${modelVersion}`,()=>{
  const reason='분석 기준 · 수신 처리 외 지연이 늘었습니다.';
- const routed={...result,modelVersion:'linuxv1-b-fold2-route1',contractVersion:'sentrix-analysis-v1-draft',featureSchemaVersion:'re2ob-v0-rel18-all58',
+ const routed={...result,modelVersion,contractVersion:'sentrix-analysis-v1-draft',featureSchemaVersion:'re2ob-v0-rel18-all58',
   candidates:[{...result.candidates[0],evidence:[reason]}]};
  const routedJob={...job,modelVersion:routed.modelVersion,contractVersion:routed.contractVersion,featureSchemaVersion:routed.featureSchemaVersion};
  assert.equal(validateAnalysisResult(routed,routedJob,'sentrix'),routed);
@@ -41,6 +41,7 @@ test('shows a diagnosis basis only when the routed model saved its explanation',
  const second={...routed.candidates[0],rank:2,evidence:[secondReason]};
  assert.equal(diagnosisBasis({...routed,candidates:[...routed.candidates,second]},second),secondReason);
  assert.equal(diagnosisBasis({...routed,modelVersion:'linuxv1-b-fold2'},routed.candidates[0]),null);
+ assert.equal(diagnosisBasis({...routed,modelVersion:'linuxv1-b-fold2-route3'},routed.candidates[0]),null);
  assert.equal(diagnosisBasis(routed,{...routed.candidates[0],evidence:[]}),null);
  assert.throws(()=>validateAnalysisResult({...routed,candidates:result.candidates},routedJob,'sentrix'));
 });
