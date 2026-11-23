@@ -1,0 +1,103 @@
+{
+  "model": "linuxv1-b-fold2",
+  "date": "2026-11-24",
+  "environment": "시드니 전시 환경",
+  "cases": [
+    {
+      "target": "frontend->currencyservice",
+      "type": "패킷 손실 2%",
+      "appliedAt": "2026-11-23T19:21:09Z",
+      "recoveredAt": "2026-11-23T19:24:08Z",
+      "windows": 5,
+      "old": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "new": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "evidenceId": "2a6fc549-5c75-4cbd-b175-2875c1c0059d"
+    },
+    {
+      "target": "frontend->productcatalogservice",
+      "type": "패킷 손실 2%",
+      "appliedAt": "2026-11-23T19:30:18Z",
+      "recoveredAt": "2026-11-23T19:33:18Z",
+      "windows": 6,
+      "old": [
+        4,
+        4,
+        5,
+        4,
+        4,
+        4
+      ],
+      "new": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "evidenceId": "df20369f-5e50-449a-9ab7-6484e734fa4c"
+    },
+    {
+      "target": "recommendationservice->productcatalogservice",
+      "type": "패킷 손실 2%",
+      "appliedAt": "2026-11-23T19:25:43Z",
+      "recoveredAt": "2026-11-23T19:28:43Z",
+      "windows": 0,
+      "old": [],
+      "new": [],
+      "evidenceId": null
+    },
+    {
+      "target": "productcatalogservice",
+      "type": "CPU 포화",
+      "appliedAt": "2026-11-23T18:45:41Z",
+      "recoveredAt": "2026-11-23T18:48:41Z",
+      "windows": 4,
+      "old": [
+        1,
+        3,
+        1,
+        1
+      ],
+      "new": [
+        1,
+        3,
+        1,
+        1
+      ],
+      "evidenceId": "9b983401-db40-4f74-83f6-2e04ec94e337"
+    },
+    {
+      "target": "paymentservice",
+      "type": "Pod 장애",
+      "appliedAt": "2026-11-23T18:50:40Z",
+      "recoveredAt": "2026-11-23T18:53:40Z",
+      "windows": 4,
+      "old": [
+        2,
+        1,
+        2,
+        3
+      ],
+      "new": [
+        2,
+        1,
+        2,
+        3
+      ],
+      "evidenceId": "a40a8854-a5f5-4528-8dd2-396388847878"
+    }
+  ]
+}

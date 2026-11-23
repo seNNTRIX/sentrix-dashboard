@@ -1,6 +1,6 @@
+import {publicView,publicRoutes} from './live/public-view.js';
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { screens } from './screens.jsx';
 import { LiveApp, connectedRoutes } from './live/LiveApp.jsx';
 import './design.css';
 import './responsive.css';
@@ -18,9 +18,10 @@ class ErrorBoundary extends React.Component {
 }
 function App() {
  const [hash, setHash] = useState(location.hash.slice(1) || 'B1-Overview');
- const [route, query = ''] = hash.split('?');
+ const [requested, query = ''] = hash.split('?');
+ const route=publicView&&!publicRoutes.has(requested)?'B1-Overview':requested;
  const params = new URLSearchParams(query);
- const live = !new URLSearchParams(location.search).has('demo') && connectedRoutes.has(route);
+ const live = connectedRoutes.has(route);
  useEffect(() => {
   const update = () => {setHash(location.hash.slice(1) || 'B1-Overview');window.scrollTo(0,0);};
   window.addEventListener('hashchange',update);
@@ -29,10 +30,9 @@ function App() {
  useEffect(() => {
   const heading = document.querySelector('h1');
   const titles = { "B3-Incidents":"장애 기록", "B4-Incident":"장애 기록 상세", 'B2-ServiceMap':'Service map', 'B6-Trace':'Trace', 'B7-Logs':'로그', 'B1-Overview':'개요', 'B5-Service':'서비스 상세', 'C3-Settings':'설정', 'A4-Onboarding':'관측 환경 설정' };
-  document.title = `${live ? titles[route] : heading?.textContent || '대시보드'} · SentriX`;
+  document.title = `${live ? (titles[route]||heading?.textContent||'대시보드') : heading?.textContent || '대시보드'} · SentriX`;
  },[route,live]);
- const Screen = screens[route];
- return <><a href="#main-content" className="skip-link" onClick={e=>{e.preventDefault();document.getElementById('main-content')?.focus();}}>본문으로 건너뛰기</a>{!live&&<aside className="demo-notice"><>디자인 미리보기 · 예시 데이터 · 서버에 저장되지 않습니다 · <a href={`${location.pathname}#B1-Overview`}>실제 조회 화면으로</a></></aside>}<ErrorBoundary key={route}>{live ? <LiveApp route={route} params={params} initialTheme={savedTheme()}/> : Screen ? <Screen theme={savedTheme()}/> : <main className="error-page"><h1>화면을 찾을 수 없습니다</h1><a href="#B1-Overview">개요로 돌아가기</a></main>}</ErrorBoundary></>;
+ return <><a href="#main-content" className="skip-link" onClick={e=>{e.preventDefault();document.getElementById('main-content')?.focus();}}>본문으로 건너뛰기</a><ErrorBoundary key={route}>{live ? <LiveApp route={route} params={params} initialTheme={savedTheme()}/> : <main className="error-page"><h1>사용할 수 없는 화면입니다</h1><a href="#B1-Overview">개요로 돌아가기</a></main>}</ErrorBoundary></>;
 }
 
 // Keyboard navigation is shared by the existing tab and segmented-control patterns.

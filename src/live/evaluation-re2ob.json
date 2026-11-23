@@ -1,0 +1,22 @@
+{
+  "source": "https://github.com/seNNTRIX/sentrix-ml/blob/2368513b4e221d8e077d6812f5c6b37eebdfc186/experiments/20261027-re2ob-r6-models/results.json",
+  "cases": 90,
+  "top1": 0.8555555555555555,
+  "top3": 0.9777777777777777,
+  "auc": 0.9958471823688825,
+  "faults": {
+    "cpu": 1.0,
+    "delay": 0.893,
+    "disk": 1.0,
+    "loss": 0.853,
+    "mem": 1.0,
+    "socket": 1.0
+  },
+  "folds": {
+    "checkoutservice": 0.9444444444444444,
+    "currencyservice": 0.9777777777777779,
+    "emailservice": 1.0,
+    "productcatalogservice": 0.9111111111111111,
+    "recommendationservice": 0.9555555555555555
+  }
+}

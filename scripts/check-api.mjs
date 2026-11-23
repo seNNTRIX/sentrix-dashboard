@@ -20,6 +20,7 @@ await page.route('**/api/v1/**',async route=>{
   return send(route,{items:empty?[]:environments.slice(current,current+1),totalPages:empty?0:environments.length});
  }
  const match=path.match(/\/environments\/(\d+)\/(.*)/),id=Number(match?.[1]),resource=match?.[2];
+ if(resource==='overview')return send(route,{environmentId:id,openIncidents:0,recentWindows:[]});
  if(resource==='data-sources')return send(route,Object.values(saved[id]||{}));
  if(resource?.startsWith('data-sources/')){
   const type=resource.split('/')[1];saved[id]||={};
@@ -76,7 +77,7 @@ try {
  await page.getByRole('button',{name:'Run query',exact:true}).click();
  await expect(logs).toContainText('조건에 맞는 로그가 없습니다');
  logFailure=true;await page.getByRole('button',{name:'Run query',exact:true}).click();
- await expect(page.getByRole('alert')).toContainText('Loki에 연결할 수 없습니다');
+ await expect(page.getByRole('alert').filter({hasText:'Loki에 연결할 수 없습니다'}).first()).toContainText('Loki에 연결할 수 없습니다');
  await expect(logs).not.toContainText('<script>');logFailure=false;
  await page.getByRole('button',{name:'지난 15분',exact:false}).click();
  await page.getByRole('button',{name:'지난 5분',exact:true}).click();
@@ -111,17 +112,17 @@ try {
  }
  await page.getByRole('radio',{name:'Search',exact:true}).click();
  traceFailure=true;await page.getByRole('button',{name:'Run query',exact:true}).click();
- await expect(page.getByRole('alert')).toContainText('Tempo에 연결할 수 없습니다');
+ await expect(page.getByRole('alert').filter({hasText:'Tempo에 연결할 수 없습니다'}).first()).toContainText('Tempo에 연결할 수 없습니다');
  await expect(page.getByRole('button',{name:'11111111111111111111111111111111',exact:true})).toHaveCount(0);traceFailure=false;
  await page.goto(base+'#B1-Overview');
  await expect(page.getByRole('heading',{name:'개요',exact:true})).toBeVisible();
  await expect(page.getByText('INC-0142',{exact:true})).toHaveCount(0);
  await expect(page.getByRole('heading',{name:'Anomaly score'})).toBeVisible();
- await expect(page.locator('[aria-labelledby="score-h"]')).toContainText('ML 모델 미연결');
+ await expect(page.locator('[aria-labelledby="score-h"]')).toContainText('이 기간에 관측된 점수가 없습니다.');
  const timeline=page.getByRole('region',{name:'서비스 상태',exact:true});
- await expect(timeline).toContainText('상태 이력 미연결');
+ await expect(timeline).toContainText('미판정');
  await expect(timeline.getByRole('link',{name:'checkoutservice',exact:true})).toHaveAttribute('href','#B5-Service?service=checkoutservice');
- await expect(timeline.locator('.chart-ticks > span')).toHaveCount(6);
+ await expect(timeline.locator('footer > span')).toHaveCount(6);
  await expect(page.getByRole('region',{name:'서비스 준비 상태'})).toHaveCount(0);
  const requestCard=page.locator('section').filter({has:page.getByRole('heading',{name:'Requests',exact:true})});
  await expect(requestCard).toContainText('frontend req/s');
@@ -129,18 +130,17 @@ try {
  for(const label of await requestCard.locator('.chart-ticks > span').allTextContents())expect(label).toMatch(/^\d{2}:\d{2}$/);
  await expect(page.getByRole('heading',{name:'지연',exact:true})).toBeVisible();
 
- await page.getByLabel('관측 서비스',{exact:true}).selectOption('checkoutservice');
+ await timeline.getByRole('link',{name:'checkoutservice',exact:true}).click();
  await expect.poll(()=>calls.filter(c=>c.path.endsWith('/metrics')).at(-1)?.query).toContain('service=checkoutservice');
- await page.getByRole('link',{name:'서비스 상세',exact:true}).click();
  await expect(page.getByRole('heading',{name:'checkoutservice',exact:true})).toBeVisible();
  await expect(page.getByRole('region',{name:'서비스 준비 상태'})).toContainText('준비 완료');
- statusAge=65;await page.getByRole('button',{name:'상태 새로고침'}).click();
+ statusAge=65;await page.getByRole('region',{name:'서비스 준비 상태'}).getByRole('button',{name:'상태 새로고침'}).click();
  await expect(page.getByRole('region',{name:'서비스 준비 상태'})).toContainText('확인 불가');
- statusAge=5;statusFailure=true;await page.getByRole('button',{name:'상태 새로고침'}).click();
+ statusAge=5;statusFailure=true;await page.getByRole('region',{name:'서비스 준비 상태'}).getByRole('button',{name:'상태 새로고침'}).click();
  await expect(page.getByRole('region',{name:'서비스 준비 상태'})).toContainText('연결할 수 없습니다');
  statusFailure=false;
  await expect(page.getByRole('heading',{name:'자원',exact:true})).toBeVisible();
- await expect(page.locator('[aria-labelledby="pod-h"]')).toContainText('Pod별 상세 API 미연결');
+ await expect(page.locator('[aria-labelledby="pod-h"]')).toContainText('Pod 새로고침');
  metricError=true;await page.getByRole('button',{name:'새로고침',exact:true}).click();
  await expect(page.locator('[aria-labelledby="red-h"]')).toContainText('응답 시간이 초과');metricError=false;
  await page.goto(base+'#C3-Settings');
@@ -163,7 +163,7 @@ try {
  await expect(page.locator('.screen-root')).toHaveAttribute('data-theme','dark');
  await page.keyboard.press('Escape');await page.reload();
  await expect(page.locator('.screen-root')).toHaveAttribute('data-theme','dark');
- offline=true;await page.reload();await expect(page.getByRole('alert')).toContainText('연결할 수 없습니다');
+ offline=true;await page.reload();await expect(page.getByRole('alert').filter({hasText:'연결할 수 없습니다'}).first()).toContainText('연결할 수 없습니다');
  offline=false;empty=true;await page.getByRole('button',{name:'다시 연결'}).click();
  await page.goto(base+'#A4-Onboarding');
  await page.getByLabel('환경 이름',{exact:true}).fill('New Lab');

@@ -1,3 +1,5 @@
+import {WorkspacePage} from './WorkspacePage.jsx';
+import {publicView} from './public-view.js';
 import React,{useEffect,useState} from 'react';
 import {screens} from '../screens.jsx';
 import {EnvironmentProvider,useEnvironment} from './EnvironmentContext.jsx';
@@ -7,11 +9,11 @@ import {volumeRange,validateVolume} from './log-volume.js';
 import {pollRecords} from './Incidents.jsx';
 import {designValues} from './design-values.js';
 import './design-binding.css';
-export const connectedRoutes=new Set(['B3-Incidents','B4-Incident','B2-ServiceMap','B1-Overview','B5-Service','B6-Trace','B7-Logs','C3-Settings','A4-Onboarding']);
+export const connectedRoutes=new Set(['A1-Login','A2-Signup','A3-Reset','B3-Incidents','B4-Incident','B2-ServiceMap','B1-Overview','B5-Service','B6-Trace','B7-Logs','C3-Settings','A4-Onboarding','B8-Model','C1-Notifications','C2-AlertRules','C4-Team','C5-Account','C6-Audit','C7-States']);
 function Connected({route,params,initialTheme}){
  const env=useEnvironment(),{environment}=env;
  const [service,setService]=useState(params.get('service')||'frontend'),[search,setSearch]=useState(''),[limit,setLimit]=useState(route==='B6-Trace'?'20':'100');
- const [range,setRange]=useState(()=>queryRange(Date.now()-900000,Date.now())),[rangeLabel,setRangeLabel]=useState('지난 15분'),[revision,setRevision]=useState(0);
+ const [range,setRange]=useState(()=>{const end=Date.parse(params.get('at'));return Number.isFinite(end)?queryRange(end-900000,end):queryRange(Date.now()-(route==='B3-Incidents'?86400000:900000),Date.now());}),[rangeLabel,setRangeLabel]=useState(params.has('at')?'장애 발생 구간':route==='B3-Incidents'?'지난 24시간':'지난 15분'),[revision,setRevision]=useState(0);
  const [volume,setVolume]=useState({});
  const [result,setResult]=useState({loading:true}),[inventory,setInventory]=useState([]),[metrics,setMetrics]=useState({});
  const [traceId,setTraceId]=useState(params.get('traceId')||''),[selected,setSelected]=useState(''),[detail,setDetail]=useState({}),[detailRevision,setDetailRevision]=useState(0);
@@ -23,11 +25,11 @@ function Connected({route,params,initialTheme}){
  useEffect(()=>{
   if(!environment)return;const abort=new AbortController();setInventory([]);setInventoryLoading(true);setInventoryError('');setSources([]);setSourceError('');
   request(`${environmentPath(environment.id)}/services`,{signal:abort.signal}).then(d=>{if(!abort.signal.aborted){setInventory(d.items||[]);setInventoryLoading(false);}}).catch(e=>{if(!abort.signal.aborted){setInventoryError(e.message);setInventoryLoading(false);}});
-  request(`${environmentPath(environment.id)}/data-sources`,{signal:abort.signal}).then(d=>{if(!abort.signal.aborted)setSources(d);}).catch(e=>{if(!abort.signal.aborted)setSourceError(e.message);});
+  if(!publicView)request(`${environmentPath(environment.id)}/data-sources`,{signal:abort.signal}).then(d=>{if(!abort.signal.aborted)setSources(d);}).catch(e=>{if(!abort.signal.aborted)setSourceError(e.message);});
   return()=>abort.abort();
  },[environment?.id,revision]);
  useEffect(()=>{
-  setResult({loading:true});setVolume({});setMetrics({});setSelected(route==='B6-Trace'?(params.get('traceId')||''):'');setDetail({});
+  setResult({loading:true});setVolume({});setSelected(route==='B6-Trace'?(params.get('traceId')||''):'');setDetail({});
   if(!environment)return;const abort=new AbortController(),base=environmentPath(environment.id);
   const {stepSeconds,...time}=range;
   if(route==='B7-Logs'||route==='B6-Trace'){
@@ -40,6 +42,7 @@ function Connected({route,params,initialTheme}){
       .catch(e=>{if(!abort.signal.aborted)setVolume({error:e.message});});
     } catch(e) {setVolume({error:e.message});}
    }
+   if(publicView&&route==='B7-Logs'){setResult({restricted:true});return ()=>abort.abort();}
    const trace=route==='B6-Trace',filters={service,...time,limit:trace?Math.min(100,+limit):limit,...(trace?{}:{search})};
    request(`${base}/${trace?'traces':'logs'}?${new URLSearchParams(filters)}`,{signal:abort.signal}).then(data=>{
     if(data.environmentId!==environment.id||data.service!==service||!Array.isArray(data.items))throw new Error('조회 응답 형식이 올바르지 않습니다.');
@@ -77,13 +80,22 @@ function Connected({route,params,initialTheme}){
    .catch(e=>{if(!abort.signal.aborted)setDetail({error:e.message});});return()=>abort.abort();
  },[environment?.id,selected,detailRevision]);
  const [overview,setOverview]=useState(null);
+ const [policy,setPolicy]=useState(null);
  useEffect(()=>{
-  if(!['B1-Overview','B2-ServiceMap'].includes(route)||!environment)return;
+  if(location.pathname!=='/display'||environment?.id!==1||!['B1-Overview','B8-Model','C2-AlertRules','C3-Settings','C7-States'].includes(route))return;
+  const abort=new AbortController();
+  fetch('/display-policy',{signal:abort.signal}).then(r=>r.ok?r.json():null).then(x=>{
+   if(!abort.signal.aborted)setPolicy(x);
+  }).catch(()=>{});
+  return ()=>abort.abort();
+ },[environment?.id,route]);
+ useEffect(()=>{
+  if(!['B1-Overview','B2-ServiceMap','B5-Service'].includes(route)||!environment)return;
   const id=environment.id;
   setOverview(null);
   return pollRecords(new AbortController(),async signal=>{
    try {
-    const data=await request(environmentPath(id)+'/overview',{signal});
+    const data=await request(environmentPath(id)+'/overview?limit=100',{signal});
     if(data.environmentId!==id||!Number.isSafeInteger(data.openIncidents)||!Array.isArray(data.recentWindows)) throw new Error('환경 요약 형식을 확인해 주세요.');
     if(!signal.aborted)setOverview(data);
    } catch(e){if(!signal.aborted)setOverview({environmentId:id,error:e.message});}
@@ -97,10 +109,10 @@ function Connected({route,params,initialTheme}){
  },[route,rangeLabel,environment?.id]);
  const changeRange=(from,to,label)=>{setRange(queryRange(from,to));setRangeLabel(label);};
  const refresh=()=>{const seconds={'지난 5분':300,'지난 15분':900,'지난 30분':1800,'지난 1시간':3600,'지난 3시간':10800,'지난 6시간':21600,'지난 12시간':43200,'지난 24시간':86400}[rangeLabel];if(seconds)setRange(queryRange(Date.now()-seconds*1000,Date.now()));else run();};
- const live={...env,overview:overview?.environmentId===environment?.id?overview:null,incidentId:params.get("incidentId"),jobId:params.get("jobId"),route,service,setService,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory,inventoryLoading,inventoryError,metrics,traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
+ const live={...env,publicView,modelVersion:policy?.modelVersion,threshold:policy?.threshold,applicationServices:policy?.applicationServices,overview:overview?.environmentId===environment?.id?overview:null,incidentId:params.get("incidentId"),jobId:params.get("jobId"),route,service,setService,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory,inventoryLoading,inventoryError,metrics,traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
  live.values=view=>designValues(view,live);
- const Screen=screens[route];
+ const Screen=screens[route]||WorkspacePage;
  return <DesignContext.Provider value={live}><Screen theme={initialTheme} tab={route==='C3-Settings'?'데이터 소스':undefined} live={live}/></DesignContext.Provider>;
 }
-function EnvironmentScreen(props){const {environment}=useEnvironment();return <Connected key={`${props.route}:${props.params.toString()}:${environment?.id||'none'}`} {...props}/>;}
+function EnvironmentScreen(props){const {environment,loading}=useEnvironment();if(location.pathname==='/display'&&loading&&!environment)return <p role="status" className="bound-notice">관측 환경 조회 중…</p>;return <Connected key={`${props.route}:${props.params.toString()}:${environment?.id||'none'}`} {...props}/>;}
 export function LiveApp(props){return <EnvironmentProvider><EnvironmentScreen {...props}/></EnvironmentProvider>;}
