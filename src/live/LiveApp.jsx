@@ -82,7 +82,7 @@ function Connected({route,params,initialTheme}){
  const [overview,setOverview]=useState(null);
  const [policy,setPolicy]=useState(null);
  useEffect(()=>{
-  if(location.pathname!=='/display'||environment?.id!==1||!['B1-Overview','B8-Model','C2-AlertRules','C3-Settings','C7-States'].includes(route))return;
+  if(location.pathname!=='/display'||environment?.id!==1||!['B1-Overview','B2-ServiceMap','B8-Model','C2-AlertRules','C3-Settings','C7-States'].includes(route))return;
   const abort=new AbortController();
   fetch('/display-policy',{signal:abort.signal}).then(r=>r.ok?r.json():null).then(x=>{
    if(!abort.signal.aborted)setPolicy(x);
@@ -102,7 +102,7 @@ function Connected({route,params,initialTheme}){
   });
  },[environment?.id,route,revision]);
  useEffect(()=>{
-  if(location.pathname!=='/display'||!['B1-Overview','B5-Service'].includes(route)||!rangeLabel.startsWith('지난 '))return;
+  if(location.pathname!=='/display'||!['B1-Overview','B2-ServiceMap','B5-Service'].includes(route)||params.has('incidentId')||params.has('traceId')||!rangeLabel.startsWith('지난 '))return;
   const duration=Date.parse(range.to)-Date.parse(range.from);
   const timer=setInterval(()=>{if(!document.hidden)setRange(queryRange(Date.now()-duration,Date.now()));},30000);
   return ()=>clearInterval(timer);
