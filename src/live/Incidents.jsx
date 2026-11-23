@@ -8,11 +8,37 @@ import {DataNotice} from './DesignBindings.jsx';
 const panel={border:'1px solid var(--border-weak)',borderRadius:8,background:'var(--bg1)',padding:24};
 const at=t=>t?new Date(t).toLocaleString():'—';
 
+// Schedule the next read only after the last one finishes. Changing filters aborts it.
+function pollRecords(controller, read) {
+ let timer;
+ async function update() {
+  try {
+   if (!document.hidden) await read(controller.signal);
+  } finally {
+   if (!controller.signal.aborted) timer=setTimeout(update,15000);
+  }
+ }
+ update();
+ return ()=>{controller.abort();clearTimeout(timer);};
+}
+
 export function Incidents(){const d=useDesign();return <><DataNotice/>{d.environment&&<History key={d.environment.id} d={d}/>}</>;}
 function History({d}){
  const [page,setPage]=useState(0),[filter,setFilter]=useState(''),[service,setService]=useState(''),[data,setData]=useState(null),[error,setError]=useState(''),[rev,setRev]=useState(0),[form,setForm]=useState(false);
  const base=environmentPath(d.environment.id)+'/incidents';
- useEffect(()=>{const c=new AbortController();setData(null);setError('');request(base+'?'+new URLSearchParams({page,size:20,...(filter?{status:filter}:{}),...(service?{service}:{})}),{signal:c.signal}).then(x=>{if(!Array.isArray(x.items)||!Number.isInteger(x.totalPages))throw new Error('목록 응답 오류');x.items.forEach(i=>validateIncident(i,d.environment.id));if(!c.signal.aborted)setData(x);}).catch(e=>{if(!c.signal.aborted)setError(e.message);});return()=>c.abort();},[base,page,filter,service,rev]);
+ useEffect(()=>{
+  const c=new AbortController();
+  setData(null);setError('');
+  const query=new URLSearchParams({page,size:20,...(filter?{status:filter}:{}),...(service?{service}:{})});
+  return pollRecords(c,async signal=>{
+   try {
+    const response=await request(base+'?'+query,{signal});
+    if(!Array.isArray(response.items)||!Number.isInteger(response.totalPages))throw new Error('목록 응답 오류');
+    response.items.forEach(item=>validateIncident(item,d.environment.id));
+    if(!signal.aborted){setData(response);setError('');}
+   } catch(e){if(!signal.aborted)setError(e.message);}
+  });
+ },[base,page,filter,service,rev]);
  return <><div style={{display:'flex',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}><div><h1 className="page-title">장애 기록</h1><p className="secondary-text">모델이 감지한 이상과 운영자가 등록한 장애 기록을 확인합니다.</p></div><button className="ui-button" onClick={()=>setForm(true)}>장애 기록 등록</button></div><div style={{display:'flex',gap:12,flexWrap:'wrap'}}><label>상태 <select aria-label="장애 기록 상태" value={filter} onChange={e=>{setPage(0);setFilter(e.target.value);}}><option value="">전체</option><option value="OPEN">열림</option><option value="RESOLVED">종료</option></select></label><label>서비스 <select aria-label="장애 기록 서비스" value={service} onChange={e=>{setPage(0);setService(e.target.value);}}><option value="">전체</option>{d.inventory.map(s=><option key={s.name}>{s.name}</option>)}</select></label><button className="ui-button" onClick={()=>setRev(n=>n+1)}>기록 새로고침</button></div>
  <section style={panel} aria-label="장애 기록 목록">{error?<p role="alert">{error}</p>:!data?<p role="status">조회 중…</p>:<><div className="scroll-region" style={{overflowX:'auto'}} tabIndex="0"><table className="data-table"><thead><tr>{['기록','서비스','상태','발생 시각','등록 방식'].map(x=><th key={x}>{x}</th>)}</tr></thead><tbody>{data.items.map(x=><tr key={x.id}><td><a href={`#B4-Incident?incidentId=${x.id}`}>{x.title}</a></td><td>{x.service}</td><td>{x.status==='OPEN'?'열림':'종료'}</td><td>{at(x.occurredAt)}</td><td>{x.source==='AUTOMATIC'?'자동 감지':'수동 등록'}</td></tr>)}</tbody></table></div>{!data.items.length&&<p>등록된 기록이 없습니다.</p>}<Pager page={page} pages={data.totalPages} change={setPage}/></>}</section>{form&&<Dialog title="장애 의심 상황 기록" onClose={()=>setForm(false)}><CreateIncident base={base} env={d.environment.id}/></Dialog>}</>;
 }
@@ -27,17 +53,32 @@ function Detail({d}){
  const [record,setRecord]=useState(null),[jobs,setJobs]=useState(null),[page,setPage]=useState(0),[rev,setRev]=useState(0),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const [selectedId,setSelectedId]=useState(d.jobId||''),[selected,setSelected]=useState(null),[result,setResult]=useState(null),[detailError,setDetailError]=useState('');
  const active=useRef(null),jobKey=useRef(crypto.randomUUID()),latestKey=useRef(crypto.randomUUID());
+ const pinned=useRef(Boolean(d.jobId));
  const base=`${environmentPath(d.environment.id)}/incidents/${encodeURIComponent(d.incidentId||'')}`;
  useEffect(()=>{
   const c=new AbortController();active.current=c;setRecord(null);setJobs(null);setError('');
   if(!d.incidentId){setError('장애 목록에서 기록을 선택하세요.');return()=>c.abort();}
-  Promise.all([request(base,{signal:c.signal}),request(base+`/rca-jobs?page=${page}&size=20`,{signal:c.signal})]).then(([x,j])=>{
-   validateIncident(x,d.environment.id);
-   if(!Array.isArray(j.items)||!Number.isInteger(j.totalPages))throw new Error('분석 작업 응답 오류');
-   j.items.forEach(item=>validateJob(item,d.environment.id,x.id));
-   if(!c.signal.aborted){setRecord(x);setJobs(j);if(j.items.length)setSelectedId(id=>id||j.items[0].id);}
-  }).catch(e=>{if(!c.signal.aborted)setError(e.message);});
-  return()=>c.abort();
+  return pollRecords(c,async signal=>{
+   try {
+    const [x,j]=await Promise.all([request(base,{signal}),request(base+`/rca-jobs?page=${page}&size=20`,{signal})]);
+    validateIncident(x,d.environment.id);
+    if(!Array.isArray(j.items)||!Number.isInteger(j.totalPages))throw new Error('분석 작업 응답 오류');
+    j.items.forEach(item=>validateJob(item,d.environment.id,x.id));
+    if(signal.aborted)return;
+    setRecord(x);setJobs(j);setError('');
+    if(!pinned.current && page===0 && j.items.length){
+     let diagnosis;
+     try { diagnosis=await request(base+'/rca',{signal}); }
+     catch(error) {
+      if(error.status!==404)throw error;
+      if(!signal.aborted && !pinned.current)setSelectedId(id=>id||j.items[0].id);
+      return;
+     }
+     if(diagnosis.incidentId!==x.id || diagnosis.environmentId!==d.environment.id)throw new Error('원인 분석의 환경 또는 기록이 일치하지 않습니다.');
+     if(!signal.aborted && !pinned.current)setSelectedId(diagnosis.result?.jobId || j.items[0].id);
+    }
+   } catch(e){if(!signal.aborted)setError(e.message);}
+  });
  },[base,page,rev]);
  useEffect(()=>{
   const c=new AbortController();setSelected(null);setResult(null);setDetailError('');
@@ -68,7 +109,7 @@ function Detail({d}){
     validateJob(response,d.environment.id,d.incidentId);
     const key=body.latest?latestKey:jobKey;
     key.current=crypto.randomUUID();
-    setSelectedId(response.id);
+    pinned.current=true;setSelectedId(response.id);
     setPage(0);
    }
    setRev(n=>n+1);
@@ -89,7 +130,7 @@ function Detail({d}){
  </section><section style={panel} aria-label="분석 작업 이력">
   <div style={{display:'flex',gap:12,justifyContent:'space-between',flexWrap:'wrap'}}><h2 style={{fontSize:16}}>분석 작업 이력</h2><button className="ui-button" disabled={busy||record.status!=='OPEN'} onClick={()=>mutate(base+'/rca-jobs','POST',{requestKey:jobKey.current})}>발생 시점 분석</button><button className="ui-button" disabled={busy||record.status!=='OPEN'} onClick={()=>mutate(base+'/rca-jobs','POST',{requestKey:latestKey.current,latest:true})}>최근 30초 분석</button></div>
   <p className="secondary-text">모델 미연결로 대기한 요청은 연결 후에도 자동 실행되지 않습니다. 새 분석을 요청해야 합니다.</p>
-  <div className="scroll-region" style={{overflowX:'auto'}} tabIndex="0"><table className="data-table"><thead><tr><th>분석 구간 시작</th><th>작업 ID</th><th>상태</th><th>요청 시각</th><th>작업</th></tr></thead><tbody>{jobs.items.map(j=><tr key={j.id}><td><button className="ui-button" aria-pressed={selectedId===j.id} onClick={()=>setSelectedId(j.id)}>{at(j.windowStart)}</button></td><td>{j.id.slice(0,8)}</td><td>{jobLabel(j.status)}</td><td>{at(j.createdAt)}</td><td><button className="ui-button" disabled={busy||!canCancelJob(j.status)} onClick={()=>mutate(base+'/rca-jobs/'+j.id+'/cancel','POST')}>요청 취소</button></td></tr>)}</tbody></table></div>
+  <div className="scroll-region" style={{overflowX:'auto'}} tabIndex="0"><table className="data-table"><thead><tr><th>분석 구간 시작</th><th>작업 ID</th><th>상태</th><th>요청 시각</th><th>작업</th></tr></thead><tbody>{jobs.items.map(j=><tr key={j.id}><td><button className="ui-button" aria-pressed={selectedId===j.id} onClick={()=>{pinned.current=true;setSelectedId(j.id);}}>{at(j.windowStart)}</button></td><td>{j.id.slice(0,8)}</td><td>{jobLabel(j.status)}</td><td>{at(j.createdAt)}</td><td><button className="ui-button" disabled={busy||!canCancelJob(j.status)} onClick={()=>mutate(base+'/rca-jobs/'+j.id+'/cancel','POST')}>요청 취소</button></td></tr>)}</tbody></table></div>
   {!jobs.items.length&&<p>분석 요청 이력이 없습니다.</p>}
   <Pager page={page} pages={jobs.totalPages} change={setPage}/>
   {detailError&&<p role="alert">{detailError}</p>}
