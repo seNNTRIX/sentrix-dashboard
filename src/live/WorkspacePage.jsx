@@ -50,7 +50,7 @@ function settings(d,remote){
 export function WorkspacePage({theme:initialTheme}){
  const d=useDesign(),route=d.route,Layout=layouts[route];
  const [menu,setMenu]=useState(()=>!matchMedia('(max-width:1023px)').matches),[theme,setTheme]=useState(initialTheme);
- const [tab,setTab]=useState(route==='C3-Settings'?1:0),[query,setQuery]=useState('');
+ const [tab,setTab]=useState(route==='C3-Settings'&&d.settingsTab==='sources'?1:0),[query,setQuery]=useState('');
  const key='sentrix-event-read:'+d.environment?.id;
  const [read,setRead]=useState(()=>{try{return JSON.parse(localStorage.getItem(key))||[];}catch{return [];}});
  const remote=useRemote(d.environment?.id,route);

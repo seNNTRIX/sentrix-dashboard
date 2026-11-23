@@ -61,7 +61,7 @@ export function EnvironmentForm() {
  const [busy,setBusy] = useState(false), [error,setError] = useState('');
  return <form className="live-panel live-form" onSubmit={async e => {
   e.preventDefault(); setBusy(true); setError('');
-  try { const item = await request('/environments', { method:'POST', body:{name,namespace} }); add(item); location.hash='C3-Settings'; }
+  try { const item = await request('/environments', { method:'POST', body:{name,namespace} }); add(item); location.hash='C3-Settings?tab=sources'; }
   catch (e) { setError(e.message); } finally { setBusy(false); }
  }}><h2>관측 환경 등록</h2><p className="secondary-text">관측할 환경 이름과 Kubernetes namespace를 등록하세요. 등록 후 데이터 소스 주소를 설정합니다.</p>
   <label>환경 이름<input required maxLength={100} value={name} disabled={busy} onChange={e=>setName(e.target.value)} placeholder="환경 이름 입력"/></label>

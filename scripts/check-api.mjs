@@ -143,7 +143,7 @@ try {
  await expect(page.locator('[aria-labelledby="pod-h"]')).toContainText('Pod 새로고침');
  metricError=true;await page.getByRole('button',{name:'새로고침',exact:true}).click();
  await expect(page.locator('[aria-labelledby="red-h"]')).toContainText('응답 시간이 초과');metricError=false;
- await page.goto(base+'#C3-Settings');
+ await page.goto(base+'#C3-Settings?tab=sources');
  await expect(page.getByRole('heading',{name:'설정',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Prometheus 미등록 미검사',exact:false}).click();
  const form=page.getByRole('form',{name:'prometheus 설정'});
