@@ -1,6 +1,7 @@
-import React,{useState} from 'react';
+import React,{useId,useState} from 'react';
 import {useServiceDeviation} from './useServiceDeviation.js';
 import {historyStates} from './service-health.js';
+import {decisionLabel,jobLabel,analysisReason} from './analysis-values.js';
 import {serviceCutoff} from './service-deviation.js';
 
 const time = value => new Date(value).toLocaleTimeString('ko-KR',{hour12:false,hour:'2-digit',minute:'2-digit'});
@@ -16,27 +17,34 @@ function Shading({bands,x,height}) {
 }
 function Series({points,x,y,color,width=1.5}) {
  let path='',last,tip;
+ const isolated=[];
  for(let i=0;i<points.length;i++){
   const p=points[i];
   if(!Number.isFinite(p.value)){last=null;continue;}
   const here=x(p.t)+' '+y(p.value);
+  if(!last && i<points.length-1 && !Number.isFinite(points[i+1].value))isolated.push(p);
   if(i===points.length-1 && last)tip='M'+last+' L'+here;
   else path+=(last?' L':' M')+here;
   last=here;
  }
  return <g fill="none" stroke={color} strokeWidth={width}>
   <path d={path} vectorEffect="non-scaling-stroke"/>
+  {isolated.map(p=><circle key={p.t} cx={x(p.t)} cy={y(p.value)} r="1.75" fill={color} stroke="none"/>)}
   {tip&&<path key={points.at(-1).t} className="sx-draw" d={tip} pathLength="1" vectorEffect="non-scaling-stroke"/>}
   {last&&<circle key={'dot'+points.at(-1).t} className="sx-sample" cx={last.split(' ')[0]} cy={last.split(' ')[1]} r="1.65" fill={color} stroke="none"/>}
  </g>;
 }
 export function ScorePanel({rows,error,threshold,range,service,environment}){
  const [mode,setMode]=useState('environment');
+ const hatch=useId().replace(/:/g,'');
  const local=mode==='service';
  const state=useServiceDeviation(environment?.id,service,range,local&&!environment?.recorded);
  const from=Date.parse(range.from),to=Date.parse(range.to),bands=intervals(rows,from,to);
- const points=[];let lastEnd;
- if(!local)for(const {row} of bands){
+ const points=[],gaps=[];let lastEnd;
+ const observed=bands.filter(({row})=>Date.parse(row.windowEnd)<=to);
+ if(!local)for(const {row,start,end} of observed){
+  if(lastEnd && start>lastEnd)gaps.push({start:lastEnd,end:start,label:'분석 기록 없음'});
+  if(!Number.isFinite(row.score))gaps.push({start,end,label:[row.decision?decisionLabel(row.decision):jobLabel(row.status),analysisReason(row.reason)].filter(Boolean).join(' · ')});
   if(lastEnd && Date.parse(row.windowStart)>lastEnd)points.push({t:lastEnd,value:null});
   lastEnd=Date.parse(row.windowEnd);
   if(lastEnd<=to)points.push({t:lastEnd,value:row.score});
@@ -45,26 +53,30 @@ export function ScorePanel({rows,error,threshold,range,service,environment}){
  const limit=local?serviceCutoff:threshold, maximum=local?100:1;
  const x=t=>600*(t-from)/(to-from),y=v=>156-152*v/maximum;
  const finite=series.some(p=>Number.isFinite(p.value)),format=v=>Number.isFinite(v)?v.toFixed(local?1:4):'—';
- const lastRow=bands.at(-1)?.row;
- const decision={NORMAL:'정상',ANOMALY:'이상',ABSTAIN:'판정 보류'}[lastRow?.decision]||'판정 대기';
+ const lastRow=observed.at(-1)?.row;
+ const decision={NORMAL:'정상',ANOMALY:'이상',ABSTAIN:'판정 보류'}[lastRow?.decision]||(lastRow?jobLabel(lastRow.status):'판정 대기');
  return <section className="panel obs-panel obs-score" aria-labelledby="score-h">
   <header><h2 id="score-h">{local?'서비스 지표 이탈':'Anomaly score'} <small>{local?service:'환경 전체'}</small></h2>
    <div className="sx-map-modes" role="group" aria-label="점수 범위">
     {!environment?.recorded&&<button type="button" aria-pressed={local} onClick={()=>setMode('service')}>서비스 지표</button>}
     <button type="button" aria-pressed={!local} onClick={()=>setMode('environment')}>환경 모델</button>
    </div></header>
-  <div className="score-summary"><strong>{local?'서비스 이탈 점수':'모델 이상 점수'} {format(latest?.value)}</strong>
-   {Number.isFinite(limit)&&<span className="score-key"><i/>{local?'참고선':'모델 임계값'} {format(limit)}</span>}
-   <span>{local?(Number.isFinite(latest?.value)?latest.signal+' · 지표 '+latest.coverage+'/3개':''):decision}</span>
+  <div className="score-summary"><strong>{local?'서비스 이탈 점수':'모델 점수'} {format(latest?.value)}</strong>
+   {Number.isFinite(limit)&&<span className="score-key"><i/>{local?'참고선':'현재 점수 기준'} {format(limit)}</span>}
+   {!local&&Number.isFinite(limit)&&latest?.value>limit&&<span>점수 기준 초과</span>}
+   <span>{local?(Number.isFinite(latest?.value)?latest.signal+' · 지표 '+latest.coverage+'/3개':''):<>최종 판정 <b>{decision}</b></>}</span>
   </div>
-  {finite?<div className="score-plot"><div className="score-axis" aria-label="Y축">{[1,.75,.5,.25,0].map(n=><span key={n}>{local?n*100:n.toFixed(2)}</span>)}</div>
+  {(finite||gaps.length>0)?<div className="score-plot"><div className="score-axis" aria-label="Y축">{[1,.75,.5,.25,0].map(n=><span key={n}>{local?n*100:n.toFixed(2)}</span>)}</div>
    <svg viewBox="0 0 600 160" preserveAspectRatio="none" role="img" aria-label={(local?service+' 서비스 지표 이탈 점수':'환경 모델 이상 점수')+' · 세로축 0~'+maximum}>
     <Shading bands={bands} x={x} height={160}/>
+    {gaps.length>0&&<defs><pattern id={hatch} width="6" height="6" patternUnits="userSpaceOnUse"><path d="M-1 1l2 -2M0 6l6 -6M5 7l2 -2" stroke="var(--border-strong)" strokeWidth=".7"/></pattern></defs>}
+    {gaps.map(g=><rect key={g.start+'-'+g.end} x={x(g.start)} width={x(g.end)-x(g.start)} height="160" fill={'url(#'+hatch+')'}><title>{time(g.start)}–{time(g.end)} · {g.label}</title></rect>)}
     {Number.isFinite(limit)&&<line x2="600" y1={y(limit)} y2={y(limit)} stroke="var(--text-2)" strokeDasharray="4 4" vectorEffect="non-scaling-stroke"/>}
     <Series points={series} x={x} y={y} color="var(--text)"/>
    </svg><footer>{ticks(from,to,6).map((t,i)=><span key={i}>{t}</span>)}</footer></div>
    :<div className="obs-empty">{local?(state.error||(state.points?'비교할 서비스 지표가 부족합니다.':'서비스 지표 조회 중…')):(error||'이 기간에 관측된 점수가 없습니다.')}</div>}
-  <p className="sx-score-context">{local?'직전 1시간과 비교한 요청량·오류율·p99 지연 중 가장 큰 이탈입니다. 분홍 음영은 환경 모델의 이상 판정 구간입니다.':environment?.id===1&&location.pathname==='/display'?'두 연속 분석 구간의 점수가 임계값을 넘고 관측 증상이 확인되면 이상으로 판정합니다. 음영은 실제 이상 판정입니다.':'점선은 현재 모델의 임계값, 음영은 실제 이상 판정입니다.'}</p>
+  {!local&&<div className="score-legend"><span><i className="alarm-key"/>이상 판정 구간</span>{gaps.length>0&&<span><i className="missing-key"/>점수 없음</span>}</div>}
+  <p className="sx-score-context">{local?'직전 1시간과 비교한 요청량·오류율·p99 지연 중 가장 큰 이탈입니다. 분홍 음영은 환경 모델의 이상 판정 구간입니다.':environment?.id===1&&location.pathname==='/display'?'10초 간격의 두 분석 구간이 모두 점수 기준을 넘고, 지연·오류 등 관측 증상이 있어야 이상으로 판정합니다.':'점선은 현재 모델의 임계값, 음영은 실제 이상 판정입니다.'}</p>
  </section>;
 }
 
