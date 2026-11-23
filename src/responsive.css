@@ -46,7 +46,7 @@ button:disabled { cursor: not-allowed; }
 .g .segmented-control button { white-space: nowrap; flex-shrink: 0; min-height: 32px; }
 .g .page-content button:not([role=tab]):not([role=radio]):not([role=switch]) { min-height: 32px; }
 .g .page-content button[style*="width: 28px"] { min-width: 32px; }
-.g .kpi-strip { grid-template-columns: repeat(5,minmax(0,1fr)) !important; }
+.g .kpi-strip { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
 .g .kpi-strip > div { padding: 20px !important; }
 .g .kpi-strip .mono { font-family: var(--font); }
 .data-viewport { width: 100%; max-width: 100%; min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }

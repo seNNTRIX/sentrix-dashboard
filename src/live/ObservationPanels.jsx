@@ -77,17 +77,25 @@ function useMapSample(env,service,inventory,range) {
 }
 
 function MapPreview({nodes,edges,candidates=[],selected}){
- const top=candidates[0];
+ const top=candidates.find(c=>c.rank===1);
  const visible=[...previewOrder.filter(n=>nodes.includes(n)),...nodes.filter(n=>!previewOrder.includes(n))];
- const rows=Math.ceil(visible.length/3);
- const pos=n=>{const index=visible.indexOf(n);return [100+200*(index%3),30+60*Math.floor(index/3)];};
- return <div className="obs-graph obs-mini" style={{height:60*rows}}>
- <svg viewBox={'0 0 600 '+60*rows} aria-hidden="true" preserveAspectRatio="none">{edges.filter(e=>visible.includes(e.source)&&visible.includes(e.target)).map(e=>{
+ const columns=[
+  visible.filter(n=>n==='frontend'),
+  visible.filter(n=>['checkoutservice','recommendationservice','cartservice'].includes(n)),
+  visible.filter(n=>!['frontend','checkoutservice','recommendationservice','cartservice'].includes(n))
+ ].filter(group=>group.length);
+ const height=Math.max(180,48*Math.max(...columns.map(group=>group.length)));
+ const pos=name=>{
+  const col=columns.findIndex(group=>group.includes(name)),group=columns[col];
+  return [600*(col+.5)/columns.length,height*(group.indexOf(name)+.5)/group.length];
+ };
+ return <div className="obs-graph obs-mini" style={{height}}>
+ <svg viewBox={'0 0 600 '+height} aria-hidden="true" preserveAspectRatio="none">{edges.filter(e=>visible.includes(e.source)&&visible.includes(e.target)).map(e=>{
   const [x,y]=pos(e.source),[a,b]=pos(e.target);
-  const ranked=candidates.some(c=>c.kind==='EDGE'&&c.source===e.source&&c.target===e.target);
-  return <line key={e.source+'>'+e.target} x1={x} y1={y} x2={a} y2={b} stroke={ranked?'var(--cause)':'var(--border-strong)'} strokeWidth={ranked?2:1} vectorEffect="non-scaling-stroke"/>;
+  const ranked=top?.kind==='EDGE'&&top.source===e.source&&top.target===e.target;
+  return <g key={e.source+'>'+e.target}><line x1={x} y1={y} x2={a} y2={b} stroke={ranked?'var(--cause)':'var(--border-strong)'} strokeWidth={ranked?2:1} vectorEffect="non-scaling-stroke"/>{ranked&&<text x={(x+a)/2} y={(y+b)/2-4} textAnchor="middle" className="map-rank">①</text>}</g>;
  })}</svg>
- {visible.map(n=>{const [x,y]=pos(n);return <a key={n} href={'#B2-ServiceMap?service='+encodeURIComponent(n)} className="obs-node" data-cause={top?.source===n?'source':(top?.target===n||top?.service===n)?'first':undefined} data-selected={n===selected} style={{left:x/6+'%',top:y}}>{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</a>;})}</div>;
+ {visible.map(n=>{const [x,y]=pos(n);return <a key={n} href={'#B2-ServiceMap?service='+encodeURIComponent(n)} className="obs-node" data-cause={top?.kind==='NODE'&&top.service===n?'first':undefined} data-selected={n===selected} style={{left:x/6+'%',top:y/height*100+'%'}}>{top?.kind==='NODE'&&top.service===n?'① ':''}{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</a>;})}</div>;
 }
 
 export function ObservationMap({mini=false,embedded=false,result=null}) {

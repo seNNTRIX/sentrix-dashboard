@@ -46,7 +46,7 @@ function IncidentPanelRecords({environmentId,service,recent}) {
     const response=await request(environmentPath(environmentId)+'/incidents?'+query,{signal});
     if(!Array.isArray(response.items)||!Number.isSafeInteger(response.totalElements)) throw new Error('장애 기록 응답을 읽을 수 없습니다.');
     response.items.forEach(row=>validateIncident(row,environmentId));
-    if(recent) await Promise.all(response.items.map(async row=>{
+    await Promise.all(response.items.map(async row=>{
      if(closedResults.current.has(row.id)){row.top=closedResults.current.get(row.id);return;}
      try{
       const rca=await request(environmentPath(environmentId)+'/incidents/'+row.id+'/rca',{signal});
@@ -65,8 +65,12 @@ function IncidentPanelRecords({environmentId,service,recent}) {
  const title=recent?'최근 장애 기록':service?service+'에 등록된 열린 장애':'환경 전체의 열린 장애';
  if(!recent){
   const record=data?.items[0];
-  return <a className="panel obs-alert" href={record?'#B4-Incident?incidentId='+encodeURIComponent(record.id):'#B3-Incidents'}>
-   <span>{error?'장애 기록 조회 실패':!data?'장애 기록 조회 중…':record?'진행 중 장애 · '+record.title:'진행 중 장애 없음'}</span><span>{record?'상세 보기':'전체 보기'} →</span></a>;
+  const top=record?.top;
+  const name=top?.kind==='EDGE'?top.source+' → '+top.target:top?.service;
+  return <a className="panel obs-alert triage-alert" data-open={!!record&&!error} href={record?'#B4-Incident?incidentId='+encodeURIComponent(record.id):'#B3-Incidents'}>
+   <div><strong>{error?'장애 기록 조회 실패':!data?'장애 기록 조회 중…':record?'진행 중 장애 '+data.totalElements+'건':'진행 중 장애 없음'}</strong>
+    {record&&!error&&<><time dateTime={record.occurredAt}>{at(record.occurredAt)}</time><b>{name?'1순위 · '+name:record.title}</b>
+    {top?.evidence?.[0]&&<small>{top.evidence[0]}</small>}</>}</div><span>{record?'원인 분석':'장애 목록'} →</span></a>;
  }
  return <section className="panel obs-panel sx-incidents"><header><h2>최근 장애</h2><a href="#B3-Incidents">장애 목록</a></header>
   {error?<p role="alert">{error}</p>:!data?<p role="status">조회 중…</p>:!data.items.length?<p>등록된 장애 없음</p>:

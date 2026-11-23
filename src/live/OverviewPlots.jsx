@@ -1,5 +1,6 @@
 import React,{useState} from 'react';
 import {useServiceDeviation} from './useServiceDeviation.js';
+import {historyStates} from './service-health.js';
 import {serviceCutoff} from './service-deviation.js';
 
 const time = value => new Date(value).toLocaleTimeString('ko-KR',{hour12:false,hour:'2-digit',minute:'2-digit'});
@@ -30,7 +31,7 @@ function Series({points,x,y,color,width=1.5}) {
  </g>;
 }
 export function ScorePanel({rows,error,threshold,range,service,environment}){
- const [mode,setMode]=useState(environment?.recorded?'environment':'service');
+ const [mode,setMode]=useState('environment');
  const local=mode==='service';
  const state=useServiceDeviation(environment?.id,service,range,local&&!environment?.recorded);
  const from=Date.parse(range.from),to=Date.parse(range.to),bands=intervals(rows,from,to);
@@ -47,7 +48,7 @@ export function ScorePanel({rows,error,threshold,range,service,environment}){
  const lastRow=bands.at(-1)?.row;
  const decision={NORMAL:'정상',ANOMALY:'이상',ABSTAIN:'판정 보류'}[lastRow?.decision]||'판정 대기';
  return <section className="panel obs-panel obs-score" aria-labelledby="score-h">
-  <header><h2 id="score-h">Anomaly score <small>{local?service:'환경 전체'}</small></h2>
+  <header><h2 id="score-h">{local?'서비스 지표 이탈':'Anomaly score'} <small>{local?service:'환경 전체'}</small></h2>
    <div className="sx-map-modes" role="group" aria-label="점수 범위">
     {!environment?.recorded&&<button type="button" aria-pressed={local} onClick={()=>setMode('service')}>서비스 지표</button>}
     <button type="button" aria-pressed={!local} onClick={()=>setMode('environment')}>환경 모델</button>
@@ -90,22 +91,26 @@ export function MetricPlot({chart,range,rows}){
  </svg>;
 }
 
-function serviceState(row,service){
- if(row.decision==='NORMAL')return 'normal';
- if(row.decision!=='ANOMALY'||!Array.isArray(row.locations))return 'unknown';
- const hits=row.locations.filter(c=>c.service===service||c.source===service||c.target===service);
- return hits.some(c=>c.rank===1)?'alarm':hits.length?'warn':'unranked';
+function HistoryRow({name,environment,range}){
+ const from=Date.parse(range.from),to=Date.parse(range.to);
+ const {points,error}=useServiceDeviation(environment?.id,name,range,!environment?.recorded,true);
+ const segments=[];
+ for(const {t,status} of points||[]){
+  const start=Math.max(from,t-60000),end=Math.min(to,t);
+  if(end<=start)continue;
+  const last=segments.at(-1);
+  if(last?.status===status && last.end===start)last.end=end;
+  else segments.push({start,end,status});
+ }
+ return <div className="sx-history-row"><a href={'#B5-Service?service='+encodeURIComponent(name)}>{name}</a>
+  <div className="sx-track" aria-label={name+' 관측 이력'} aria-busy={!points&&!error} title={error||(!points?'지표 조회 중':'미관측')}>
+   {!points&&<small className="history-pending">{error?'조회 실패':'조회 중…'}</small>}{segments.map(s=><span key={s.start} className={'sx-'+s.status} style={{left:(s.start-from)/(to-from)*100+'%',width:(s.end-s.start)/(to-from)*100+'%'}} title={name+' · '+historyStates[s.status]+' · '+time(s.start)+'–'+time(s.end)}/>)}
+  </div></div>;
 }
-const states={normal:'정상 판정',warn:'경고 · 2~3순위 후보',alarm:'이상 · 1순위 후보',unknown:'미판정',unranked:'이상 구간 · 상위 후보 외'};
 export function ServiceHistory({live}){
- const {range,overview,inventory}=live, from=Date.parse(range.from),to=Date.parse(range.to);
- const bands=intervals(overview?.recentWindows,from,to);
- if(!overview||overview.error)return <section className="panel obs-panel"><h2>서비스 상태</h2><p role="status">{overview?.error||'분석 이력 조회 중…'}</p></section>;
- const inventoryRows=inventory.filter(s=>!live.applicationServices||live.applicationServices.includes(s.name)).sort((a,b)=>Number(b.name===live.metricService)-Number(a.name===live.metricService));
- return <section className="panel obs-panel sx-history" aria-labelledby="st-h"><header><h2 id="st-h">서비스 상태</h2><div className="sx-legend">{[['normal','정상'],['warn','경고'],['alarm','이상'],['unknown','미판정'],['unranked','후보 외']].map(([key,label])=><span key={key} title={states[key]}><i className={'sx-'+key}/>{label}</span>)}</div></header>
- <div className="sx-history-body">{!inventory.length&&<p>{live.inventoryError||'서비스 목록 조회 중…'}</p>}{inventoryRows.map(({name})=>{
-  const segments=[];
-  for(const b of bands){const status=serviceState(b.row,name),last=segments.at(-1);if(last?.status===status&&last.end===b.start)last.end=b.end;else segments.push({...b,status});}
-  return <div key={name} className="sx-history-row"><a href={'#B5-Service?service='+name}>{name}</a><div className="sx-track">{segments.map(s=><span key={s.start} className={'sx-'+s.status} style={{left:(s.start-from)/(to-from)*100+'%',width:(s.end-s.start)/(to-from)*100+'%'}} title={name+' · '+states[s.status]+' · '+time(s.start)+'–'+time(s.end)}/>)}</div></div>;
- })}<div className="sx-history-row"><span/><footer>{ticks(from,to,6).map((t,i)=><span key={i}>{t}</span>)}</footer></div></div></section>;
+ const {range,inventory,environment}=live,from=Date.parse(range.from),to=Date.parse(range.to);
+ return <section className="panel obs-panel sx-history" aria-labelledby="st-h"><header><h2 id="st-h">서비스 상태</h2><div className="sx-legend" title="직전 1시간의 중앙값과 비교합니다. 오류율이 2%p 이상 증가하면 빨강, p99가 1.5배 이상이면서 20ms 이상 증가하면 노랑입니다.">{Object.entries(historyStates).map(([key,label])=><span key={key}><i className={'sx-'+key}/>{label}</span>)}</div></header>
+ <div className="sx-history-body">{!inventory.length&&<p>{live.inventoryError||'서비스 목록 조회 중…'}</p>}
+ {environment?.recorded?<p>서비스별 서버 지표 이력이 없습니다.</p>:inventory.map(({name})=><HistoryRow key={name} name={name} environment={environment} range={range}/>)}
+ <div className="sx-history-row"><span/><footer>{ticks(from,to,6).map((t,i)=><span key={i}>{t}</span>)}</footer></div></div></section>;
 }

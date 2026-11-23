@@ -149,3 +149,6 @@
 .score-key i{display:inline-block;width:18px;vertical-align:middle;border-top:1px dashed var(--text-2);margin-right:5px}
 .score-plot{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:3px 8px}.score-axis{display:flex;flex-direction:column;justify-content:space-between;height:160px;padding:0;font-size:11px;line-height:10px;text-align:right;color:var(--text-2);font-variant-numeric:tabular-nums}
 .obs-score .score-plot svg{margin:0}.score-plot footer{grid-column:2}
+.triage-alert{align-items:center;gap:16px}.triage-alert>div{display:flex;align-items:baseline;gap:4px 16px;flex-wrap:wrap;min-width:0}.triage-alert strong,.triage-alert b{font-weight:600}.triage-alert time,.triage-alert small{color:var(--text-2);font-size:12px}.triage-alert small{flex-basis:100%;overflow-wrap:anywhere}.triage-alert[data-open=true]{border-inline-start:3px solid var(--error)}.triage-alert>span{white-space:nowrap;font-size:13px}.map-rank{fill:var(--cause);font:600 15px system-ui;paint-order:stroke;stroke:var(--bg1);stroke-width:3px}
+.history-pending{position:absolute;inset:0;padding-inline:6px;background:var(--bg1);color:var(--text-2);font-size:11px;line-height:16px}
+.triage-alert strong,.triage-alert b{color:var(--text)}.triage-alert time,.triage-alert small{font-variant-numeric:tabular-nums}.triage-alert[data-open=true] strong{color:var(--error-text)}
