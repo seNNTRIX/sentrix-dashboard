@@ -82,7 +82,7 @@ try {
  logFailure=true;await page.getByRole('button',{name:'Run query',exact:true}).click();
  await expect(page.getByRole('alert').filter({hasText:'Loki에 연결할 수 없습니다'}).first()).toContainText('Loki에 연결할 수 없습니다');
  await expect(logs).not.toContainText('<script>');logFailure=false;
- await page.getByRole('button',{name:'지난 15분',exact:false}).click();
+ await page.getByRole('button',{name:'지난 1시간',exact:false}).click();
  await page.getByRole('button',{name:'지난 5분',exact:true}).click();
  await expect.poll(()=>calls.filter(c=>c.path.endsWith('/logs')).at(-1)?.query).toContain('limit=100');
  const q=new URLSearchParams(calls.filter(c=>c.path.endsWith('/logs')).at(-1).query);
@@ -104,6 +104,7 @@ try {
  await expect(trace).toContainText('UNSET');
  await expect(trace.locator('img')).toHaveCount(0);
  expect(await page.evaluate(()=>window.traceInjected)).toBeUndefined();
+ await page.getByRole('radio',{name:'Search',exact:true}).click();
  await page.getByRole('radio',{name:'Trace ID',exact:true}).click();
  await page.getByLabel('Trace ID',{exact:true}).fill('11111111111111111111111111111111');
  detailFailure=true;await page.getByRole('button',{name:'Run query',exact:true}).click();

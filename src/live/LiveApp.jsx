@@ -13,7 +13,9 @@ export const connectedRoutes=new Set(['A1-Login','A2-Signup','A3-Reset','B3-Inci
 function Connected({route,params,initialTheme}){
  const env=useEnvironment(),{environment}=env;
  const [serviceChoice,setService]=useState(params.get('service')||'frontend'),[search,setSearch]=useState(''),[limit,setLimit]=useState(route==='B6-Trace'?'20':'100');
- const [range,setRange]=useState(()=>{const end=Date.parse(params.get('at'));return Number.isFinite(end)?queryRange(end-900000,end):queryRange(Date.now()-(route==='B3-Incidents'?86400000:900000),Date.now());}),[rangeLabel,setRangeLabel]=useState(params.has('at')?'장애 발생 구간':route==='B3-Incidents'?'지난 24시간':'지난 15분'),[revision,setRevision]=useState(0);
+ const [traceFilters,setTraceFilters]=useState({namedRoot:true,minSpanMs:'',errorOnly:false,operation:''});
+ const exploreRoute=route==='B6-Trace'||route==='B7-Logs';
+ const [range,setRange]=useState(()=>{const end=Date.parse(params.get('at'));return Number.isFinite(end)?queryRange(end-900000,end):queryRange(Date.now()-(route==='B3-Incidents'?86400000:exploreRoute?3600000:900000),Date.now());}),[rangeLabel,setRangeLabel]=useState(params.has('at')?'장애 발생 구간':route==='B3-Incidents'?'지난 24시간':exploreRoute?'지난 1시간':'지난 15분'),[revision,setRevision]=useState(0);
  const [volume,setVolume]=useState({});
  const [result,setResult]=useState({loading:true}),[inventory,setInventory]=useState([]),[metrics,setMetrics]=useState({});
  const [traceId,setTraceId]=useState(params.get('traceId')||''),[selected,setSelected]=useState(''),[detail,setDetail]=useState({}),[detailRevision,setDetailRevision]=useState(0);
@@ -58,7 +60,7 @@ function Connected({route,params,initialTheme}){
     } catch(e) {setVolume({error:e.message});}
    }
    if(publicView&&route==='B7-Logs'){setResult({restricted:true});return ()=>abort.abort();}
-   const trace=route==='B6-Trace',filters={service,...time,limit:trace?Math.min(100,+limit):limit,...(trace?{}:{search})};
+   const trace=route==='B6-Trace',filters={service,...time,limit:trace?Math.min(100,+limit):limit,...(trace?Object.fromEntries(Object.entries(traceFilters).filter(([,v])=>v!==''&&v!==false)):{search})};
    request(`${base}/${trace?'traces':'logs'}?${new URLSearchParams(filters)}`,{signal:abort.signal}).then(data=>{
     if(data.environmentId!==environment.id||data.service!==service||!Array.isArray(data.items))throw new Error('조회 응답 형식이 올바르지 않습니다.');
     if(!abort.signal.aborted){
@@ -130,7 +132,7 @@ function Connected({route,params,initialTheme}){
  },[route,rangeLabel,environment?.id]);
  const changeRange=(from,to,label)=>{setRange(queryRange(from,to));setRangeLabel(label);};
  const refresh=()=>{const seconds={'지난 5분':300,'지난 15분':900,'지난 30분':1800,'지난 1시간':3600,'지난 3시간':10800,'지난 6시간':21600,'지난 12시간':43200,'지난 24시간':86400}[rangeLabel];if(seconds)setRange(queryRange(Date.now()-seconds*1000,Date.now()));else run();};
- const live={...env,publicView,modelVersion:policy?.modelVersion,settingsTab:params.get('tab'),threshold:policy?.threshold,applicationServices:policy?.applicationServices,overview:overview?.environmentId===environment?.id?overview:null,incidentId:params.get("incidentId"),jobId:params.get("jobId"),route,service,setService,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory,inventoryLoading,inventoryError,serviceNames,metricService,setHomeChoice,metrics:loadedMetricService===metricService?metrics:{},traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
+ const live={...env,publicView,modelVersion:policy?.modelVersion,settingsTab:params.get('tab'),threshold:policy?.threshold,applicationServices:policy?.applicationServices,overview:overview?.environmentId===environment?.id?overview:null,incidentId:params.get("incidentId"),jobId:params.get("jobId"),route,service,setService,traceFilters,setTraceFilters,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory,inventoryLoading,inventoryError,serviceNames,metricService,setHomeChoice,metrics:loadedMetricService===metricService?metrics:{},traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
  live.values=view=>designValues(view,live);
  const Screen=screens[route]||WorkspacePage;
  return <DesignContext.Provider value={live}><Screen theme={initialTheme} tab={route==='C3-Settings'?'데이터 소스':undefined} live={live}/></DesignContext.Provider>;

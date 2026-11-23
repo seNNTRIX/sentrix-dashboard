@@ -130,3 +130,17 @@
  .explore-split>:is([aria-labelledby=tv-h],[aria-labelledby=logs-h]){grid-column:2}
 }
 @media(max-width:1023px){.g .explore-split-toggle{display:none}}
+.explore-source{height:32px;min-width:150px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg1);font:inherit;color:var(--text)}
+.explore-code{display:block;line-height:1.65;white-space:pre-wrap;font-size:13px}
+.query-key{color:var(--link)}.query-literal,.g .explore-code :is(select,input){color:#168052}.explore-code b{color:#a45600;font-weight:400}
+.g .explore-code :is(select,input){display:inline-block;height:24px;min-height:0;vertical-align:baseline;border:0;border-radius:3px;background:transparent;padding:0;font:inherit}
+.g .explore-code .query-token-select{appearance:none;field-sizing:content;cursor:pointer;max-width:100%}
+.g .explore-code .query-search{width:12ch}.g .explore-code :is(select,input):focus-visible{outline:2px solid var(--link)}
+.bound-query{display:flex;flex-flow:row wrap;align-items:center;gap:8px 16px}.bound-query>:is(.explore-code,.explore-label-browser){width:100%;box-sizing:border-box}
+.bound-query .query-limit,.query-options summary{display:inline-flex;flex-direction:row;align-items:center;color:var(--text-2);font-size:12px;font-weight:400;cursor:pointer}
+.query-options summary{display:list-item}.query-options[open]{flex-basis:100%}.query-options .explore-filter-row{margin:8px 0}.g .query-limit select{height:22px;padding:0;border:0;font:inherit;color:inherit;background:transparent}
+.volume-legend{display:flex;flex-wrap:wrap;align-items:center;gap:12px}.volume-legend button{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--text-2);font:inherit;font-size:12px;cursor:pointer}.volume-legend i{width:12px;height:2px}.volume-legend button[aria-pressed=false]{opacity:.5;text-decoration:line-through}
+.g[data-screen=B6-Trace] [aria-label="trace 검색 결과"] [role=row]:first-child{background:var(--bg1)}
+.g:is([data-screen=B6-Trace],[data-screen=B7-Logs]) :is([aria-labelledby=qa-h],[aria-labelledby=vol-h]){padding:20px 24px!important}
+.g:is([data-screen=B6-Trace],[data-screen=B7-Logs]) main>.bound-notice:not(:has([role=alert],[role=status])){order:2}
+.g select.explore-source{width:160px;max-width:100%}

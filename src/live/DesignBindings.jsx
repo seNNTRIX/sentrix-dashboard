@@ -3,23 +3,29 @@ import {useDesign} from './DesignContext.jsx';
 import {SourceForm} from './DataSources.jsx';
 import {DeploymentStatus} from './DeploymentStatus.jsx';
 import {css} from '../styles.js';
-export function QueryEditor({mode=0,labelBrowser=false}){
+export function QueryEditor({mode=0,labelBrowser=false,setMode}){
  const d=useDesign();if(!d)return null;
- const trace=d.route==='B6-Trace';
- const namespace=JSON.stringify(d.environment?.namespace||'');
- const serviceSelect=<select className="query-token-select" aria-label="조회 서비스" required value={d.service} disabled={!d.serviceNames.length} onChange={e=>d.setService(e.target.value)}>
-  {!d.serviceNames.length&&<option value="">{d.inventoryLoading?'조회 중…':d.inventoryError?'서비스 조회 실패':'서비스 없음'}</option>}
+ const trace=d.route==='B6-Trace', filters=d.traceFilters;
+ const setFilter=(key,value)=>d.setTraceFilters(old=>({...old,[key]:value}));
+ const token=text=><span className="query-key">{text}</span>;
+ const value=text=><span className="query-literal">{JSON.stringify(text)}</span>;
+ const field=<select className="query-token-select" aria-label="조회 서비스" value={d.service} disabled={!d.serviceNames.length} onChange={e=>d.setService(e.target.value)}>
+  {!d.serviceNames.length&&<option value="">{d.inventoryLoading?'조회 중…':'서비스 없음'}</option>}
   {d.serviceNames.map(name=><option key={name}>{name}</option>)}
  </select>;
  return <form className="bound-query" onSubmit={e=>{e.preventDefault();mode===1?d.chooseTrace(d.traceId):d.run();}}>
+  {trace&&mode!==2&&<div className="explore-filter-row" role="radiogroup" aria-label="검색 방식">{['서비스','Trace ID'].map((label,i)=><button type="button" role="radio" key={label} aria-checked={mode===i} onClick={()=>setMode(i)}>{label}</button>)}</div>}
   {mode===1?<label>Trace ID<input aria-label="Trace ID" required pattern="[0-9a-f]{32}" maxLength={32} value={d.traceId} onChange={e=>d.setTraceId(e.target.value.trim().toLowerCase())} placeholder="32자리 추적 ID"/></label>:<>
-   <div className="mono bound-query-code explore-expression"><code>{trace?'{ resource.service.namespace = ':'{k8s_namespace_name='}<em>{namespace}</em>{trace?' && resource.service.name = ':', k8s_deployment_name='}</code>{serviceSelect}<code>{trace?' }':'}'}{!trace&&d.search?' |= '+JSON.stringify(d.search):''}</code></div>
-   {labelBrowser&&<div className="explore-label-browser"><dl><dt>k8s_namespace_name</dt><dd>{d.environment?.namespace}</dd><dt>k8s_deployment_name</dt><dd>{d.serviceNames.map(name=><button type="button" key={name} aria-pressed={name===d.service} onClick={()=>d.setService(name)}>{name}</button>)}</dd></dl></div>}
-   <div className="explore-filter-row">
-    {!trace&&!d.publicView&&<label>포함 문자열<input aria-label="포함 문자열" maxLength={200} value={d.search} onChange={e=>d.setSearch(e.target.value)} placeholder="원문 검색"/></label>}
-    {(!d.publicView||trace)&&<label>Limit<select aria-label="조회 최대 개수" value={d.limit} onChange={e=>d.setLimit(e.target.value)}>{(trace?[20,50,100]:[20,50,100,500]).map(n=><option key={n}>{n}</option>)}</select></label>}
-    {trace&&d.service&&<a href={'#B2-ServiceMap?service='+encodeURIComponent(d.service)}>Service Graph</a>}
-   </div>
+  {trace&&mode===0?<label className="explore-form-service">서비스{field}</label>:<div className="mono bound-query-code explore-code">{'{ '}{token(trace?'resource.service.namespace':'k8s_namespace_name')}{' = '}{value(d.environment?.namespace||'')}{trace?' && ':', '}{token(trace?'resource.service.name':'k8s_deployment_name')}{' = "'}{field}{'"'}
+   {trace&&filters.namedRoot&&<>{' && '}{token('trace:rootName')}{' != '}{value('')}</>}
+   {trace&&filters.minSpanMs!==''&&<>{' && '}{token('duration')}{' > '}<b>{filters.minSpanMs}ms</b></>}
+   {trace&&filters.errorOnly&&<>{' && '}{token('status')}{' = '}<b>error</b></>}
+   {trace&&filters.operation&&<>{' && '}{token('name')}{' = '}{value(filters.operation)}</>}{' }'}
+   {!trace&&!d.publicView&&<>{' |= "'}<input className="query-search" aria-label="포함 문자열" value={d.search} onChange={e=>d.setSearch(e.target.value)} maxLength={200} placeholder="검색어"/>{'"'}</>}
+  </div>}
+  {labelBrowser&&<div className="explore-label-browser"><dl><dt>k8s_namespace_name</dt><dd>{d.environment?.namespace}</dd><dt>k8s_deployment_name</dt><dd>{d.serviceNames.map(name=><button type="button" key={name} aria-pressed={name===d.service} onClick={()=>d.setService(name)}>{name}</button>)}</dd></dl></div>}
+  {trace&&<details className="query-options"><summary>쿼리 조건</summary><div className="explore-filter-row"><label><input type="checkbox" checked={filters.namedRoot} onChange={e=>setFilter('namedRoot',e.target.checked)}/>루트 이름이 있는 요청</label><label>최소 span 지연 (ms)<input type="number" min="0" max="86400000" value={filters.minSpanMs} onChange={e=>setFilter('minSpanMs',e.target.value)}/></label><label><input type="checkbox" checked={filters.errorOnly} onChange={e=>setFilter('errorOnly',e.target.checked)}/>오류 span</label><label>호출 이름<input value={filters.operation} maxLength={200} onChange={e=>setFilter('operation',e.target.value)}/></label></div></details>}
+  {(!d.publicView||trace)&&<label className="query-limit">Limit<select aria-label="조회 최대 개수" value={d.limit} onChange={e=>d.setLimit(e.target.value)}>{(trace?[20,50,100]:[20,50,100,500]).map(n=><option key={n}>{n}</option>)}</select></label>}
   </>}
   <button type="submit" className="sr-only">쿼리 실행</button>
  </form>;
