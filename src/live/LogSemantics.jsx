@@ -1,122 +1,159 @@
-import React,{createContext,useContext,useEffect,useState} from 'react';
-import {environmentPath,request} from './api.js';
+import React, {lazy, Suspense, useEffect, useState} from 'react';
+import {SideNav, TopBar} from '../components/navigation.jsx';
+import {environmentPath, request} from './api.js';
 import {useDesign} from './DesignContext.jsx';
-import {scopeSemantics,semanticLogLink,semanticWindow} from './log-semantics.js';
+import {scopeSemantics, semanticLogLink, semanticWindow} from './log-semantics.js';
 import './log-semantics.css';
 
-const Context=createContext(null);
-export const useLogSemantics=()=>useContext(Context);
-const clock=value=>new Date(value).toLocaleTimeString('ko-KR',{hour12:false});
-const format=value=>value.toLocaleString('ko-KR');
-const reasons={
- LOG_SEMANTICS_LOADING:'정상 로그 문장의 기준을 준비하는 중입니다.',
- BASELINE_LOGS_INSUFFICIENT:'정상 기준을 만들 로그가 충분하지 않습니다.',
- LOG_SEMANTICS_NOT_INSTALLED:'모델 서버의 로그 임베딩 모델을 사용할 수 없습니다.',
- LOG_QUERY_LIMIT:'로그 조회 한도에 도달해 이 구간의 분석을 보류했습니다.',
- TELEMETRY_ENVIRONMENT_NOT_CONFIGURED:'이 환경의 로그 기준이 설정되지 않았습니다.',
- BASELINE_OVERLAPS_WINDOW:'정상 기준 구간이 끝난 뒤 첫 30초를 기다리는 중입니다.',
+const RecordedExperiment = lazy(() => import('./RecordedLogExperiment.jsx'));
+const space = '#B9-LogSpace';
+const clock = value => new Date(value).toLocaleTimeString('ko-KR', {hour12:false});
+const dateTime = value => new Date(value).toLocaleString('ko-KR', {hour12:false});
+const number = value => value.toLocaleString('ko-KR');
+const reasons = {
+ LOG_SEMANTICS_LOADING:'정상 기준을 준비하고 있습니다.',
+ BASELINE_LOGS_INSUFFICIENT:'정상 기준으로 쓸 로그가 부족합니다.',
+ LOG_SEMANTICS_NOT_INSTALLED:'로그 임베딩 모델을 사용할 수 없습니다.',
+ LOG_QUERY_LIMIT:'이 구간의 로그가 조회 한도를 넘었습니다.',
+ TELEMETRY_ENVIRONMENT_NOT_CONFIGURED:'이 환경의 정상 기준이 설정되지 않았습니다.',
+ BASELINE_OVERLAPS_WINDOW:'정상 기준 구간이 끝난 뒤 첫 30초를 기다리고 있습니다.'
 };
+const colors = {frontend:'#336fae', emailservice:'#358276', paymentservice:'#b27328', recommendationservice:'#835eae', productcatalogservice:'#4c9050', cartservice:'#b65870', checkoutservice:'#776a47', currencyservice:'#657981', adservice:'#8c705b'};
+const color = service => colors[service] || 'var(--text-2)';
 
-export function LogSemanticProvider({live,children,expanded}) {
- const [state,setState]=useState({}),[focus,setFocus]=useState('');
- const id=live.environment?.id;
- const active=id && !live.environment.recorded && (live.route==='B1-Overview'||expanded);
- useEffect(()=>{
-  if(!active)return;
-  const c=new AbortController();
-  let timer,busy=false;
-  async function read(){
-   if(document.hidden || busy || c.signal.aborted)return;
-   clearTimeout(timer);busy=true;
+function useWindow(live, end, paused=false) {
+ const [state,setState] = useState({});
+ const [attempt,retry] = useState(0);
+ const id = live.environment?.id;
+ useEffect(() => {
+  if (!id || live.environment.recorded || paused) return;
+  const controller = new AbortController();
+  let timer, busy=false;
+  async function read() {
+   if (document.hidden || busy || controller.signal.aborted) return;
+   clearTimeout(timer);
+   busy=true;
    try {
-    const path=environmentPath(id)+'/log-semantics'+(live.publicView?'/summary':'');
-    const data=semanticWindow(await request(path,{signal:c.signal,timeoutMs:60000}),id,live.publicView);
-    if(!c.signal.aborted)setState(data.status==='OK'?{data}:{error:reasons[data.reason]||'이 구간의 로그 의미 분석 결과를 사용할 수 없습니다.'});
-   }catch(e){if(!c.signal.aborted)setState({error:e.message});}
-   finally{busy=false;if(!c.signal.aborted)timer=setTimeout(read,10000);}
+    const params = end ? '?'+new URLSearchParams({windowEnd:end}) : '';
+    const path = environmentPath(id)+'/log-semantics'+(live.publicView?'/summary':'')+params;
+    const data = semanticWindow(await request(path,{signal:controller.signal,timeoutMs:60000}),id,live.publicView);
+    if (end && Date.parse(data.windowEnd)!==Date.parse(end)) throw Error('선택한 관측 시각의 결과를 확인할 수 없습니다.');
+    if (!controller.signal.aborted) setState(data.status==='OK'?{data}:{error:reasons[data.reason]||'이 구간의 로그 의미 분석 결과가 없습니다.'});
+   } catch(e) {
+    const message = e.status===410?'이 관측 구간은 보관 기간이 지났습니다.':e.status===429?'이전 구간 조회가 많습니다. 잠시 후 다시 시도하세요.':e.message;
+    if (!controller.signal.aborted) setState({error:message});
+   } finally {
+    busy=false;
+    if (!end && !controller.signal.aborted) timer=setTimeout(read,10000);
+   }
   }
-  read();document.addEventListener('visibilitychange',read);
-  return ()=>{c.abort();clearTimeout(timer);document.removeEventListener('visibilitychange',read);};
- },[active,id,live.publicView,live.revision]);
- const all=scopeSemantics(state.data,live.applicationServices);
- return <Context.Provider value={{...state,all,focus,setFocus,expanded,active,allowed:live.applicationServices}}>{children}</Context.Provider>;
+  read();
+  document.addEventListener('visibilitychange',read);
+  return () => {controller.abort();clearTimeout(timer);document.removeEventListener('visibilitychange',read);};
+ },[id,live.publicView,live.environment?.recorded,end,attempt,paused]);
+ return {...state,retry:()=>retry(n=>n+1)};
 }
 
-function goToCard(){
- const card=document.getElementById('semantic-space');
- card?.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
- card?.focus({preventScroll:true});
+export function IncidentLogLink({record,leader}) {
+ const live=useDesign();
+ const {data}=useWindow(live);
+ if (!data || Date.parse(data.windowEnd)-30000 < Date.parse(record.occurredAt)) return null;
+ const related=new Set([record.service,leader?.service,leader?.source,leader?.target]);
+ const rows=scopeSemantics(data,live.applicationServices).services.filter(s=>related.has(s.service)&&s.novelSentences>0);
+ if (!rows.length) return null;
+ return <nav className="incident-log-links" aria-label="진행 중 장애의 새 로그 문장">{rows.map(row=>
+  <a key={row.service} href={space+'?'+new URLSearchParams({service:row.service,windowEnd:data.windowEnd,incidentId:record.id,novel:'1'})}>
+   {row.service} · 새 로그 문장 {number(row.novelSentences)}종 보기 <span aria-hidden="true">→</span>
+  </a>)}</nav>;
 }
-const palette={frontend:'--viz-blue',currencyservice:'--viz-green',cartservice:'--viz-orange',recommendationservice:'--viz-purple',checkoutservice:'--viz-yellow',paymentservice:'--viz-orange',emailservice:'--viz-green',productcatalogservice:'--viz-yellow'};
-const color=name=>'var('+(palette[name]||'--text-2')+')';
 
-export function SemanticKpi(){
- const s=useLogSemantics();
- if(!s?.active)return null;
- const leading=s.all?.services.filter(row=>row.novelSentences).sort((a,b)=>b.novelSentences-a.novelSentences).slice(0,2).map(row=>row.service+' '+row.novelSentences).join(' · ');
- return <button type="button" className="semantic-kpi" data-novel={s.all?.novel>0||undefined} onClick={goToCard}>
-  <span>새 로그 문장</span><strong>{s.all?format(s.all.novel):'—'}{s.all&&<small>개</small>}</strong>
-  <span title={leading||undefined}>{s.all?(leading||'최근 30초'):s.error?'분석 결과 없음':'분석 중…'}</span>
- </button>;
-}
-function SemanticMap({scope,novelOnly,onPick,selected}){
- const entries=[...scope.baseline,...scope.points];
- if(!entries.length)return <p className="sem-empty">표시할 로그 문장이 없습니다.</p>;
- const xs=entries.map(p=>p.x),ys=entries.map(p=>p.y);
- const xMin=Math.min(...xs),yMin=Math.min(...ys),xRange=Math.max(...xs)-xMin,yRange=Math.max(...ys)-yMin;
- const scale=Math.min(360/(xRange||1),171/(yRange||1));
- const cx=p=>195+(p.x-xMin-xRange/2)*scale,cy=p=>100-(p.y-yMin-yRange/2)*scale;
- const points=scope.points.filter(p=>!novelOnly||p.novel);
- const keyboardIndex=Math.max(0,points.indexOf(selected));
- function navigate(e,p,i){
-  if(e.key==='Enter'||e.key===' '){e.preventDefault();onPick(p);return;}
-  const offset={ArrowLeft:-1,ArrowRight:1,ArrowDown:1,ArrowUp:-1}[e.key];
-  if(!offset)return;
+function Distribution({scope,points,selected,onPick}) {
+ const all=[...scope.baseline,...scope.points];
+ if (!all.length) return <p className="sem-empty">이 서비스에서 수집한 로그 문장이 없습니다.</p>;
+ const xs=all.map(p=>p.x), ys=all.map(p=>p.y);
+ const left=Math.min(...xs), bottom=Math.min(...ys), width=Math.max(...xs)-left, height=Math.max(...ys)-bottom;
+ const scale=Math.min(560/(width||1),280/(height||1));
+ const cx=p=>300+(p.x-left-width/2)*scale, cy=p=>160-(p.y-bottom-height/2)*scale;
+ function keyDown(e,index) {
+  if (e.key==='Enter'||e.key===' ') {e.preventDefault();onPick(points[index]);return;}
+  const delta={ArrowLeft:-1,ArrowRight:1,ArrowUp:-1,ArrowDown:1}[e.key];
+  if (!delta) return;
   e.preventDefault();
-  const next=(i+offset+points.length)%points.length;
+  const next=(index+delta+points.length)%points.length;
+  e.currentTarget.ownerSVGElement.querySelectorAll('[role=button]')[next].focus();
   onPick(points[next]);
-  e.currentTarget.ownerSVGElement.querySelectorAll('circle[role=button]')[next]?.focus();
  }
- return <div className="sem-plot">
-  <svg viewBox="0 0 390 200" role="group" aria-label="정상 기준과 최근 로그 문장 분포">
-   {scope.baseline.map((p,i)=><circle key={i} cx={cx(p)} cy={cy(p)} r="2.5" className="sem-baseline"/>)}
-   {points.map((p,i)=><circle key={i} role="button" tabIndex={i===keyboardIndex?0:-1} aria-label={p.service+' · '+(p.novel?'새 문장':'관측 문장')+' · '+p.count+'줄'}
-    aria-pressed={selected===p} className={p.novel?'sem-novel':'sem-current'} style={{fill:color(p.service)}} cx={cx(p)} cy={cy(p)} r={Math.min(9,2+Math.log2(1+p.count))}
-    onClick={()=>onPick(p)} onKeyDown={e=>navigate(e,p,i)}>
-    <title>{p.service} · {format(p.count)}줄{p.text?' · '+p.text:''}</title></circle>)}
-  </svg>
-  <div className="sem-legend"><span><i/>정상 기준</span>{[...new Set(points.map(p=>p.service))].map(name=><span key={name}><i style={{background:color(name)}}/>{name}</span>)}<span className="sem-novel-key"><i/>새 문장</span></div>
- </div>;
+ return <svg viewBox="0 0 600 320" className="sem-canvas" role="group" aria-label="정상 기준과 관측 로그 문장 분포">
+  {scope.baseline.map((p,i)=><circle key={i} cx={cx(p)} cy={cy(p)} r="2.6" className="sem-baseline"/>)}
+  {points.map((p,i)=><circle key={pointKey(p)} role="button" aria-pressed={selected===p} tabIndex={i===Math.max(0,points.indexOf(selected))?0:-1}
+   className={p.novel?'sem-novel':'sem-current'} style={{fill:color(p.service)}} cx={cx(p)} cy={cy(p)} r={Math.min(9,2+Math.log2(1+p.count))}
+   aria-label={p.service+' · '+(p.novel?'새 문장':'관측 문장')+' · '+p.count+'줄'} onClick={()=>onPick(p)} onKeyDown={e=>keyDown(e,i)}>
+   <title>{p.service} · {number(p.count)}줄{p.text?' · '+p.text:''}</title></circle>)}
+ </svg>;
 }
-export function SemanticPanel(){
- const live=useDesign(),s=useLogSemantics();
- const [filter,setFilter]=useState(()=>s?.expanded?new URLSearchParams(location.hash.split('?')[1]).get('service')||'':''),[only,setOnly]=useState(false),[picked,setPicked]=useState(null);
- if(!s?.active)return null;
- const {data,all}=s;
- const scope=scopeSemantics(data,s.allowed,filter);
- const rowKey=p=>JSON.stringify([p.service,p.text??p.x,p.y]);
- const selected=scope?.points.find(p=>rowKey(p)===picked);
- const novel=scope?.points.filter(p=>p.novel)||[];
- const openLogs=selected&&!live.publicView?semanticLogLink(selected,data.windowEnd):null;
- function select(p){setPicked(rowKey(p));s.setFocus(p.service);}
- return <section id="semantic-space" tabIndex="-1" className="panel obs-panel semantic-space" data-expanded={s.expanded||undefined} aria-labelledby="semantic-heading">
-  <header><div><h2 id="semantic-heading">로그 의미 공간</h2><small>{data?'최근 30초 · '+clock(data.windowEnd)+' 기준':'최근 30초'}</small></div>
-   {scope&&<div className="sem-tools"><label>서비스 <select className="ui-input" aria-label="로그 의미 공간 서비스" value={filter} onChange={e=>{setFilter(e.target.value);setPicked(null);s.setFocus(e.target.value);}}>
-    <option value="">전체</option>{all.services.map(x=><option key={x.service}>{x.service}</option>)}</select></label>
-    <label><input type="checkbox" checked={only} onChange={e=>setOnly(e.target.checked)}/> 새 문장만</label>
-    {!s.expanded&&<a href={'#B7-Logs?'+new URLSearchParams({semantic:'1',...(filter?{service:filter}:{})})}>로그 화면에서 크게 보기</a>}</div>}</header>
-  {!scope?<p role="status" className="sem-empty">{s.error||'로그 문장을 분석하는 중…'}</p>:<>
-   <div className="sem-body"><SemanticMap scope={scope} novelOnly={only} onPick={select} selected={selected}/>
-    <div className="sem-list"><h3>평소에 없던 로그 문장 <small>{format(scope.novel)}개 · {format(scope.lines)}줄</small></h3>
-     {live.publicView&&scope.novel>0&&<small>문장 내용은 운영자 화면에서 확인할 수 있습니다.</small>}
-     {novel.length>0?<ul>{novel.map((p,i)=><li key={rowKey(p)+i}><button type="button" aria-pressed={selected===p} onClick={()=>select(p)}>
-      <span>{p.service} · {format(p.count)}줄{p.distance!==null&&' · 정상 문장과 거리 '+p.distance.toFixed(2)}</span>{!live.publicView&&<code>{p.text}</code>}
-     </button></li>)}</ul>:<p className="sem-empty">{scope.novel?'표시 한도 안에 새 문장이 없습니다.':'이 구간에 새 문장이 없습니다.'}</p>}
-     {novel.length>0&&novel.length<scope.novel&&<small>빈도순으로 수집한 {format(scope.novel)}개 중 {format(novel.length)}개 표시</small>}
-     {selected&&<div className="sem-selection"><b>{selected.service}</b><span>{selected.novel?'새 문장':'최근 문장'} · {format(selected.count)}줄</span>{openLogs&&<a href={openLogs}>이 구간의 로그 보기</a>}</div>}
-    </div></div>
-   <footer><span>로그 끊김 · {scope.services.filter(x=>x.stopped).map(x=>x.service).join(', ')||'없음'}</span>
-    <span>정상 기준 · {new Date(data.baseline.start*1000).toLocaleDateString('ko-KR')} {clock(data.baseline.start*1000)}–{clock(data.baseline.end*1000)}</span></footer>
+function pointKey(p) {return JSON.stringify([p.service,p.text??p.x,p.y]);}
+
+function LiveSpace({live}) {
+ const params=live.params, end=params.get('windowEnd');
+ const [filter,setFilter]=useState(params.get('service')||''),[only,setOnly]=useState(params.get('novel')==='1');
+ const [picked,setPicked]=useState(null),[paused,setPaused]=useState(false);
+ const {data,error,retry}=useWindow(live,end,paused);
+ const scope=scopeSemantics(data,live.applicationServices,filter);
+ const points=scope?.points.filter(p=>!only||p.novel)||[];
+ const selected=points.find(p=>pointKey(p)===picked);
+ const options=[...new Set([...(live.applicationServices||live.serviceNames),...(scopeSemantics(data,live.applicationServices)?.services.map(s=>s.service)||[]),...(params.get('service')?[params.get('service')]:[])])];
+ function pick(p){setPicked(pointKey(p));if(!end)setPaused(true);}
+ function resume(){setPicked(null);setPaused(false);}
+ const emptyMessage=live.error||(!live.environment&&!live.loading?'선택한 환경이 없습니다.':live.environment?.recorded?'이 환경은 실시간 로그를 수집하지 않습니다.':error||'관측 로그를 불러오는 중…');
+ return <>
+  <div className="sem-toolbar">
+   <label>서비스 <select className="ui-input" value={filter} onChange={e=>{setFilter(e.target.value);setPicked(null);}}>
+    <option value="">전체 서비스</option>{options.map(name=><option key={name}>{name}</option>)}</select></label>
+   <label className="sem-check"><input type="checkbox" checked={only} onChange={e=>{setOnly(e.target.checked);setPicked(null);}}/>새 문장만</label>
+   <div className="sem-time">{end?<><span>{dateTime(end)} 기준</span><a href={space+(filter?'?'+new URLSearchParams({service:filter}):'')}>실시간으로 돌아가기</a></>:<>
+    <span>{data?clock(data.windowEnd)+' 기준 · 30초 구간':'최근 30초'}</span>
+    {data&&<button type="button" className="ui-button" onClick={paused?resume:()=>setPaused(true)}>{paused?'실시간 재개':'일시정지'}</button>}</>}
+   </div>
+  </div>
+  {!scope?<div className="panel sem-empty" role={error?'alert':'status'}>{emptyMessage} {error&&<button className="ui-button" onClick={retry}>다시 조회</button>}</div>:<>
+   <div className="sem-layout">
+    <section className="panel sem-card"><header><h2>문장 분포</h2><span>{data.baseline.projection?.toUpperCase()} · 2D</span></header>
+     <Distribution scope={scope} points={points} selected={selected} onPick={pick}/>
+     {!points.length&&scope.baseline.length>0&&<p className="sem-caption">{only?'이 구간에서 표시할 새 문장이 없습니다.':'이 구간에서 관측된 문장이 없습니다.'}</p>}
+     <div className="sem-legend"><span><i className="sem-base-key"/>정상 기준</span>{[...new Set(points.map(p=>p.service))].map(s=><span key={s}><i style={{background:color(s)}}/>{s}</span>)}<span><i className="sem-new-key"/>새 문장</span></div>
+    </section>
+    <aside className="panel sem-card sem-detail"><header><h2>선택한 문장</h2></header>
+     {selected?<><b>{selected.service}</b>{selected.text&&<code>{selected.text}</code>}
+      <dl>{[['관측 구간',clock(Date.parse(data.windowEnd)-30000)+' – '+clock(data.windowEnd)],['발생 횟수',number(selected.count)+'회'],['정상 기준과 거리',selected.distance==null?'비교 문장 없음':selected.distance.toFixed(3)]].map(([k,v])=><div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+      {live.publicView?<p className="sem-caption">문장 본문과 관련 로그는 운영자 화면에서 확인할 수 있습니다.</p>:<a href={semanticLogLink(selected,data.windowEnd)}>이 구간의 Loki 로그 보기 →</a>}</>:
+      <p className="sem-caption">분포의 점이나 아래 목록에서 문장을 선택하세요.</p>}
+    </aside>
+   </div>
+   <section className="panel sem-card sem-rows"><header><h2>{only?'새 로그 문장':'관측된 로그 문장'}</h2><span>표시 {number(points.length)}종 · 새 문장 전체 {number(scope.novel)}종</span></header>
+    {points.length?<ul>{points.map(p=><li key={pointKey(p)}><button type="button" aria-pressed={p===selected} onClick={()=>pick(p)}>
+     <span className="sem-svc"><i style={{background:color(p.service)}}/>{p.service}</span>
+     <span className="sem-snippet">{p.text||(p.novel?'새 문장':'기준에 있는 문장')}</span><span>{number(p.count)}회</span></button></li>)}</ul>:<p className="sem-caption">조건에 맞는 문장이 없습니다.</p>}
+   </section>
+   <p className="sem-caption sem-foot">점 하나는 서비스별로 묶은 로그 문장 한 종류이며, 점 크기는 발생 횟수입니다. 정상 기준 {dateTime(data.baseline.start*1000)} – {clock(data.baseline.end*1000)}.</p>
   </>}
- </section>;
+ </>;
+}
+
+export function LogSpacePage({theme:initialTheme,live}) {
+ const [theme,setTheme]=useState(initialTheme),[menu,setMenu]=useState(()=>!matchMedia('(max-width:1023px)').matches);
+ const archive=live.params.get('mode')==='recorded';
+ const liveParams=new URLSearchParams(live.params);liveParams.delete('mode');
+ const query=liveParams.toString();
+ return <div className="g screen-root sem-screen" data-theme={theme} data-screen="B9-LogSpace">
+  <div className="shell-header"><TopBar crumbs="홈|Explore|로그 의미 공간" hrefs="B1-Overview.dc.html|B7-Logs.dc.html|" theme={theme} onTheme={setTheme} onMenu={()=>setMenu(!menu)} menuOpen={menu}/></div>
+  <div className="shell-body"><div className="shell-sidebar"><SideNav active="logspace" open={menu} onClose={()=>setMenu(false)}/></div>
+   <main id="main-content" tabIndex="-1" className="page-content sem-page">
+    <h1 className="page-title">로그 의미 공간</h1>
+    <nav className="sem-tabs" aria-label="로그 데이터 선택">
+     <a href={space+(query?'?'+query:'')} aria-current={!archive?'page':undefined}>{live.params.has('windowEnd')?'선택한 장애 구간':'실시간 관측'}</a>
+     <a href={space+'?'+new URLSearchParams([...liveParams,['mode','recorded']])} aria-current={archive?'page':undefined}>저장된 실험</a>
+    </nav>
+    {archive?<Suspense fallback={<p role="status">실험 기록을 불러오는 중…</p>}><RecordedExperiment/></Suspense>:<LiveSpace live={live}/>}
+   </main></div>
+ </div>;
 }

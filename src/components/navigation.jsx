@@ -6,12 +6,12 @@ import { Button, Dialog, Icon } from './controls.jsx';
 export const destinations = [
  ['B1-Overview','개요','서비스 상태, Anomaly score'], ['B2-ServiceMap','Service map','서비스와 연결'],
  ['B3-Incidents','장애','장애 목록, 상태와 원인'], ['B5-Service','서비스 상세','서비스 지표'],
- ['B6-Trace','Trace','요청 및 서비스 호출'], ['B7-Logs','로그','Loki'], ['C3-Settings','설정','관측 환경, 데이터 소스'], ['B8-Model','모델 평가','순위'], ['C1-Notifications','알림 기록','감지, 회복'], ['C2-AlertRules','Alert rules','규칙'], ['C4-Team','팀과 권한','팀'], ['C5-Account','프로필','계정'], ['C6-Audit','Audit log','감사'], ['C7-States','시스템 상태','모니터링']
+ ['B6-Trace','Trace','요청 및 서비스 호출'], ['B7-Logs','로그','Loki'], ['B9-LogSpace','로그 의미 공간','임베딩, 새 문장, 실험 비교'], ['C3-Settings','설정','관측 환경, 데이터 소스'], ['B8-Model','모델 평가','순위'], ['C1-Notifications','알림 기록','감지, 회복'], ['C2-AlertRules','Alert rules','규칙'], ['C4-Team','팀과 권한','팀'], ['C5-Account','프로필','계정'], ['C6-Audit','Audit log','감사'], ['C7-States','시스템 상태','모니터링']
 ];
 const groups = [
  ['overview','홈','B1-Overview','home'], ['map','Service map','B2-ServiceMap','map'],
  ['incidents','장애','B3-Incidents','bell', [['incidents','장애 목록','B3-Incidents'],['rules','Alert rules','C2-AlertRules'],['alerts','알림 기록','C1-Notifications']]],
- ['explore','Explore','B6-Trace','explore', [['trace','Trace','B6-Trace'],['logs','로그','B7-Logs']]],
+ ['explore','Explore','B6-Trace','explore', [['trace','Trace','B6-Trace'],['logs','로그','B7-Logs'],['logspace','로그 의미 공간','B9-LogSpace']]],
  ['model','모델 평가','B8-Model','model'], ['admin','관리','C3-Settings','settings', [['settings','설정','C3-Settings'],['team','팀과 권한','C4-Team'],['audit','Audit log','C6-Audit'],['states','시스템 상태','C7-States']]]
 ];
 function NavLinks({active, onNavigate, live, environment}) {

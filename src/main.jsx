@@ -19,8 +19,9 @@ class ErrorBoundary extends React.Component {
 function App() {
  const [hash, setHash] = useState(location.hash.slice(1) || 'B1-Overview');
  const [requested, query = ''] = hash.split('?');
- const route=publicView&&!publicRoutes.has(requested)?'B1-Overview':requested;
  const params = new URLSearchParams(query);
+ const destination=requested==='B7-Logs'&&params.get('semantic')==='1'?'B9-LogSpace':requested;
+ const route=publicView&&!publicRoutes.has(destination)?'B1-Overview':destination;
  const live = connectedRoutes.has(route);
  useEffect(() => {
   const update = () => {setHash(location.hash.slice(1) || 'B1-Overview');window.scrollTo(0,0);};
@@ -29,7 +30,7 @@ function App() {
  },[]);
  useEffect(() => {
   const heading = document.querySelector('h1');
-  const titles = { "B3-Incidents":"장애 기록", "B4-Incident":"장애 기록 상세", 'B2-ServiceMap':'Service map', 'B6-Trace':'Trace', 'B7-Logs':'로그', 'B1-Overview':'개요', 'B5-Service':'서비스 상세', 'C3-Settings':'설정', 'A4-Onboarding':'관측 환경 설정' };
+  const titles = { "B3-Incidents":"장애 기록", "B4-Incident":"장애 기록 상세", 'B2-ServiceMap':'Service map', 'B6-Trace':'Trace', 'B7-Logs':'로그', 'B9-LogSpace':'로그 의미 공간', 'B1-Overview':'개요', 'B5-Service':'서비스 상세', 'C3-Settings':'설정', 'A4-Onboarding':'관측 환경 설정' };
   document.title = `${live ? (titles[route]||heading?.textContent||'대시보드') : heading?.textContent || '대시보드'} · SentriX`;
  },[route,live]);
  return <><a href="#main-content" className="skip-link" onClick={e=>{e.preventDefault();document.getElementById('main-content')?.focus();}}>본문으로 건너뛰기</a>{location.pathname==='/display'&&<aside className="exhibit-notice">SentriX 대시보드 · {publicView?'공개 관측 화면':'운영자 관측 화면'}</aside>}<ErrorBoundary key={route}>{live ? <LiveApp route={route} params={params} initialTheme={savedTheme()}/> : <main className="error-page"><h1>사용할 수 없는 화면입니다</h1><a href="#B1-Overview">개요로 돌아가기</a></main>}</ErrorBoundary></>;

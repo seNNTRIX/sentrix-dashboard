@@ -1,3 +1,4 @@
+import {IncidentLogLink} from './LogSemantics.jsx';
 import {IncidentObservations} from './IncidentObservations.jsx';
 import {ExhibitionIncidents} from './ExhibitionIncidents.jsx';
 import {ObservationMap} from './ObservationPanels.jsx';
@@ -78,12 +79,13 @@ function IncidentPanelRecords({environmentId,service,recent,overview,range}) {
   const overviewCount=service?null:overview?.openIncidents;
   const incidentId=detected?.incidentId||record?.id;
   const params=incidentId?new URLSearchParams({incidentId,...(detected?{jobId:detected.jobId}:{})}):null;
-  return <a className="panel obs-alert triage-alert" data-open={!!record&&!error} href={params?'#B4-Incident?'+params:'#B3-Incidents'}>
+  return <><a className="panel obs-alert triage-alert" data-open={!!record&&!error} href={params?'#B4-Incident?'+params:'#B3-Incidents'}>
    <div aria-live="polite"><strong>{error?'장애 기록 조회 실패':incidentBannerLabel(data?.totalElements,overviewCount)}</strong>
     {detected&&<time dateTime={detected.windowEnd}>최근 이상 판정 {at(detected.windowEnd)}</time>}
     {record&&!error&&!detected&&<time dateTime={record.occurredAt}>{at(record.occurredAt)} 시작</time>}
     {!error&&leader&&<b>{kindRankLabel(leader)} · {candidateName(leader)}</b>}
-    {!detected&&!error&&leaders[0]?.evidence?.[0]&&<small>{leaders[0].evidence[0]}</small>}</div><span>{params?'원인 분석':'장애 목록'} →</span></a>;
+    {!detected&&!error&&leaders[0]?.evidence?.[0]&&<small>{leaders[0].evidence[0]}</small>}</div><span>{params?'원인 분석':'장애 목록'} →</span></a>
+   {record&&!error&&!service&&<IncidentLogLink record={record} leader={leader}/>}</>;
  }
  return <section className="panel obs-panel sx-incidents"><header><h2>최근 장애</h2><a href="#B3-Incidents">장애 목록</a></header>
   {error?<p role="alert">{error}</p>:!data?<p role="status">조회 중…</p>:!data.items.length?<p>등록된 장애 없음</p>:
