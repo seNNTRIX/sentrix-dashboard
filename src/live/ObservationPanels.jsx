@@ -1,3 +1,4 @@
+import {useLogSemantics} from './LogSemantics.jsx';
 import React, {useEffect, useMemo, useState} from 'react';
 import {useDesign} from './DesignContext.jsx';
 import {environmentPath, queryRange, request} from './api.js';
@@ -77,7 +78,7 @@ function useMapSample(env,service,inventory,range) {
  return key===result.key?result:{};
 }
 
-function MapPreview({nodes,edges,candidates=[],selected}){
+function MapPreview({nodes,edges,candidates=[],selected,semantics}){
  const leaders=leadingCandidates(candidates);
  const service=leaders.find(c=>c.kind==='NODE')?.service,edge=leaders.find(c=>c.kind==='EDGE');
  const visible=[...previewOrder.filter(n=>nodes.includes(n)),...nodes.filter(n=>!previewOrder.includes(n))];
@@ -97,11 +98,14 @@ function MapPreview({nodes,edges,candidates=[],selected}){
   const ranked=edge?.source===e.source&&edge.target===e.target;
   return <g key={e.source+'>'+e.target}><line x1={x} y1={y} x2={a} y2={b} stroke={ranked?'var(--cause)':'var(--border-strong)'} strokeWidth={ranked?2:1} vectorEffect="non-scaling-stroke"/>{ranked&&<text x={(x+a)/2} y={(y+b)/2-4} textAnchor="middle" className="map-rank">경로 1위</text>}</g>;
  })}</svg>
- {visible.map(n=>{const [x,y]=pos(n);return <a key={n} href={'#B2-ServiceMap?service='+encodeURIComponent(n)} className="obs-node" data-cause={service===n?'first':undefined} data-selected={n===selected} style={{left:x/6+'%',top:y/height*100+'%'}}>{service===n?'서비스 1위 · ':''}{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</a>;})}</div>;
+ {visible.map(n=>{const [x,y]=pos(n), stats=semantics?.services.find(s=>s.service===n);
+ const status=stats?.stopped?'stopped':stats?.novelSentences?'novel':undefined;
+ const description=status==='stopped'?' · 로그 끊김':status==='novel'?' · 새 로그 문장 '+stats.novelSentences+'개':'';
+ return <a key={n} data-log-status={status} aria-label={n+description} title={n+description} href={'#B2-ServiceMap?service='+encodeURIComponent(n)} className="obs-node" data-cause={service===n?'first':undefined} data-selected={n===selected} style={{left:x/6+'%',top:y/height*100+'%'}}>{service===n?'서비스 1위 · ':''}{n.endsWith('service')?<>{n.slice(0,-7)}<wbr/>service</>:n}</a>;})}</div>;
 }
 
 export function ObservationMap({mini=false,embedded=false,result=null}) {
- const d=useDesign();
+ const d=useDesign(),semantics=useLogSemantics();
  const [loadedDiagnosis,setDiagnosis]=useState(null);
  const diagnosis=result||loadedDiagnosis;
  const [focus,setFocus]=useState(()=>mini?'':new URLSearchParams(location.hash.split('?')[1]).get('service')||'');
@@ -129,7 +133,7 @@ export function ObservationMap({mini=false,embedded=false,result=null}) {
  const [first]=leadingCandidates(diagnosis?.candidates);
  if(mini){
 
-  return <section className="panel panel-padded obs-panel obs-map" aria-labelledby="map-h"><header><h2 id="map-h">Service map</h2><a href="#B2-ServiceMap">전체 보기 · {nodes.length}개</a></header><div>{nodes.length?<MapPreview nodes={nodes} edges={edges} candidates={diagnosis?.candidates} selected={d.metricService}/>:<span className="obs-empty">{error||'관측된 서비스 없음'}</span>}</div></section>;
+  return <section className="panel panel-padded obs-panel obs-map" aria-labelledby="map-h"><header><h2 id="map-h">Service map</h2><a href="#B2-ServiceMap">전체 보기 · {nodes.length}개</a></header><div>{nodes.length?<MapPreview nodes={nodes} edges={edges} candidates={diagnosis?.candidates} selected={semantics?.focus||d.metricService} semantics={semantics?.all}/>:<span className="obs-empty">{error||'관측된 서비스 없음'}</span>}</div>{semantics?.all&&<div className="sx-sem-map-key"><span>새 로그 문장</span><span>로그 끊김</span></div>}</section>;
  }
  const decision=pinned?diagnosis?.decision:latest?.decision;
  return <>{!embedded&&<header style={{display:'flex',justifyContent:'space-between',alignItems:'end',flexWrap:'wrap',gap:12}}><div><h1 className="page-title" style={{fontSize:22,margin:0}}>Service map</h1><span className="secondary-text">{d.environment?.name} · 서비스 {nodes.length}개 · 관측 연결 {edges.filter(e=>nodes.includes(e.source)&&nodes.includes(e.target)).length}개</span></div>{!pinned&&<TimePicker/>}</header>}

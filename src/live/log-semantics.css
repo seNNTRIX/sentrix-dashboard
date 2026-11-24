@@ -1,0 +1,31 @@
+.g[data-screen="B1-Overview"] .kpi-strip:has(.semantic-kpi) {grid-template-columns:repeat(4,minmax(0,1fr)) !important}
+.semantic-kpi {display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;padding:16px 20px;background:var(--bg1);color:var(--text);border:0;border-left:1px solid var(--border-weak);font:inherit;text-align:left;cursor:pointer}
+.semantic-kpi[data-novel=true] strong {color:var(--error-text)}
+.semantic-kpi > span:last-child {max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.semantic-kpi:hover {background:var(--bg2)}
+.semantic-kpi > span,.semantic-space small,.semantic-space footer,.sem-legend,.sem-empty {color:var(--text-2);font-size:12px}
+.semantic-kpi > span:first-child {font-size:13px}.semantic-kpi strong {font-size:24px;font-weight:500;line-height:32px;font-variant-numeric:tabular-nums}.semantic-kpi small {margin-left:4px;font-size:14px}
+.semantic-space {min-width:0;scroll-margin-top:76px}.semantic-space:focus:not(:focus-visible){outline:none}
+.semantic-space header,.sem-tools,.sem-legend,.semantic-space footer,.sem-selection,.sem-list h3 {display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px}
+.semantic-space header {justify-content:space-between}.sem-tools {font-size:12px}.sem-tools label {display:inline-flex;align-items:center;gap:6px}.sem-tools select {max-width:190px}
+.sem-body {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}.sem-plot svg {display:block;width:100%;height:200px;border-bottom:1px solid var(--border-weak)}
+.semantic-space[data-expanded=true] .sem-plot svg {height:clamp(220px,38vh,380px)}
+.semantic-space[data-expanded=true] .sem-list ul {max-height:36vh}
+.sem-baseline,.sem-legend i {fill:var(--border);background:var(--border)}
+.sem-current {opacity:.8}
+.sem-novel {stroke:var(--error);stroke-width:2}
+.sem-legend .sem-novel-key i {border:2px solid var(--error);background:transparent;box-sizing:border-box}
+.sem-plot circle[role=button]{cursor:pointer}.sem-plot circle[aria-pressed=true],.sem-plot circle:focus-visible {stroke:var(--text);stroke-width:2}
+.sem-legend {margin-top:8px}.sem-legend i {display:inline-block;margin-right:5px;width:8px;height:8px;border-radius:50%}
+.sem-list {min-width:0}.sem-list h3 {margin:0 0 8px;font:inherit;font-weight:600}.sem-list h3 small {font-weight:400}
+.sem-list ul {list-style:none;padding:0;margin:6px 0;max-height:200px;overflow:auto}
+.sem-list button {display:grid;width:100%;gap:4px;text-align:left;background:transparent;color:var(--text);border:0;border-top:1px solid var(--border-weak);padding:9px 4px;font:inherit;cursor:pointer}
+.sem-list button span {font-size:12px;color:var(--text-2)}.sem-list button[aria-pressed=true],.sem-list button:hover {background:var(--bg2)}
+.sem-list code {white-space:normal;overflow-wrap:anywhere;font-size:12px}
+.sem-selection {font-size:12px}.sem-empty {margin:12px 0}
+.semantic-space footer {border-top:1px solid var(--border-weak);padding-top:10px;justify-content:space-between}
+.obs-mini .obs-node[data-log-status=stopped] {border-style:dashed;border-color:var(--text-2)}
+.obs-mini .obs-node[data-log-status=novel]::after {content:'';position:absolute;right:-3px;top:-3px;width:7px;height:7px;border-radius:50%;background:var(--error);box-shadow:0 0 0 2px var(--bg1)}
+.sx-sem-map-key {color:var(--text-2);font-size:12px;display:flex;gap:12px}.sx-sem-map-key span:first-child::before,.sx-sem-map-key span:nth-child(2)::before {content:'';display:inline-block;width:7px;height:7px;margin-right:4px;border-radius:50%;background:var(--error)}.sx-sem-map-key span:nth-child(2)::before {border:1px dashed var(--text-2);background:none;border-radius:2px}
+@media(max-width:850px){.sem-body{grid-template-columns:1fr}.sem-plot svg{height:165px}.sem-list ul{max-height:165px}}
+@media(max-width:600px){.g[data-screen="B1-Overview"] .kpi-strip:has(.semantic-kpi){grid-template-columns:minmax(0,1fr) !important}.semantic-kpi{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;padding:8px 16px;border-left:none;border-top:1px solid var(--border-weak)}.semantic-kpi strong{font-size:18px}.semantic-kpi > span:last-child{display:none}.sem-tools{gap:8px}.sem-body{gap:12px}}

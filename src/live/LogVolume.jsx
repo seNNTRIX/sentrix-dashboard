@@ -13,7 +13,7 @@ export function LogVolume({hidden={},onToggle}){
    <h2 id="vol-h" className="section-title" style={{margin:0,fontSize:14,fontWeight:500}}>Logs volume</h2>
    <div className="volume-legend">{[...categories].reverse().map(key=><button key={key} type="button" aria-pressed={shown(key)} onClick={()=>onToggle(key==='warning'?'warn':key)}><i style={{background:palette[key]}}/>{key==='unknown'?'미분류':key}</button>)}</div>
   </div>
-  {state.loading?<p role="status">로그 건수 조회 중…</p>:state.error?<p role="alert">{state.error} <button className="ui-button" onClick={d.run}>다시 조회</button></p>:!data?<p className="secondary-text">관측 환경을 선택하세요.</p>:<>
+  {state.shortWindow?<p className="secondary-text">건수 그래프는 1분 이상 조회할 때 표시됩니다.</p>:state.loading?<p role="status">로그 건수 조회 중…</p>:state.error?<p role="alert">{state.error} <button className="ui-button" onClick={d.run}>다시 조회</button></p>:!data?<p className="secondary-text">관측 환경을 선택하세요.</p>:<>
    <div style={{display:'flex',gap:8}}>
     <div aria-hidden="true" style={{display:'flex',flexDirection:'column',justifyContent:'space-between',width:40,height:120,fontSize:12,color:'var(--text-2)',textAlign:'right'}}><span>{scale.toLocaleString()}</span><span>{(scale/2).toLocaleString()}</span><span>0</span></div>
     <svg viewBox="0 0 600 120" preserveAspectRatio="none" role="img" aria-label={`${data.service} 로그 건수, ${time(data.from)}부터 ${time(data.to)}까지. ${missing?'점선 구간은 집계값 없음.':''}`} style={{flex:1,minWidth:0,height:120,display:'block'}}>

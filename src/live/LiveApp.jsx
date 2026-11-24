@@ -1,3 +1,4 @@
+import {LogSemanticProvider} from './LogSemantics.jsx';
 import {WorkspacePage} from './WorkspacePage.jsx';
 import {publicView} from './public-view.js';
 import React,{useEffect,useState} from 'react';
@@ -13,17 +14,20 @@ import './design-binding.css';
 export const connectedRoutes=new Set(['A1-Login','A2-Signup','A3-Reset','B3-Incidents','B4-Incident','B2-ServiceMap','B1-Overview','B5-Service','B6-Trace','B7-Logs','C3-Settings','A4-Onboarding','B8-Model','C1-Notifications','C2-AlertRules','C4-Team','C5-Account','C6-Audit','C7-States']);
 function Connected({route,params,initialTheme}){
  const env=useEnvironment(),{environment}=env;
- const [serviceChoice,setService]=useState(params.get('service')||'frontend'),[search,setSearch]=useState(''),[limit,setLimit]=useState(route==='B6-Trace'?'20':'100');
+ const [serviceChoice,setService]=useState(params.get('service')||'frontend'),[search,setSearch]=useState(()=>route==='B7-Logs'&&!publicView?(params.get('search')||'').replace(/[\u0000-\u001f\u007f]/g,'').slice(0,200):''),[limit,setLimit]=useState(route==='B6-Trace'?'20':'100');
  const [traceFilters,setTraceFilters]=useState({namedRoot:true,minSpanMs:'',errorOnly:false,operation:''});
  const explore=route==='B6-Trace'||route==='B7-Logs';
  const chartRoute=['B1-Overview','B2-ServiceMap','B5-Service'].includes(route);
+ const logEnd=route==='B7-Logs'?Date.parse(params.get('windowEnd')):NaN;
+ const semanticExpanded=route==='B7-Logs'&&params.get('semantic')==='1';
  const [range,setRange]=useState(()=>{
+  if(Number.isFinite(logEnd))return queryRange(logEnd-30000,logEnd);
   const incidentEnd=Date.parse(params.get('at'));
   if(Number.isFinite(incidentEnd))return queryRange(incidentEnd-900000,incidentEnd);
   const now=Date.now(),duration=route==='B3-Incidents'?86400000:explore?3600000:900000;
   return chartRoute?rollingRange(now,duration):queryRange(now-duration,now);
  });
- const [rangeLabel,setRangeLabel]=useState(params.has('at')?'장애 발생 구간':route==='B3-Incidents'?'지난 24시간':explore?'지난 1시간':'지난 15분');
+ const [rangeLabel,setRangeLabel]=useState(Number.isFinite(logEnd)?'선택한 로그 구간':params.has('at')?'장애 발생 구간':route==='B3-Incidents'?'지난 24시간':explore?'지난 1시간':'지난 15분');
  const [revision,setRevision]=useState(0);
  const [volume,setVolume]=useState({});
  const [result,setResult]=useState({loading:true}),[inventory,setInventory]=useState([]),[metrics,setMetrics]=useState({});
@@ -64,7 +68,9 @@ function Connected({route,params,initialTheme}){
   const {stepSeconds,...time}=range;
   if(explore){
    if(!service){setResult({});return ()=>abort.abort();}
-   if(route==='B7-Logs') {
+   if(route==='B7-Logs' && Date.parse(range.to)-Date.parse(range.from)<60000){
+    setVolume({shortWindow:true});
+   }else if(route==='B7-Logs'){
     setVolume({loading:true});
     try {
      const volumeTime=volumeRange(range);
@@ -160,12 +166,12 @@ function Connected({route,params,initialTheme}){
   // Re-read even when a manual refresh falls within the same chart step.
   if(chartRoute && rollingRange(now,duration).to===range.to)run();
  };
- const live={...env,publicView,modelVersion:policy?.modelVersion,settingsTab:params.get('tab'),threshold:policy?.threshold,applicationServices:policy?.applicationServices,overview,chartRefreshError:currentOverview?.refreshError||Object.values(visibleMetrics).find(m=>m.refreshError)?.refreshError,incidentId:params.get("incidentId"),jobId:params.get("jobId"),incidentSnapshot:params.get("snapshot")==="latest"?"latest":"first",route,service,setService,traceFilters,setTraceFilters,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory:visibleInventory,inventoryLoading,inventoryError,serviceNames,metricService,setHomeChoice,metrics:visibleMetrics,traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
+ const live={...env,publicView,semanticExpanded,modelVersion:policy?.modelVersion,settingsTab:params.get('tab'),threshold:policy?.threshold,applicationServices:policy?.applicationServices,overview,chartRefreshError:currentOverview?.refreshError||Object.values(visibleMetrics).find(m=>m.refreshError)?.refreshError,incidentId:params.get("incidentId"),jobId:params.get("jobId"),incidentSnapshot:params.get("snapshot")==="latest"?"latest":"first",route,service,setService,traceFilters,setTraceFilters,search,setSearch,limit,setLimit,range,rangeLabel,changeRange,refresh,run,revision,result,volume,inventory:visibleInventory,inventoryLoading,inventoryError,serviceNames,metricService,setHomeChoice,metrics:visibleMetrics,traceId,setTraceId,selected,chooseTrace,detail,sources,sourceError};
  live.values=view=>designValues(view,live);
  if(exhibition&&!explore&&!policy?.applicationServices)return <p role="status" className="bound-notice">{policy?.error?<>{'전시 서비스 목록을 불러오지 못했습니다. '}<button className="ui-button" onClick={run}>다시 조회</button></>:'전시 서비스 조회 중…'}</p>;
  if(exhibition&&route==='B5-Service'&&linkedService&&!applicationServices.includes(linkedService))return <p className="bound-notice">전시 대상에 없는 서비스입니다. <a href="#B1-Overview">홈으로</a></p>;
  const Screen=screens[route]||WorkspacePage;
- return <DesignContext.Provider value={live}><Screen theme={initialTheme} tab={route==='C3-Settings'?'데이터 소스':undefined} live={live}/></DesignContext.Provider>;
+ return <DesignContext.Provider value={live}><LogSemanticProvider key={String(environment?.id)+":"+publicView} live={live} expanded={semanticExpanded}><Screen theme={initialTheme} tab={route==='C3-Settings'?'데이터 소스':undefined} live={live}/></LogSemanticProvider></DesignContext.Provider>;
 }
 function EnvironmentScreen(props){const {environment,loading}=useEnvironment();if(location.pathname==='/display'&&loading&&!environment)return <p role="status" className="bound-notice">관측 환경 조회 중…</p>;return <Connected key={`${props.route}:${props.params.toString()}:${environment?.id||'none'}`} {...props}/>;}
 export function LiveApp(props){return <EnvironmentProvider><EnvironmentScreen {...props}/></EnvironmentProvider>;}
