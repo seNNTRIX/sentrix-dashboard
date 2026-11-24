@@ -15,17 +15,17 @@ function intervals(rows, from, to) {
 }
 function Shading({bands,x,height}) {
  return bands.filter(({row})=>row.decision==='ANOMALY').map(({row,start,end})=>
-  <rect key={row.jobId} x={x(start)} width={x(end)-x(start)} height={height} className="sx-anomaly-band" fill="var(--shade)"><title>환경 이상 판정 · {windowTime(start)}–{windowTime(end)}</title></rect>);
+  <rect key={row.jobId} x={x(start)} width={x(end)-x(start)} height={height} className="sx-anomaly-band" fill="var(--shade)"><title>{row.label||'환경 이상 판정'} · {windowTime(start)}–{windowTime(end)}</title></rect>);
 }
-function Series({plot,x,y,color,width=1.5}) {
+function Series({plot,x,y,color,width=1.5,step=false,dashed=false}) {
  const xy = point => x(point.t)+' '+y(point.value);
- const line = points => points.map((point,i)=>(i?'L':'M')+xy(point)).join(' ');
+ const line = points => points.map((point,i)=>i&&step?'H'+x(point.t)+'V'+y(point.value):(i?'L':'M')+xy(point)).join(' ');
  const {runs,bridges} = plot;
  const latest = runs.at(-1)?.at(-1);
  return <g fill="none" stroke={color} strokeWidth={width} strokeLinejoin="round" strokeLinecap="round">
-  {bridges.map(([a,b])=><path key={a.t} className="sx-gap-bridge" d={line([a,b])} vectorEffect="non-scaling-stroke">
+  {!step&&bridges.map(([a,b])=><path key={a.t} className="sx-gap-bridge" d={line([a,b])} vectorEffect="non-scaling-stroke">
    <title>{windowTime(a.t)}–{windowTime(b.t)} · 중간 관측값 없음</title></path>)}
-  <path className="sx-observed-line" d={runs.map(line).join(' ')} vectorEffect="non-scaling-stroke"/>
+  <path className="sx-observed-line" strokeDasharray={dashed?'4 4':undefined} d={runs.map(line).join(' ')} vectorEffect="non-scaling-stroke"/>
   {runs.filter(run=>run.length===1 && run[0]!==latest).map(([p])=><circle key={p.t} cx={x(p.t)} cy={y(p.value)} r="1.8" fill={color} stroke="none"/>)}
   {latest&&<circle key={latest.t} className="sx-sample" cx={x(latest.t)} cy={y(latest.value)} r="1.8" fill={color} stroke="none"/>}
  </g>;
@@ -85,11 +85,11 @@ export function MetricPlot({chart,range,rows}){
  const barWidth=Math.min(22,600*range.stepSeconds*1000/(to-from)*.78);
  if(chart.error)return <p role="alert" className="bound-notice">{chart.error}</p>;
  return <svg className="sx-metric" viewBox="0 0 600 120" preserveAspectRatio="none" role="img" aria-label={chart.aria}>
-  {plots.some(p=>p.bridges.length>0)&&<desc>가는 점선은 짧은 결측 전후의 두 관측값을 잇습니다.</desc>}
+  {!chart.step&&plots.some(p=>p.bridges.length>0)&&<desc>가는 점선은 짧은 결측 전후의 두 관측값을 잇습니다.</desc>}
   <Shading bands={intervals(rows,from,to)} x={x} height={120}/>
   <line x2="600" y1="119.5" y2="119.5" stroke="var(--border-weak)" vectorEffect="non-scaling-stroke"/>
   {chart.column?series[0].map((p,i)=>Number.isFinite(p.value)&&<rect key={p.t} className={i===series[0].length-1?'sx-bar':''} x={x(p.t)-barWidth/2} width={barWidth} y={y(p.value)} height={Math.max(0,119-y(p.value))} fill="var(--border)"/>)
-   :plots.map((plot,i)=><Series key={i} plot={plot} x={x} y={y} color={['var(--text)','var(--text-2)','var(--border-strong)'][i]} width={i?1.15:1.5}/>)}
+   :plots.map((plot,i)=><Series key={i} plot={plot} x={x} y={y} color={['var(--text)','var(--text-2)','var(--border-strong)'][i]} width={i?1.15:1.5} step={chart.step} dashed={chart.step&&i>0}/>)}
  </svg>;
 }
 
